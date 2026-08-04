@@ -1,0 +1,18 @@
+[Unit]
+Description=SR6e Character Generator
+After=network.target
+
+[Service]
+Type=simple
+User=chargen
+WorkingDirectory=/opt/sr6e-chargen
+ExecStart=/usr/bin/node server/dist/index.js
+Restart=on-failure
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PORT=3001
+# Generate your own: `openssl rand -base64 48`
+EnvironmentFile=/opt/sr6e-chargen/.env
+
+[Install]
+WantedBy=multi-user.target

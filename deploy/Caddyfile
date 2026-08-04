@@ -1,0 +1,5 @@
+## Replace with your EC2 public DNS name (e.g. ec2-1-2-3-4.compute-1.amazonaws.com)
+## or a real domain pointed at the instance's Elastic IP.
+your-domain-or-ec2-dns-name {
+	reverse_proxy localhost:3001
+}
