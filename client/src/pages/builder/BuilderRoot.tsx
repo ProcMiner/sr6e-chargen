@@ -3,9 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { api, type CharacterSummary } from "../../api";
 import type { CharacterData } from "../../character";
 import { emptyCharacterData } from "../../character";
-import type { PriorityRulesResponse, LifepathRulesResponse } from "../../rules";
+import type { PriorityRulesResponse, LifepathRulesResponse, QualityRulesResponse } from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
+import { QualityPicker } from "./QualityPicker/QualityPicker";
 import { SummarySheet } from "./SummarySheet";
 
 export function BuilderRoot() {
@@ -14,6 +15,7 @@ export function BuilderRoot() {
   const [data, setData] = useState<CharacterData | null>(null);
   const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
   const [lifepathRules, setLifepathRules] = useState<LifepathRulesResponse | null>(null);
+  const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -26,6 +28,7 @@ export function BuilderRoot() {
     });
     api.priorityTables().then(setPriorityRules);
     api.lifepathModules().then(setLifepathRules);
+    api.qualities().then(setQualityRules);
   }, [id]);
 
   async function handleSave() {
@@ -39,7 +42,7 @@ export function BuilderRoot() {
     }
   }
 
-  if (!character || !data || !priorityRules || !lifepathRules) {
+  if (!character || !data || !priorityRules || !lifepathRules || !qualityRules) {
     return (
       <div className="page">
         <p>Loading...</p>
@@ -73,9 +76,16 @@ export function BuilderRoot() {
               onChange={setData}
             />
           )}
+          <QualityPicker
+            rules={qualityRules}
+            metatypeAttributes={priorityRules.metatypeAttributes}
+            skillList={priorityRules.skillList}
+            data={data}
+            onChange={setData}
+          />
         </div>
         <aside className="builder-sidebar">
-          <SummarySheet data={data} />
+          <SummarySheet data={data} qualityRules={qualityRules} metatypeAttributes={priorityRules.metatypeAttributes} />
         </aside>
       </div>
     </div>

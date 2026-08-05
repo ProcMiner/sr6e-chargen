@@ -1,5 +1,18 @@
+import { useState } from "react";
+import { emptyAttributes } from "../../../character";
 import type { CharacterData, LifepathSystemState } from "../../../character";
 import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes } from "../../../rules";
+
+const BASE_ATTR_KEYS = [
+  "body",
+  "agility",
+  "reaction",
+  "strength",
+  "willpower",
+  "logic",
+  "intuition",
+  "charisma",
+] as const;
 
 const AWAKENED_TYPES = [
   "Mundane",
@@ -38,23 +51,11 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
   function applyMetatype(metatype: string) {
     const info = metatypeAttributes.find((m) => m.metatype === metatype);
     if (!info) return;
-    const attrs = { ...data.attributes };
-    for (const key of ["body", "agility", "reaction", "strength", "willpower", "logic", "intuition", "charisma"] as const) {
-      attrs[key] = info[key].max > 6 ? 2 : 1;
-    }
-    attrs.edge = 1;
-    onChange({ ...data, metatype: metatype as CharacterData["metatype"], attributes: attrs });
+    recompute(state, metatype);
   }
 
   function applyAwakenedType(type: string) {
-    const attrs = { ...data.attributes };
-    delete attrs.magic;
-    delete attrs.resonance;
-    if (type === "Emerged") attrs.resonance = 1;
-    else if (type === "Aspected Magician") attrs.magic = 2;
-    else if (["Full Magician", "Mystic Adept", "Adept"].includes(type)) attrs.magic = 1;
-    else if (type === "Mundane") attrs.edge = (attrs.edge ?? 1) + 1;
-    onChange({ ...data, attributes: attrs, systemState: { ...state, awakenedType: type } });
+    recompute({ ...state, awakenedType: type });
   }
 
   // ---- Growing Up ----
@@ -69,25 +70,24 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     else if (growingUpSkills.length < 4) next = [...growingUpSkills, skill];
     else return;
 
-    const skills = { ...data.skills };
-    for (const s of growingUpOptions) {
-      if (s === state.comingOfAgeSkill) continue;
-      if (next.includes(s)) skills[s] = 2;
-      else if (skills[s] === 2) delete skills[s];
-    }
-    onChange({ ...data, skills, systemState: { ...state, growingUpSkills: next } });
+    recompute({ ...state, growingUpSkills: next });
   }
 
   // ---- Coming of Age ----
   function applyComingOfAgeSkill(skill: string) {
-    const skills = { ...data.skills };
-    skills[skill] = growingUpSkills.includes(skill) ? 6 : 4;
-    onChange({ ...data, skills, systemState: { ...state, comingOfAgeSkill: skill } });
+    recompute({ ...state, comingOfAgeSkill: skill });
   }
 
   // ---- Adult modules ----
   const selected = state.selectedModuleIds;
   const canAddMore = selected.length < ADULT_SLOTS;
+
+  const [moduleSearch, setModuleSearch] = useState("");
+  const moduleSearchTerm = moduleSearch.trim().toLowerCase();
+  function matchesModuleSearch(mod: LifeModule) {
+    if (!moduleSearchTerm) return true;
+    return mod.name.toLowerCase().includes(moduleSearchTerm) || mod.summary.toLowerCase().includes(moduleSearchTerm);
+  }
 
   function moduleUsageCount(id: string) {
     return selected.filter((s) => s === id).length;
@@ -106,6 +106,8 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
   }
 
   const allAdult = rules.adultModules;
+  const choiceModules = allAdult.filter((m) => m.category === "choice").filter(matchesModuleSearch);
+  const eventModules = allAdult.filter((m) => m.category === "event").filter(matchesModuleSearch);
 
   // Recompute skills/resources/contactPoints from scratch whenever module
   // selections or their choices change, so it's always consistent instead
@@ -118,9 +120,36 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     recompute({ ...state, choices: { ...state.choices, [key]: value } });
   }
 
-  function recompute(nextState: LifepathSystemState) {
-    const attrs = { ...data.attributes };
-    const skills = { ...data.skills };
+  // Derives the pre-adult-module baseline (metatype attributes, awakened
+  // type's magic/resonance/edge, Growing Up skills, Coming of Age skill)
+  // from scratch every time, so recompute() never has to treat already-
+  // boosted data as its starting point.
+  function computeBaseAttributesAndSkills(nextState: LifepathSystemState, metatype: string | undefined) {
+    const info = metatype ? metatypeAttributes.find((m) => m.metatype === metatype) : undefined;
+    const attrs: CharacterData["attributes"] = { ...emptyAttributes };
+    for (const key of BASE_ATTR_KEYS) {
+      attrs[key] = info && info[key].max > 6 ? 2 : 1;
+    }
+    attrs.edge = 1;
+
+    const type = nextState.awakenedType;
+    if (type === "Emerged") attrs.resonance = 1;
+    else if (type === "Aspected Magician") attrs.magic = 2;
+    else if (type && ["Full Magician", "Mystic Adept", "Adept"].includes(type)) attrs.magic = 1;
+    else if (type === "Mundane") attrs.edge += 1;
+
+    const skills: Record<string, number> = {};
+    const growingUp = nextState.growingUpSkills ?? [];
+    for (const s of growingUp) skills[s] = 2;
+    if (nextState.comingOfAgeSkill) {
+      skills[nextState.comingOfAgeSkill] = growingUp.includes(nextState.comingOfAgeSkill) ? 6 : 4;
+    }
+
+    return { attrs, skills };
+  }
+
+  function recompute(nextState: LifepathSystemState, metatype: string | undefined = data.metatype) {
+    const { attrs, skills } = computeBaseAttributesAndSkills(nextState, metatype);
     let nuyen = 0;
     const knowledge: string[] = [];
 
@@ -155,6 +184,7 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
 
     onChange({
       ...data,
+      metatype: metatype as CharacterData["metatype"],
       attributes: attrs,
       skills,
       nuyen,
@@ -210,7 +240,8 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
           </div>
           <p className="hint">
             Attributes with a racial max above 6 start at 2; everything else starts at 1. Choose 1-2
-            inborn qualities and a native language on the summary sheet manually for now.
+            inborn qualities in the Qualities section below, and a native language on the summary
+            sheet manually for now.
           </p>
         </>
       )}
@@ -264,20 +295,56 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
       {canAddMore && (
         <>
           <h3>Add a module</h3>
-          <div className="module-picker">
-            {allAdult.map((mod) => (
-              <button
-                key={mod.id}
-                className="chip"
-                disabled={moduleUsageCount(mod.id) >= 2}
-                onClick={() => addModule(mod.id)}
-                title={mod.summary}
-              >
-                {mod.name}
-                {mod.restriction ? ` (${mod.restriction})` : ""}
-              </button>
-            ))}
-          </div>
+          <input
+            type="text"
+            className="picker-search"
+            value={moduleSearch}
+            onChange={(e) => setModuleSearch(e.target.value)}
+            placeholder="Search modules by name or description..."
+            aria-label="Search modules"
+          />
+
+          <details className="quality-section" open>
+            <summary>Choices</summary>
+            <div className="module-picker">
+              {choiceModules.map((mod) => (
+                <button
+                  key={mod.id}
+                  className="chip"
+                  disabled={moduleUsageCount(mod.id) >= 2}
+                  onClick={() => addModule(mod.id)}
+                  title={mod.summary}
+                >
+                  {mod.name}
+                  {mod.restriction ? ` (${mod.restriction})` : ""}
+                </button>
+              ))}
+              {moduleSearchTerm && choiceModules.length === 0 && (
+                <p className="hint">No Choices modules match "{moduleSearch}".</p>
+              )}
+            </div>
+          </details>
+
+          <details className="quality-section" open>
+            <summary>Events</summary>
+            <div className="module-picker">
+              {eventModules.map((mod) => (
+                <button
+                  key={mod.id}
+                  className="chip"
+                  disabled={moduleUsageCount(mod.id) >= 2}
+                  onClick={() => addModule(mod.id)}
+                  title={mod.summary}
+                >
+                  {mod.name}
+                  {mod.restriction ? ` (${mod.restriction})` : ""}
+                </button>
+              ))}
+              {moduleSearchTerm && eventModules.length === 0 && (
+                <p className="hint">No Event modules match "{moduleSearch}".</p>
+              )}
+            </div>
+          </details>
         </>
       )}
     </div>
@@ -347,8 +414,8 @@ function ModuleInstance({
       ) : null}
       {module.qualitySlots?.map((q, qi) => (
         <p key={qi} className="hint">
-          May take {q.count} {q.polarity} quality{q.note ? ` - ${q.note}` : ""} (add it on the summary
-          sheet manually).
+          May take {q.count} {q.polarity} quality{q.note ? ` - ${q.note}` : ""} (pick it in the
+          Qualities section below).
         </p>
       ))}
       {module.notes?.map((n, ni) => (

@@ -1,5 +1,7 @@
 import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
+import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
+import type { MetatypeAttributes, QualityRulesResponse } from "../../rules";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -15,9 +17,19 @@ const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["resonance", "Resonance"],
 ];
 
-export function SummarySheet({ data }: { data: CharacterData }) {
+interface Props {
+  data: CharacterData;
+  qualityRules: QualityRulesResponse;
+  metatypeAttributes: MetatypeAttributes[];
+}
+
+export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) {
   const derived = deriveStats(data.attributes);
   const skillEntries = Object.entries(data.skills).filter(([, rank]) => rank > 0);
+  const qualityCatalog = combineQualityCatalog(qualityRules);
+  const racialQualities = data.metatype
+    ? metatypeAttributes.find((m) => m.metatype === data.metatype)?.racialQualities ?? []
+    : [];
 
   return (
     <div className="summary-sheet">
@@ -74,13 +86,24 @@ export function SummarySheet({ data }: { data: CharacterData }) {
         </section>
       )}
 
-      {data.qualities.length > 0 && (
+      {(data.qualities.length > 0 || racialQualities.length > 0) && (
         <section>
           <h3>Qualities</h3>
           <ul>
-            {data.qualities.map((q) => (
-              <li key={q}>{q}</li>
+            {racialQualities.map((q) => (
+              <li key={q}>{q} (racial)</li>
             ))}
+            {data.qualities.map((sel, i) => {
+              const entry = findQualityEntry(sel.id, qualityCatalog);
+              if (!entry) return null;
+              const amount = qualityKarmaAmount(sel, entry);
+              return (
+                <li key={i}>
+                  {qualityDisplayName(sel, qualityCatalog)} ({entry.category === "positive" ? "-" : "+"}
+                  {amount} Karma)
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

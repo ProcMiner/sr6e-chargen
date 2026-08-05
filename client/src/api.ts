@@ -59,4 +59,5 @@ export const api = {
 
   priorityTables: () => request<import("./rules").PriorityRulesResponse>("/rules/priority-tables"),
   lifepathModules: () => request<import("./rules").LifepathRulesResponse>("/rules/lifepath-modules"),
+  qualities: () => request<import("./rules").QualityRulesResponse>("/rules/qualities"),
 };

@@ -91,6 +91,25 @@ export interface LifepathRulesResponse {
   adultModules: LifeModule[];
 }
 
+export interface QualityCatalogEntry {
+  id: string;
+  name: string;
+  category: "positive" | "negative";
+  /** Karma cost (positive quality) or Karma bonus (negative quality); always a positive number, `category` determines the sign. */
+  karma: number;
+  summary: string;
+  effect: string;
+  /** Only for qualities with a purchasable rating (e.g. Built Tough 1-4); karma is per level. */
+  levels?: { min: number; max: number };
+  /** Only for qualities that need the player to specify a target (e.g. Aptitude (Skill)). */
+  requiresParam?: "skill" | "attribute" | "custom";
+}
+
+export interface QualityRulesResponse {
+  positiveQualities: QualityCatalogEntry[];
+  negativeQualities: QualityCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

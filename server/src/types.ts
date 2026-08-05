@@ -38,12 +38,20 @@ export interface DerivedStats {
   initiativeDice: number;
 }
 
+export interface SelectedQuality {
+  id: string;
+  /** Chosen level, for catalog entries with a `levels` range (e.g. Built Tough). */
+  rating?: number;
+  /** Chosen skill/attribute/custom target, for catalog entries with `requiresParam`. */
+  param?: string;
+}
+
 export interface CharacterData {
   metatype: string;
   attributes: Attributes;
   skills: Record<string, number>;
   knowledgeSkills: string[];
-  qualities: string[];
+  qualities: SelectedQuality[];
   contacts: { name: string; connection: number; loyalty: number }[];
   gear: { name: string; qty: number; notes?: string }[];
   nuyen: number;

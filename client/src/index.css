@@ -172,7 +172,8 @@ a {
 
 .builder-main section,
 .priority-builder section,
-.lifepath-builder {
+.lifepath-builder,
+.quality-picker {
   margin-bottom: 1.5rem;
 }
 
@@ -266,6 +267,33 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.picker-search {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.quality-section {
+  margin: 0.75rem 0;
+}
+
+.quality-section > summary {
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.25rem 0;
+  list-style-position: outside;
+}
+
+.quality-section > summary:hover {
+  color: var(--accent-hover);
+}
+
+.quality-section > .module-picker {
+  margin-top: 0.5rem;
 }
 
 .inline-field {
