@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import { Login } from "./pages/Login";
 import { CharacterList } from "./pages/CharacterList";
 import { BuilderRoot } from "./pages/builder/BuilderRoot";
+import { LivePlay } from "./pages/play/LivePlay";
+import { GmDashboard } from "./pages/play/GmDashboard";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -29,6 +31,22 @@ function AppRoutes() {
         element={
           <RequireAuth>
             <BuilderRoot />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/characters/:id/live"
+        element={
+          <RequireAuth>
+            <LivePlay />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/play"
+        element={
+          <RequireAuth>
+            <GmDashboard />
           </RequireAuth>
         }
       />

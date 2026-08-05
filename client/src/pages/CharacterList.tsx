@@ -40,6 +40,7 @@ export function CharacterList() {
       <header className="page-header">
         <h1>Your Characters</h1>
         <div className="header-actions">
+          <Link to="/play">GM Dashboard</Link>
           <span>{user?.username}</span>
           <button onClick={() => logout()}>Log out</button>
         </div>
@@ -71,6 +72,7 @@ export function CharacterList() {
               <strong>{c.name}</strong>
               <span className="system-tag">{c.system === "priority" ? "Priority" : "Life Path"}</span>
             </Link>
+            <Link to={`/characters/${c.id}/live`}>Live Play</Link>
             <button className="danger" onClick={() => handleDelete(c.id)}>
               Delete
             </button>

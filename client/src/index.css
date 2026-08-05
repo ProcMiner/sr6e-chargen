@@ -365,3 +365,26 @@ a {
   color: #ff8a80;
   font-size: 0.8rem;
 }
+
+.damage-bar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 0.75rem;
+  overflow: hidden;
+  margin: 0.4rem 0;
+}
+
+.damage-bar-fill {
+  background: var(--accent);
+  height: 100%;
+}
+
+.danger-text {
+  color: #ff8a80;
+}
+
+.gm-character-card {
+  min-width: 240px;
+  flex: 1 1 240px;
+}

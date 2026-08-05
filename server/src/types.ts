@@ -46,6 +46,35 @@ export interface SelectedQuality {
   param?: string;
 }
 
+export interface StatusEffect {
+  id: string;
+  name: string;
+  roundsRemaining?: number;
+  notes?: string;
+}
+
+export interface CharacterPlayStateRow {
+  character_id: number;
+  physical_damage: number;
+  stun_damage: number;
+  edge_available: number;
+  status_effects: string;
+  updated_at: string;
+}
+
+export interface PlaySessionRow {
+  id: number;
+  gm_user_id: number;
+  name: string;
+  join_code: string;
+  created_at: string;
+}
+
+export interface SessionCharacterRow {
+  session_id: number;
+  character_id: number;
+}
+
 export interface CharacterData {
   metatype: string;
   attributes: Attributes;

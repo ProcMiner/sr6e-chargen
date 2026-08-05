@@ -1,4 +1,5 @@
 import type { CharacterData } from "./character";
+import type { PlayState, PlaySessionSummary, SessionDetail } from "./playState";
 
 export class ApiError extends Error {
   status: number;
@@ -57,8 +58,26 @@ export const api = {
     request<CharacterSummary>(`/characters/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
   deleteCharacter: (id: number) => request<void>(`/characters/${id}`, { method: "DELETE" }),
 
+  getPlayState: (id: number) => request<PlayState>(`/characters/${id}/play-state`),
+  updatePlayState: (id: number, patch: Partial<PlayState>) =>
+    request<PlayState>(`/characters/${id}/play-state`, { method: "PUT", body: JSON.stringify(patch) }),
+  getCharacterSessions: (id: number) => request<PlaySessionSummary[]>(`/characters/${id}/sessions`),
+
   priorityTables: () => request<import("./rules").PriorityRulesResponse>("/rules/priority-tables"),
   lifepathModules: () => request<import("./rules").LifepathRulesResponse>("/rules/lifepath-modules"),
   qualities: () => request<import("./rules").QualityRulesResponse>("/rules/qualities"),
   gear: () => request<import("./rules").GearRulesResponse>("/rules/gear"),
+
+  createSession: (name: string) =>
+    request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),
+  listSessions: () => request<PlaySessionSummary[]>("/play/sessions"),
+  getSession: (id: number) => request<SessionDetail>(`/play/sessions/${id}`),
+  deleteSession: (id: number) => request<void>(`/play/sessions/${id}`, { method: "DELETE" }),
+  joinSession: (joinCode: string, characterId: number) =>
+    request<PlaySessionSummary>("/play/sessions/join", {
+      method: "POST",
+      body: JSON.stringify({ joinCode, characterId }),
+    }),
+  leaveSession: (sessionId: number, characterId: number) =>
+    request<void>(`/play/sessions/${sessionId}/leave`, { method: "POST", body: JSON.stringify({ characterId }) }),
 };
