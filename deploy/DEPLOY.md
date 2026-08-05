@@ -1,24 +1,32 @@
-# Deploying to AWS (EC2 + Caddy)
+# Deploying to AWS Lightsail (Caddy)
 
-Single EC2 instance running the Node app as a systemd service, with Caddy in
-front doing automatic HTTPS (Let's Encrypt). No Terraform/IaC here — it's one
-box that doesn't change shape, so scripting it by hand is simpler than
-maintaining IaC for it.
+Single Lightsail instance running the Node app as a systemd service, with
+Caddy in front doing automatic HTTPS (Let's Encrypt). No Terraform/IaC here
+— it's one box that doesn't change shape, so scripting it by hand is simpler
+than maintaining IaC for it. (Lightsail is EC2 under the hood, just with
+flat pricing and a simpler console - everything from step 2 onward is
+identical to a plain EC2 Ubuntu box.)
 
 ## 1. Launch the instance
 
-- AMI: Ubuntu 24.04 LTS (or whatever current LTS is available)
-- Size: t3.micro is plenty for a handful of friends
-- Security group:
-  - Port 22 (SSH) - restrict to your IP
-  - Port 80 (HTTP) - open (needed for the Let's Encrypt challenge)
-  - Port 443 (HTTPS) - open
-- Allocate an Elastic IP and associate it with the instance, so the address
-  doesn't change on reboot.
-- If you want a real domain instead of the EC2 public DNS name, point an A
-  record at the Elastic IP (Route 53 or wherever your domain is registered).
-  The bare EC2 public DNS name (`ec2-x-x-x-x.compute-1.amazonaws.com`) also
-  works fine with Caddy/Let's Encrypt if you'd rather skip that.
+- Lightsail console → Create instance → platform "Linux/Unix" → blueprint
+  "OS Only" → Ubuntu 24.04 LTS (or whatever current LTS is available)
+- Plan: the $7/mo tier (1 GB RAM / 2 vCPU / 40 GB SSD) is a comfortable fit
+  for a handful of friends. The $5/mo tier (512 MB RAM) would probably work
+  too but leaves little headroom for `npm run build`; go with $7 unless the
+  cost difference matters.
+- Networking tab → attach a static IP to the instance (free as long as it
+  stays attached to a running instance), so the address doesn't change on
+  reboot.
+- Networking tab → firewall rules: confirm SSH (22), HTTP (80), and HTTPS
+  (443) are open. Lightsail's default Linux firewall already includes these
+  three; restrict SSH to your IP if you want to tighten it further.
+- Unlike EC2, Lightsail doesn't hand you a ready-made public DNS hostname
+  (no `ec2-x-x-x-x.compute-1.amazonaws.com` equivalent) - Let's Encrypt
+  needs a real domain name, not a bare IP. Point an A record at the static
+  IP using either Route 53 (or wherever your domain is registered) or
+  Lightsail's own free "Domains & DNS" zone if you'd rather keep it in one
+  console.
 
 ## 2. Install Node and Caddy
 
@@ -71,8 +79,8 @@ Logs: `sudo journalctl -u chargen -f`
 
 ## 5. Caddy (HTTPS reverse proxy)
 
-Edit `deploy/Caddyfile`, replacing the placeholder with your EC2 public DNS
-name or real domain, then:
+Edit `deploy/Caddyfile`, replacing the placeholder with your domain name,
+then:
 
 ```bash
 sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
@@ -85,8 +93,8 @@ handling needed.
 
 ## 6. Verify
 
-Visit `https://<your-domain-or-ec2-dns>/` from another machine - you should
-see the login page over a valid HTTPS connection.
+Visit `https://<your-domain>/` from another machine - you should see the
+login page over a valid HTTPS connection.
 
 ## Updating after code changes
 

@@ -10,7 +10,7 @@ their characters saved between sessions.
 - `server/` - Express + TypeScript, `better-sqlite3` for storage, cookie
   sessions (custom SQLite-backed session store).
 - `client/` - React + Vite + TypeScript.
-- `deploy/` - EC2 + Caddy deployment docs (see `deploy/DEPLOY.md`).
+- `deploy/` - Lightsail + Caddy deployment docs (see `deploy/DEPLOY.md`).
 
 ## Running locally
 
@@ -30,7 +30,8 @@ npm start       # runs the Express server, which also serves client/dist
 ```
 
 In production the Express server serves the built client directly, so only
-one process/port is needed - see `deploy/DEPLOY.md` for the full EC2 setup.
+one process/port is needed - see `deploy/DEPLOY.md` for the full Lightsail
+setup.
 
 ## Rules data
 
@@ -135,7 +136,7 @@ alongside standard Priority System chargen for:
 ## Ops
 
 - Not urgent, but worth doing sooner rather than later: actually stand up
-  the EC2 instance per `deploy/DEPLOY.md` (the guide is written, nothing's
-  deployed yet) so the friend group can use the app over HTTPS and help
-  surface real-usage bugs while the deferred features above are still
+  the Lightsail instance per `deploy/DEPLOY.md` (the guide is written,
+  nothing's deployed yet) so the friend group can use the app over HTTPS and
+  help surface real-usage bugs while the deferred features above are still
   being built.
