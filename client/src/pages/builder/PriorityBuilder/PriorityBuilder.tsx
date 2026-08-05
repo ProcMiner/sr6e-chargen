@@ -10,7 +10,10 @@ const CATEGORIES = [
   ["resources", "Resources"],
 ] as const;
 
-const ATTRIBUTE_KEYS = [
+// Edge is deliberately excluded here: per the core rulebook (p. 63), Edge
+// is funded entirely by Metatype Adjustment Points, not the Attributes
+// priority's point pool.
+const CORE_ATTRIBUTE_KEYS = [
   "body",
   "agility",
   "reaction",
@@ -19,7 +22,6 @@ const ATTRIBUTE_KEYS = [
   "logic",
   "intuition",
   "charisma",
-  "edge",
 ] as const;
 
 interface Props {
@@ -56,12 +58,49 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
     ? rules.metatypeAttributes.find((m) => m.metatype === data.metatype)
     : undefined;
 
-  const attributePointsSpent = ATTRIBUTE_KEYS.reduce((sum, key) => sum + (data.attributes[key] - 1), 0);
+  // Normal attribute points can only raise a core attribute up to 6, even
+  // if the metatype's max is higher - anything above 6 ("special racial
+  // attributes" per p. 63) draws from Adjustment Points instead.
+  function normalCap(key: (typeof CORE_ATTRIBUTE_KEYS)[number]) {
+    return metatypeInfo ? Math.min(6, metatypeInfo[key].max) : 6;
+  }
+
+  const attributePointsSpent = CORE_ATTRIBUTE_KEYS.reduce(
+    (sum, key) => sum + (Math.min(data.attributes[key], normalCap(key)) - 1),
+    0
+  );
   const attributePointsTotal = attributeRow?.attributePoints ?? 0;
   const attributePointsRemaining = attributePointsTotal - attributePointsSpent;
 
   const skillPointsSpent = Object.values(data.skills).reduce((sum, v) => sum + v, 0);
   const skillPointsRemaining = (skillRow?.skillPoints ?? 0) - skillPointsSpent;
+
+  // Adjustment Points (from the Metatype priority) fund three things:
+  // Edge, pushing a "special racial attribute" above 6, and boosting
+  // Magic/Resonance above its base rating - up to a hard cap of 6 (p. 65).
+  const adjustmentPointsTotal = metatypeRow?.metatype.find((m) => m.metatype === data.metatype)?.adjustmentPoints ?? 0;
+
+  const edgeSpent = (data.attributes.edge ?? 1) - 1;
+
+  const racialOverflowSpent = metatypeInfo
+    ? CORE_ATTRIBUTE_KEYS.reduce((sum, key) => sum + Math.max(0, data.attributes[key] - 6), 0)
+    : 0;
+
+  const selectedMagicOption = state.magicOption
+    ? magicRow?.magic.find((m) => m.option === state.magicOption)
+    : undefined;
+  const magicBaseRating = selectedMagicOption?.rating ?? 0;
+  const magicIsResonance = selectedMagicOption?.option === "Technomancer";
+  const currentMagicOrResonance = magicIsResonance
+    ? (data.attributes.resonance ?? 0)
+    : (data.attributes.magic ?? 0);
+  const magicBoostSpent =
+    selectedMagicOption && selectedMagicOption.option !== "Mundane"
+      ? Math.max(0, currentMagicOrResonance - magicBaseRating)
+      : 0;
+
+  const adjustmentPointsSpent = edgeSpent + racialOverflowSpent + magicBoostSpent;
+  const adjustmentPointsRemaining = adjustmentPointsTotal - adjustmentPointsSpent;
 
   return (
     <div className="priority-builder">
@@ -123,9 +162,13 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
           <h3>
             Attributes ({attributePointsRemaining} / {attributePointsTotal} points remaining)
           </h3>
+          <p className="hint">
+            Values above 6 are "special racial attributes" and are paid for from Adjustment Points
+            (below), not from these points.
+          </p>
           <div className="attribute-editor">
-            {ATTRIBUTE_KEYS.map((key) => {
-              const range = key === "edge" ? metatypeInfo.edge : metatypeInfo[key];
+            {CORE_ATTRIBUTE_KEYS.map((key) => {
+              const range = metatypeInfo[key];
               const value = data.attributes[key];
               return (
                 <label key={key}>
@@ -138,9 +181,10 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                     onChange={(e) => {
                       const next = Number(e.target.value);
                       if (Number.isNaN(next)) return;
+                      const clamped = Math.min(range.max, Math.max(range.min, next));
                       onChange({
                         ...data,
-                        attributes: { ...data.attributes, [key]: next },
+                        attributes: { ...data.attributes, [key]: clamped },
                       });
                     }}
                   />
@@ -171,7 +215,8 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                   onChange={(e) => {
                     const next = Number(e.target.value);
                     if (Number.isNaN(next)) return;
-                    onChange({ ...data, skills: { ...data.skills, [skill]: next } });
+                    const clamped = Math.min(6, Math.max(0, next));
+                    onChange({ ...data, skills: { ...data.skills, [skill]: clamped } });
                   }}
                 />
               </label>
@@ -205,6 +250,62 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                 {m.rating ? ` (${m.rating})` : ""}
               </button>
             ))}
+          </div>
+        </section>
+      )}
+
+      {metatypeRow && metatypeInfo && (
+        <section>
+          <h3>
+            Adjustment Points ({adjustmentPointsRemaining} / {adjustmentPointsTotal} points remaining)
+          </h3>
+          <p className="hint">
+            Spent on Edge, on pushing a special racial attribute (above) past 6, and on boosting
+            Magic/Resonance above its base rating (up to 6).
+          </p>
+          <div className="attribute-editor">
+            <label>
+              edge
+              <input
+                type="number"
+                min={metatypeInfo.edge.min}
+                max={metatypeInfo.edge.max}
+                value={data.attributes.edge}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  if (Number.isNaN(next)) return;
+                  const clamped = Math.min(metatypeInfo.edge.max, Math.max(metatypeInfo.edge.min, next));
+                  onChange({ ...data, attributes: { ...data.attributes, edge: clamped } });
+                }}
+              />
+              <span className="range-hint">
+                {metatypeInfo.edge.min}-{metatypeInfo.edge.max}
+              </span>
+            </label>
+            {selectedMagicOption && selectedMagicOption.option !== "Mundane" && (
+              <label>
+                {magicIsResonance ? "resonance" : "magic"}
+                <input
+                  type="number"
+                  min={magicBaseRating}
+                  max={6}
+                  value={currentMagicOrResonance}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    if (Number.isNaN(next)) return;
+                    const clamped = Math.min(6, Math.max(magicBaseRating, next));
+                    onChange({
+                      ...data,
+                      attributes: {
+                        ...data.attributes,
+                        [magicIsResonance ? "resonance" : "magic"]: clamped,
+                      },
+                    });
+                  }}
+                />
+                <span className="range-hint">{magicBaseRating}-6</span>
+              </label>
+            )}
           </div>
         </section>
       )}

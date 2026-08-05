@@ -34,6 +34,15 @@ export interface LifepathSystemState {
   growingUpSkills?: string[];
   /** The skill chosen (rank 4, or 6 if also a Growing Up pick) from Coming of Age. */
   comingOfAgeSkill?: string;
+  /** The attribute chosen as "best" from Coming of Age; gains +5 (never Edge/Magic/Resonance). */
+  comingOfAgeBestAttribute?: string;
+  /**
+   * Only used when comingOfAgeBestAttribute's metatype max is 5: since a
+   * base-1 attribute can't take the full +5 without exceeding that cap,
+   * the attribute is instead set to 5 and the player redirects the
+   * leftover +1 to a different attribute of their choice.
+   */
+  comingOfAgeRedirectAttribute?: string;
 }
 
 export interface SelectedQuality {

@@ -359,3 +359,8 @@ a {
   color: var(--text-dim);
   font-size: 0.8rem;
 }
+
+.save-error {
+  color: #ff8a80;
+  font-size: 0.8rem;
+}

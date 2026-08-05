@@ -78,6 +78,14 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     recompute({ ...state, comingOfAgeSkill: skill });
   }
 
+  function applyComingOfAgeBestAttribute(attribute: string) {
+    recompute({ ...state, comingOfAgeBestAttribute: attribute || undefined, comingOfAgeRedirectAttribute: undefined });
+  }
+
+  function applyComingOfAgeRedirectAttribute(attribute: string) {
+    recompute({ ...state, comingOfAgeRedirectAttribute: attribute || undefined });
+  }
+
   // ---- Adult modules ----
   const selected = state.selectedModuleIds;
   const canAddMore = selected.length < ADULT_SLOTS;
@@ -145,12 +153,29 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
       skills[nextState.comingOfAgeSkill] = growingUp.includes(nextState.comingOfAgeSkill) ? 6 : 4;
     }
 
+    // Coming of Age: "best attribute" gains +5, except metatypes that cap
+    // it at 5 - there it's set to 5 instead, and the leftover +1 (which
+    // couldn't apply without exceeding that cap) goes to another
+    // attribute of the player's choice.
+    const best = nextState.comingOfAgeBestAttribute as (typeof BASE_ATTR_KEYS)[number] | undefined;
+    if (best && info) {
+      if (info[best].max === 5) {
+        attrs[best] = 5;
+        const redirect = nextState.comingOfAgeRedirectAttribute as (typeof BASE_ATTR_KEYS)[number] | undefined;
+        if (redirect && redirect !== best) attrs[redirect] += 1;
+      } else {
+        attrs[best] += 5;
+      }
+    }
+
     return { attrs, skills };
   }
 
   function recompute(nextState: LifepathSystemState, metatype: string | undefined = data.metatype) {
     const { attrs, skills } = computeBaseAttributesAndSkills(nextState, metatype);
-    let nuyen = 0;
+    // Coming of Age grants +25,000 nuyen; gated on the skill pick since
+    // that's this module's primary "have I done this yet" signal.
+    let nuyen = nextState.comingOfAgeSkill ? 25_000 : 0;
     const knowledge: string[] = [];
 
     const occurrences: Record<string, number> = {};
@@ -169,7 +194,13 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
           const choiceKey = `${key}:boost:${bi}:${p}`;
           const chosen = nextState.choices[choiceKey] ?? (boost.from.length === 1 ? boost.from[0] : undefined);
           if (!chosen) continue;
-          applyBoost(attrs, skills, chosen, boost.amount);
+          // A handful of modules offer a flat +25,000 nuyen as an
+          // alternative to one of their attribute/skill choices.
+          if (chosen === "nuyen") {
+            nuyen += 25_000;
+          } else {
+            applyBoost(attrs, skills, chosen, boost.amount);
+          }
         }
       });
 
@@ -203,7 +234,14 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     const attrsRecord = attrs as unknown as Record<string, number>;
     if (attrKeys.includes(key)) {
       attrsRecord[key] = (attrsRecord[key] ?? 0) + amount;
-    } else if (key === "any" || key === "any-attribute" || key === "any-special-attribute") {
+    } else if (
+      key === "any" ||
+      key === "any-attribute" ||
+      key === "any-special-attribute" ||
+      key === "any-mental-attribute" ||
+      key === "any-physical-attribute" ||
+      key === "any-skill-or-attribute"
+    ) {
       // left for the player to resolve manually via the sidebar until a
       // concrete target is picked - no-op here.
     } else {
@@ -270,6 +308,44 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
           </option>
         ))}
       </select>
+
+      <p className="hint">Choose your best attribute (not Edge, Magic, or Resonance) - it gains +5.</p>
+      <select
+        value={state.comingOfAgeBestAttribute ?? ""}
+        onChange={(e) => applyComingOfAgeBestAttribute(e.target.value)}
+      >
+        <option value="">-</option>
+        {BASE_ATTR_KEYS.map((a) => (
+          <option key={a} value={a}>
+            {a}
+          </option>
+        ))}
+      </select>
+      {state.comingOfAgeBestAttribute && metatypeInfo && metatypeInfo[state.comingOfAgeBestAttribute as (typeof BASE_ATTR_KEYS)[number]].max === 5 && (
+        <>
+          <p className="hint">
+            Your metatype caps {state.comingOfAgeBestAttribute} at 5, so it's set to 5 instead of +5 -
+            redirect the leftover +1 to another attribute.
+          </p>
+          <select
+            value={state.comingOfAgeRedirectAttribute ?? ""}
+            onChange={(e) => applyComingOfAgeRedirectAttribute(e.target.value)}
+          >
+            <option value="">-</option>
+            {BASE_ATTR_KEYS.filter((a) => a !== state.comingOfAgeBestAttribute).map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+      <p className="hint">
+        Also grants 1-2 qualities (pick them in the Qualities section below), +25,000 nuyen (added once
+        you pick a skill above), and one contact of any type with 4 points split between Connection and
+        Loyalty - contact purchasing isn't built yet, so track that contact manually on the summary sheet
+        for now.
+      </p>
 
       <h2>
         Adult Life Modules ({selected.length} / {ADULT_SLOTS})

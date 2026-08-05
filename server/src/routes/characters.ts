@@ -8,6 +8,53 @@ export const charactersRouter = Router();
 
 charactersRouter.use(requireAuth);
 
+// Coarse sanity bounds, not per-metatype precision (the client already
+// clamps to the selected metatype's exact range) - this just catches
+// obviously-invalid payloads (e.g. a Body of 20) regardless of how they
+// were sent, since the client's clamping can't be trusted as the only
+// line of defense. Bounds are a little more generous than any single
+// metatype's actual max (Troll tops out at Body/Strength 9, Human at Edge
+// 7) so legitimate characters are never rejected.
+const CORE_ATTR_KEYS = [
+  "body",
+  "agility",
+  "reaction",
+  "strength",
+  "willpower",
+  "logic",
+  "intuition",
+  "charisma",
+] as const;
+
+function isFiniteInRange(value: unknown, min: number, max: number): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function isValidCharacterData(data: unknown): boolean {
+  if (data === null || typeof data !== "object") return true;
+  const d = data as Record<string, unknown>;
+
+  if (d.attributes && typeof d.attributes === "object") {
+    const attrs = d.attributes as Record<string, unknown>;
+    for (const key of CORE_ATTR_KEYS) {
+      if (key in attrs && !isFiniteInRange(attrs[key], 1, 10)) return false;
+    }
+    if ("edge" in attrs && !isFiniteInRange(attrs.edge, 1, 8)) return false;
+    if ("magic" in attrs && attrs.magic !== undefined && !isFiniteInRange(attrs.magic, 0, 8)) return false;
+    if ("resonance" in attrs && attrs.resonance !== undefined && !isFiniteInRange(attrs.resonance, 0, 8)) {
+      return false;
+    }
+  }
+
+  if (d.skills && typeof d.skills === "object") {
+    for (const value of Object.values(d.skills as Record<string, unknown>)) {
+      if (!isFiniteInRange(value, 0, 6)) return false;
+    }
+  }
+
+  return true;
+}
+
 function toClient(row: CharacterRow) {
   return {
     id: row.id,
@@ -42,6 +89,9 @@ charactersRouter.post("/", (req: Request, res: Response) => {
   if (system !== "priority" && system !== "lifepath") {
     return res.status(400).json({ error: "system must be 'priority' or 'lifepath'" });
   }
+  if (!isValidCharacterData(data)) {
+    return res.status(400).json({ error: "attributes/skills values out of allowed range" });
+  }
 
   const info = db
     .prepare("INSERT INTO characters (user_id, name, system, data) VALUES (?, ?, ?, ?)")
@@ -60,6 +110,9 @@ charactersRouter.put("/:id", (req: Request, res: Response) => {
   if (!existing) return res.status(404).json({ error: "not found" });
 
   const { name, data } = req.body ?? {};
+  if (data !== undefined && !isValidCharacterData(data)) {
+    return res.status(400).json({ error: "attributes/skills values out of allowed range" });
+  }
   const nextName = typeof name === "string" && name.trim() ? name.trim() : existing.name;
   const nextData = data !== undefined ? JSON.stringify(data) : existing.data;
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CharacterSummary } from "../../api";
+import { api, ApiError, type CharacterSummary } from "../../api";
 import type { CharacterData } from "../../character";
 import { emptyCharacterData } from "../../character";
 import type { PriorityRulesResponse, LifepathRulesResponse, QualityRulesResponse } from "../../rules";
@@ -18,6 +18,7 @@ export function BuilderRoot() {
   const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -34,9 +35,12 @@ export function BuilderRoot() {
   async function handleSave() {
     if (!character || !data) return;
     setSaving(true);
+    setSaveError(null);
     try {
       await api.updateCharacter(character.id, { data });
       setLastSaved(new Date());
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : "Failed to save - please try again.");
     } finally {
       setSaving(false);
     }
@@ -59,7 +63,10 @@ export function BuilderRoot() {
           <button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save"}
           </button>
-          {lastSaved && <span className="saved-at">Saved {lastSaved.toLocaleTimeString()}</span>}
+          {saveError && <span className="save-error">{saveError}</span>}
+          {!saveError && lastSaved && (
+            <span className="saved-at">Saved {lastSaved.toLocaleTimeString()}</span>
+          )}
         </div>
       </header>
 
