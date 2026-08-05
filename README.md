@@ -72,11 +72,19 @@ rulebook and sourcebook PDFs already on disk one directory up.
   **General/survival/security gear** chunk complete: Security and
   Restraints, Breaking and Entering Gear, Industrial Chemicals, Survival
   Gear, Grapple Gun & Rope, and Biotech incl. Slap Patches/DocWagon
-  Contracts (`generalGear.ts`, core rulebook pp. 278-282). Two pricing gaps
+  Contracts (`generalGear.ts`, core rulebook pp. 278-282). One pricing gap
   flagged in its header: Tranq Patch's quadratic (Rating x Rating x 10¥)
   cost formula doesn't fit the flat per-level model (only its Rating 1 price
-  is catalogued), and the priced Sensors table it cross-references (p. 276)
-  wasn't located within this chunk's range.
+  is catalogued). Its other flagged gap - a priced Sensors table it
+  cross-references - turned out to live in the Electronics chunk below, not
+  missing after all.
+  **Electronics & software** chunk complete: Commlinks, Cyberdecks,
+  Accessories, RFID Tags, Communications & Countermeasures, Software, ID &
+  Credit, Tools, Optical & Imaging Devices, Visual Enhancements, Auditory
+  Devices, Audio Enhancements, and Sensors (`electronics.ts`, core rulebook
+  pp. 267-277) - substantially bigger than the roadmap's original "pp.
+  267-273" estimate, since the optics/audio/sensor sections (pp. 274-277)
+  weren't named in that scoping at all.
 
 No chargen-core work is currently in progress - pick from the deferred
 list below.
@@ -134,15 +142,20 @@ and `GearCatalogEntry` for the shared shape/conventions).
    Breaking and Entering Gear, Industrial Chemicals, Survival Gear, Grapple
    Gun & Rope, Biotech incl. Slap Patches/DocWagon Contracts; core rulebook
    pp. 278-282, corrected from the original "278-281" estimate - Biotech
-   runs one page longer than first thought). Companion's Sensor PACKs,
-   Identity PACKs, and Surveillance Kit PACK still don't have a home - the
-   priced core-rulebook Sensors table (p. 276) wasn't located in this
-   chunk's range; Identity PACKs likely maps to the Fake SIN/Fake License
-   entries actually transcribed under chunk 4 below (ID and Credit, pp.
-   272-273), not this chunk - worth double-checking when chunk 4 lands.
-4. Electronics & software base gear - core rulebook pp. 267-273 (Commlinks,
-   Cyberdecks, Accessories, RFID Tags, Communications and Countermeasures,
-   Software, ID and Credit, Tools); Companion's Cyberprogram Everything PACK
+   runs one page longer than first thought). Companion's Identity PACKs maps
+   onto the Fake SIN/Fake License entries in chunk 4 (ID and Credit), not
+   this chunk. Companion's Surveillance Kit PACK still doesn't have an
+   obvious home.
+4. ~~Electronics & software base gear~~ - done (Commlinks, Cyberdecks,
+   Accessories, RFID Tags, Communications & Countermeasures, Software, ID &
+   Credit, Tools, Optical & Imaging Devices, Visual Enhancements, Auditory
+   Devices, Audio Enhancements, Sensors; core rulebook pp. 267-277,
+   substantially bigger than the original "267-273" estimate - the
+   optics/audio/sensor sections weren't named in that scoping at all).
+   Companion's Sensor PACKs maps onto the Sensors section here (housings,
+   arrays, single sensors) - the "priced Sensors table" chunk 3 couldn't
+   locate turned out to live in this chunk, not missing. Companion's
+   Cyberprogram Everything PACK maps onto the Software section here.
 5. Augmentations (cyberware/bioware) - core rulebook pp. 282-293;
    Companion's Hacker/Cybereyes/Cyberears/Skill Rig/Torso Augmentation
    PACKs. **Flagged**: the app has no Essence attribute/tracking today, so
