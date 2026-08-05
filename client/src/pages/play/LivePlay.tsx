@@ -28,6 +28,7 @@ export function LivePlay() {
   const [joining, setJoining] = useState(false);
   const [saving, setSaving] = useState(false);
   const saveTimeout = useRef<number | null>(null);
+  const pendingSave = useRef<PlayState | null>(null);
 
   const [effectName, setEffectName] = useState("");
   const [effectRounds, setEffectRounds] = useState("");
@@ -69,12 +70,21 @@ export function LivePlay() {
 
   useEffect(() => {
     return () => {
-      if (saveTimeout.current) window.clearTimeout(saveTimeout.current);
+      // Flush rather than drop: a pending debounced save must still reach
+      // the server even if the player navigates away before it fires,
+      // otherwise their last change silently reverts for everyone watching
+      // (including the GM dashboard).
+      if (saveTimeout.current === null || pendingSave.current === null || !id) return;
+      window.clearTimeout(saveTimeout.current);
+      api.updatePlayState(Number(id), pendingSave.current);
+      saveTimeout.current = null;
+      pendingSave.current = null;
     };
-  }, []);
+  }, [id]);
 
   function scheduleSave(next: PlayState) {
     setPlayState(next);
+    pendingSave.current = next;
     if (saveTimeout.current) window.clearTimeout(saveTimeout.current);
     saveTimeout.current = window.setTimeout(() => {
       if (!id) return;
@@ -82,6 +92,8 @@ export function LivePlay() {
       api
         .updatePlayState(Number(id), next)
         .finally(() => setSaving(false));
+      saveTimeout.current = null;
+      pendingSave.current = null;
     }, SAVE_DEBOUNCE_MS);
   }
 
