@@ -14,6 +14,10 @@ import { SqliteSessionStore } from "./sessionStore.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3001);
 const isProd = process.env.NODE_ENV === "production";
+// Separate from isProd: a browser drops a Secure cookie over plain HTTP, so
+// this must stay false until Caddy is actually terminating HTTPS in front of
+// the app - independent of whether we're serving the built static client.
+const secureCookies = process.env.COOKIE_SECURE !== "false" && isProd;
 
 const app = express();
 app.set("trust proxy", 1);
@@ -34,7 +38,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProd,
+      secure: secureCookies,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
     },

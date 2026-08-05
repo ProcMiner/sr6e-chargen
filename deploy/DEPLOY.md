@@ -43,28 +43,49 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --d
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 sudo apt update
 sudo apt install -y caddy
+
+# Build tools - the "OS Only" Lightsail image has neither by default, and
+# better-sqlite3 needs to compile a native addon on `npm install`
+sudo apt-get install -y build-essential python3
 ```
 
 ## 3. Deploy the app
 
+`/opt/sr6e-chargen` is the `chargen` user's home directory (so it already
+holds `.ssh/` etc.) - the app itself lives one level down, in `app/`, to
+keep the git working tree separate from the account's dotfiles. If the repo
+is private, generate a deploy key on the box itself and add its public half
+as a read-only Deploy Key on the GitHub repo (Settings → Deploy keys),
+rather than reusing a personal key or a token pasted onto the server:
+
 ```bash
 sudo useradd -r -m -d /opt/sr6e-chargen chargen
-sudo -u chargen git clone <your-repo-url> /opt/sr6e-chargen
-# or: scp -r "SR 6e CharGen"/* user@host:/opt/sr6e-chargen/
+sudo -u chargen ssh-keygen -t ed25519 -f /opt/sr6e-chargen/.ssh/id_ed25519 -N "" -C "deploy-key"
+sudo cat /opt/sr6e-chargen/.ssh/id_ed25519.pub   # add this as a repo Deploy Key (read-only) on GitHub
+sudo -u chargen git clone git@github.com:<you>/sr6e-chargen.git /opt/sr6e-chargen/app
+# or: scp -r "SR 6e CharGen"/* user@host:/opt/sr6e-chargen/app/
 
-cd /opt/sr6e-chargen
+cd /opt/sr6e-chargen/app
 sudo -u chargen npm install
 sudo -u chargen npm run build
 ```
 
-Create `/opt/sr6e-chargen/.env` (referenced by the systemd unit) with a real
-session secret:
+Create `/opt/sr6e-chargen/app/.env` (referenced by the systemd unit) with a
+real session secret:
 
 ```bash
-echo "SESSION_SECRET=$(openssl rand -base64 48)" | sudo tee /opt/sr6e-chargen/.env
-sudo chown chargen:chargen /opt/sr6e-chargen/.env
-sudo chmod 600 /opt/sr6e-chargen/.env
+echo "SESSION_SECRET=$(openssl rand -base64 48)" | sudo tee /opt/sr6e-chargen/app/.env
+sudo chown chargen:chargen /opt/sr6e-chargen/app/.env
+sudo chmod 600 /opt/sr6e-chargen/app/.env
 ```
+
+**If you're deploying before you have a domain/HTTPS set up** (see step 5),
+also add `COOKIE_SECURE=false` to that same `.env` file. The session cookie
+is marked `Secure` whenever `NODE_ENV=production` (needed so the server
+serves the built client - see `server/src/index.ts`), and a browser silently
+drops a `Secure` cookie sent over plain HTTP, which breaks login entirely
+with no visible error. Remove this line once Caddy is actually terminating
+HTTPS in front of the app.
 
 ## 4. systemd service
 
@@ -91,15 +112,30 @@ Caddy will automatically request and renew a Let's Encrypt certificate the
 first time it sees traffic on port 80/443 for that hostname. No manual cert
 handling needed.
 
+**No domain yet?** Skip the file above and use a bare HTTP config instead -
+this still gets you a clean `:80` reverse proxy (no need to hit port 3001
+directly), just without TLS:
+
+```
+:80 {
+	reverse_proxy localhost:3001
+}
+```
+
+Don't forget `COOKIE_SECURE=false` in `.env` (step 3) when running this way,
+or login will silently fail. Switch to the real `deploy/Caddyfile` (and drop
+`COOKIE_SECURE`) once you point a domain at the instance.
+
 ## 6. Verify
 
-Visit `https://<your-domain>/` from another machine - you should see the
-login page over a valid HTTPS connection.
+Visit `https://<your-domain>/` (or `http://<static-ip>/` if you're running
+the no-domain config above) from another machine - you should see the login
+page load, and be able to register/log in and stay logged in.
 
 ## Updating after code changes
 
 ```bash
-cd /opt/sr6e-chargen
+cd /opt/sr6e-chargen/app
 sudo -u chargen git pull   # or re-scp
 sudo -u chargen npm install
 sudo -u chargen npm run build
@@ -109,12 +145,12 @@ sudo systemctl restart chargen
 ## Data / backups
 
 Everything (users, characters, sessions) lives in
-`/opt/sr6e-chargen/server/data/chargen.sqlite`. The DB runs in WAL mode, so a
-plain `cp` while the service is running can miss in-flight writes - use the
-SQLite backup command instead (safe to run live):
+`/opt/sr6e-chargen/app/server/data/chargen.sqlite`. The DB runs in WAL mode,
+so a plain `cp` while the service is running can miss in-flight writes - use
+the SQLite backup command instead (safe to run live):
 
 ```bash
-sqlite3 /opt/sr6e-chargen/server/data/chargen.sqlite ".backup '/opt/sr6e-chargen/backups/chargen-$(date +%F).sqlite'"
+sqlite3 /opt/sr6e-chargen/app/server/data/chargen.sqlite ".backup '/opt/sr6e-chargen/backups/chargen-$(date +%F).sqlite'"
 ```
 
 Put that in a daily cron job for the `chargen` user if you want ongoing
