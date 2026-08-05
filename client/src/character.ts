@@ -7,8 +7,14 @@ export interface Contact {
 }
 
 export interface GearLine {
+  /** Catalog entry id; absent for freeform/custom items not in any catalog. */
+  itemId?: string;
   name: string;
   qty: number;
+  /** Nuyen per unit, snapshotted at purchase time so later catalog price edits don't rewrite the cost of gear someone already bought. */
+  unitCost: number;
+  /** Chosen level, for catalog entries with a `levels` range. */
+  rating?: number;
   notes?: string;
 }
 

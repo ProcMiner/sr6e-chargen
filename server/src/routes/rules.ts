@@ -3,6 +3,9 @@ import { priorityTable, metatypeAttributes } from "../rules/priority-tables.js";
 import { startingModules, adultModules } from "../rules/lifepath-modules.js";
 import { skillList } from "../rules/skills.js";
 import { positiveQualities, negativeQualities } from "../rules/qualities.js";
+import { weaponGear } from "../rules/gear.js";
+import { armorGear } from "../rules/armor.js";
+import { generalGear } from "../rules/generalGear.js";
 
 export const rulesRouter = Router();
 
@@ -16,4 +19,8 @@ rulesRouter.get("/lifepath-modules", (_req, res) => {
 
 rulesRouter.get("/qualities", (_req, res) => {
   res.json({ positiveQualities, negativeQualities });
+});
+
+rulesRouter.get("/gear", (_req, res) => {
+  res.json({ gear: [...weaponGear, ...armorGear, ...generalGear] });
 });

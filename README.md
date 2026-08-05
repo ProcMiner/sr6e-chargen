@@ -56,6 +56,27 @@ rulebook and sourcebook PDFs already on disk one directory up.
   the PDF's extractable text layer, see the `TODO` comment at the top of
   `qualities.ts`. The chargen-time picker enforces the rulebook's cap: max
   6 total qualities, net bonus Karma capped at +20.
+- **Gear**: chunked to align with the Sixth World Companion's own PACKs
+  taxonomy rather than done as one pass - see `gear.ts` for the chunking
+  rationale and remaining-chunks roadmap below. **Weapons** chunk complete:
+  ~100 entries from the core rulebook's Weapons chapter (melee, thrown,
+  tasers, all firearm classes, launchers, accessories, ammo, explosives).
+  Buying gear against earned nuyen works in the builder (`GearPicker`); a
+  known gap is flagged in `gear.ts`'s header (ammo type cost multipliers
+  aren't purchasable yet, they don't fit the flat-cost catalog model).
+  **Armor** chunk complete: Clothes, Armor, Armor Modifications, and
+  Helmets & Shields (`armor.ts`, core rulebook pp. 265-267) - a smaller
+  chunk than originally estimated, since pp. 268-278 turned out to be
+  Electronics/ID & Credit/Tools content, not Armor (corrected after reading
+  the pages directly; see the roadmap below for where that content landed).
+  **General/survival/security gear** chunk complete: Security and
+  Restraints, Breaking and Entering Gear, Industrial Chemicals, Survival
+  Gear, Grapple Gun & Rope, and Biotech incl. Slap Patches/DocWagon
+  Contracts (`generalGear.ts`, core rulebook pp. 278-282). Two pricing gaps
+  flagged in its header: Tranq Patch's quadratic (Rating x Rating x 10¥)
+  cost formula doesn't fit the flat per-level model (only its Rating 1 price
+  is catalogued), and the priced Sensors table it cross-references (p. 276)
+  wasn't located within this chunk's range.
 
 No chargen-core work is currently in progress - pick from the deferred
 list below.
@@ -68,9 +89,14 @@ section of the app, separate from the chargen flow:
 - Karma spend / post-chargen advancement system (separate from the
   quality-driven portion of the 50-point customization Karma pool already
   wired up via `qualities.ts`) - needs the SR6e Character Advancement karma
-  cost table (p. 68) for skills/attributes/gear/qualities.
-- Gear/lifestyle spending UI (nuyen is tracked as a running total but not
-  yet spent on anything) - blocked on the Equipment/gear catalog below.
+  cost table (p. 68) for skills/attributes/gear/qualities. `data.nuyen` is
+  already structured for this: it means "total nuyen ever earned" and
+  remaining spending money is always derived (`nuyenRemaining` in
+  `deriveGear.ts`), so a karma-to-nuyen conversion or run-payout feature
+  just adds to `data.nuyen` with no schema change.
+- Gear spending UI is now built (`GearPicker`) but only the Weapons catalog
+  chunk exists - see the Gear catalog roadmap below for the rest. Lifestyle
+  spending isn't covered by any chunk yet either.
 - Contact purchasing UI (connection/loyalty spending against earned contact
   points) isn't built yet - contact points are shown per-module but not yet
   spendable in the builder. This also covers Coming of Age's own 1-contact
@@ -91,23 +117,58 @@ alongside standard Priority System chargen for:
   go lower than row E, that row gets two selections instead of one.
 - Prime runner: double the starting customization Karma from 50 to 100.
 
+**Gear catalog roadmap** - chunked to align with the Sixth World Companion's
+"Suit Up" chapter, which organizes gear into PACKs (curated bundles) by the
+same categories listed below. Each chunk is sized like the Weapons chunk
+that's already done: a new `server/src/rules/*.ts` category file, a
+`routes/rules.ts` export, no new architecture needed (see `gear.ts`'s header
+and `GearCatalogEntry` for the shared shape/conventions).
+1. ~~Weapons~~ - done (melee, thrown, tasers, all firearm classes,
+   launchers, accessories, ammo, explosives; core rulebook pp. 247-264)
+2. ~~Armor~~ - done (Clothes, Armor, Armor Modifications, Helmets & Shields;
+   core rulebook pp. 265-267; Companion's Armor PACKs). Page range corrected
+   from the original "265-278ish" estimate after reading the pages directly
+   - pp. 268-278 turned out to be Electronics/ID & Credit/Tools (folded into
+   chunk 4 below) plus the general/survival gear in chunk 3, not Armor.
+3. ~~General/survival/security gear~~ - done (Security and Restraints,
+   Breaking and Entering Gear, Industrial Chemicals, Survival Gear, Grapple
+   Gun & Rope, Biotech incl. Slap Patches/DocWagon Contracts; core rulebook
+   pp. 278-282, corrected from the original "278-281" estimate - Biotech
+   runs one page longer than first thought). Companion's Sensor PACKs,
+   Identity PACKs, and Surveillance Kit PACK still don't have a home - the
+   priced core-rulebook Sensors table (p. 276) wasn't located in this
+   chunk's range; Identity PACKs likely maps to the Fake SIN/Fake License
+   entries actually transcribed under chunk 4 below (ID and Credit, pp.
+   272-273), not this chunk - worth double-checking when chunk 4 lands.
+4. Electronics & software base gear - core rulebook pp. 267-273 (Commlinks,
+   Cyberdecks, Accessories, RFID Tags, Communications and Countermeasures,
+   Software, ID and Credit, Tools); Companion's Cyberprogram Everything PACK
+5. Augmentations (cyberware/bioware) - core rulebook pp. 282-293;
+   Companion's Hacker/Cybereyes/Cyberears/Skill Rig/Torso Augmentation
+   PACKs. **Flagged**: the app has no Essence attribute/tracking today, so
+   this chunk either needs Essence added to the character model first, or
+   ships as catalog-and-cost-only with Essence shown but not deducted - an
+   explicit known gap, not a silent one (same precedent as the two skipped
+   core-rulebook qualities noted in `qualities.ts`).
+6. Magical equipment - core rulebook p. 294+ (foci, reagents)
+7. Vehicles - Companion's Vehicle PACKs (Cars, Trucks and Vans, Boats)
+8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
+   Console PACKs, Drone Autosoft PACKs
+9. Vehicle upgrades - Companion's Vehicle Upgrade PACKs
+10. PACK bundle-buying + Complete Character PACKs (capstone) - once enough
+    categories above exist, add a `PackCatalogEntry` (id, category, cost,
+    `items: {itemId, qty}[]`) + a "buy this PACK" action that expands into
+    constituent `GearLine`s at the PACK's flat price, plus the ~15 Complete
+    Character PACKs (Companion pp. 49-56: Dirt Poor, Full Magician, Close
+    Combat Adept, Face, Gunslinger Adept, Cybered Covert Operative, Decker,
+    Full Conversion Cyborg, Street Samurai, Vat Job Bioware-Augmented Combat
+    Specialist, Weapons Specialist, Max Hardware Decker, Transport Rigger,
+    Drone Rigger, Augmented for Firearms) that bundle across categories.
+    Note the dependency: PACKs are just curated bundles of individual items,
+    so full fidelity needs those individual items in the catalog first, not
+    just PACK-level summaries - this is why it's sequenced last.
+
 **Other deferred items**:
-- Equipment/gear catalog (weapons, armor, cyberware, general gear w/ nuyen
-  costs) - a prerequisite for the gear-spending UI above. Should include
-  Pre-Assembled Character Kits (PACKs) as a purchasable option: the
-  Companion's "Suit Up" chapter (book pp. 49-71) has a "Complete Character
-  PACKs" section (pp. 49-56 - a shared "Shadowrunner Starter PACK" base
-  plus ~15 full-character kits built on top of it: Dirt Poor, Full
-  Magician, Close Combat Adept, Face, Gunslinger Adept, Cybered Covert
-  Operative, Decker, Full Conversion Cyborg, Street Samurai, Vat Job
-  Bioware-Augmented Combat Specialist, Weapons Specialist, Max Hardware
-  Decker, Transport Rigger, Drone Rigger, Augmented for Firearms), followed
-  by more granular per-category PACKs (Weapons Packs, etc., pp. 56-71).
-  Note the dependency: PACKs are just curated bundles of individual items
-  (specific guns, armor, augmentations, vehicles, cyberdecks, software), so
-  full fidelity needs those individual items in the catalog too, not just
-  PACK-level summaries - probably sequence this as base gear catalog first,
-  PACKs as a bundling feature on top of it.
 - Spells catalog + picker UI for magicians (Magic x2 limit already noted in
   rules data comments).
 - Astral Beacon and Scorched qualities (see above), plus the Companion's

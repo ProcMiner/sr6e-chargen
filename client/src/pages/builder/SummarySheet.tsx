@@ -1,6 +1,7 @@
 import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
+import { gearCostTotal, nuyenRemaining } from "../../deriveGear";
 import type { MetatypeAttributes, QualityRulesResponse } from "../../rules";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
@@ -121,9 +122,24 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
         </section>
       )}
 
+      {data.gear.length > 0 && (
+        <section>
+          <h3>Gear</h3>
+          <ul>
+            {data.gear.map((g, i) => (
+              <li key={i}>
+                {g.name} x{g.qty}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section>
         <h3>Resources</h3>
-        <p>{data.nuyen.toLocaleString()}¥</p>
+        <p>{data.nuyen.toLocaleString()}¥ earned</p>
+        <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
+        <p>{nuyenRemaining(data).toLocaleString()}¥ remaining</p>
         <p>{data.karma} Karma</p>
       </section>
     </div>

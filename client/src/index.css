@@ -173,7 +173,8 @@ a {
 .builder-main section,
 .priority-builder section,
 .lifepath-builder,
-.quality-picker {
+.quality-picker,
+.gear-picker {
   margin-bottom: 1.5rem;
 }
 

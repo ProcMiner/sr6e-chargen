@@ -110,6 +110,28 @@ export interface QualityRulesResponse {
   negativeQualities: QualityCatalogEntry[];
 }
 
+export interface GearCatalogEntry {
+  id: string;
+  name: string;
+  /** Broad grouping key, e.g. "weapon" - opaque string, not a fixed union, since new categories arrive with each future chunk. */
+  category: string;
+  /** Narrower grouping for the picker UI, e.g. "Light Pistols". */
+  subcategory?: string;
+  /** Nuyen cost; per-level if `levels` is set. */
+  cost: number;
+  /** Availability code, e.g. "4", "8R", "12F". */
+  availability: string;
+  summary: string;
+  /** For rated items; cost is PER LEVEL, same convention as QualityCatalogEntry.levels. */
+  levels?: { min: number; max: number };
+  /** Free-form display-only stat fields (Damage, Modes, Attack Ratings, Ammo, Mount, Blast...). */
+  stats?: Record<string, string>;
+}
+
+export interface GearRulesResponse {
+  gear: GearCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;
