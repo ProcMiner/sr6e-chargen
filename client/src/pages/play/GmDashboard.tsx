@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { useAuth } from "../../AuthContext";
@@ -12,7 +11,6 @@ export function GmDashboard() {
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
-  const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
   function refreshSessions() {
@@ -40,13 +38,11 @@ export function GmDashboard() {
     };
   }, [selectedId]);
 
-  async function handleCreate(e: FormEvent) {
-    e.preventDefault();
-    if (!newName.trim()) return;
+  async function handleCreate() {
+    if (!user) return;
     setCreating(true);
     try {
-      const session = await api.createSession(newName.trim());
-      setNewName("");
+      const session = await api.createSession(`${user.username}'s Game`);
       refreshSessions();
       setSelectedId(session.id);
     } finally {
@@ -55,7 +51,7 @@ export function GmDashboard() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this session? This can't be undone.")) return;
+    if (!confirm("Delete this game? This can't be undone.")) return;
     await api.deleteSession(id);
     if (selectedId === id) setSelectedId(null);
     refreshSessions();
@@ -72,20 +68,15 @@ export function GmDashboard() {
         </div>
       </header>
 
-      <form onSubmit={handleCreate} className="new-character-form">
-        <input
-          placeholder="Session name"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={creating}>
-          New Session
-        </button>
-      </form>
+      {sessions !== null && sessions.length === 0 && (
+        <div className="new-character-form">
+          <button onClick={handleCreate} disabled={creating}>
+            Create {user?.username}'s Game
+          </button>
+        </div>
+      )}
 
       {sessions === null && <p>Loading...</p>}
-      {sessions?.length === 0 && <p>No sessions yet - create one above.</p>}
 
       <ul className="character-list">
         {sessions?.map((s) => (

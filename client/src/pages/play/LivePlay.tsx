@@ -157,7 +157,7 @@ export function LivePlay() {
       </header>
 
       <section>
-        <h2>Sessions</h2>
+        <h2>Games</h2>
         {sessions && sessions.length > 0 && (
           <ul className="module-slots">
             {sessions.map((s) => (
@@ -182,7 +182,7 @@ export function LivePlay() {
             onChange={(e) => setJoinCode(e.target.value)}
           />
           <button type="submit" disabled={joining || !joinCode.trim()}>
-            Join a session
+            Join a game
           </button>
           {joinError && <span className="save-error">{joinError}</span>}
         </form>
