@@ -44,6 +44,8 @@ export interface GearCatalogEntry {
   summary: string;
   /** For rated items (e.g. Explosive Packages); cost is PER LEVEL, same convention as QualityCatalogEntry.levels. */
   levels?: { min: number; max: number };
+  /** Essence consumed per unit (cyberware/bioware); undefined for everything else. */
+  essenceCost?: number;
   /** Free-form display-only stat fields (Damage, Modes, Attack Ratings, Ammo, Mount, Blast...); not strongly typed since each weapon subtype uses a different subset. */
   stats?: Record<string, string>;
 }

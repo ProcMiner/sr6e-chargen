@@ -18,6 +18,7 @@ export function GearPicker({ rules, data, onChange }: Props) {
   const [customName, setCustomName] = useState("");
   const [customQty, setCustomQty] = useState(1);
   const [customCost, setCustomCost] = useState(0);
+  const [customEssenceCost, setCustomEssenceCost] = useState(0);
 
   const searchTerm = search.trim().toLowerCase();
   function matchesSearch(entry: GearCatalogEntry) {
@@ -46,7 +47,14 @@ export function GearPicker({ rules, data, onChange }: Props) {
     const rating = entry.levels?.min;
     applyGear([
       ...selected,
-      { itemId: entry.id, name: entry.name, qty: 1, unitCost: gearUnitCost(entry, rating), rating },
+      {
+        itemId: entry.id,
+        name: entry.name,
+        qty: 1,
+        unitCost: gearUnitCost(entry, rating),
+        rating,
+        essenceCost: entry.essenceCost,
+      },
     ]);
   }
 
@@ -88,12 +96,21 @@ export function GearPicker({ rules, data, onChange }: Props) {
 
   function addCustom() {
     const name = customName.trim();
-    if (!name || customQty < 1 || customCost < 0) return;
+    if (!name || customQty < 1 || customCost < 0 || customEssenceCost < 0) return;
     if (customCost * customQty > remaining) return;
-    applyGear([...selected, { name, qty: customQty, unitCost: customCost }]);
+    applyGear([
+      ...selected,
+      {
+        name,
+        qty: customQty,
+        unitCost: customCost,
+        essenceCost: customEssenceCost > 0 ? customEssenceCost : undefined,
+      },
+    ]);
     setCustomName("");
     setCustomQty(1);
     setCustomCost(0);
+    setCustomEssenceCost(0);
   }
 
   return (
@@ -209,6 +226,16 @@ export function GearPicker({ rules, data, onChange }: Props) {
               min={0}
               value={customCost}
               onChange={(e) => setCustomCost(Math.max(0, Number(e.target.value)))}
+            />
+          </label>
+          <label className="inline-field">
+            Essence cost
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={customEssenceCost}
+              onChange={(e) => setCustomEssenceCost(Math.max(0, Number(e.target.value)))}
             />
           </label>
           <button onClick={addCustom} disabled={!customName.trim() || customCost * customQty > remaining}>

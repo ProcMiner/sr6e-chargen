@@ -2,6 +2,7 @@ import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearCostTotal, nuyenRemaining } from "../../deriveGear";
+import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type { MetatypeAttributes, QualityRulesResponse } from "../../rules";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
@@ -14,9 +15,12 @@ const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["intuition", "Intuition"],
   ["charisma", "Charisma"],
   ["edge", "Edge"],
-  ["magic", "Magic"],
-  ["resonance", "Resonance"],
 ];
+
+/** Strips trailing zeros, e.g. 6 -> "6", 5.8 -> "5.8", 4.25 -> "4.25". */
+function formatEssence(n: number): string {
+  return n.toFixed(2).replace(/\.?0+$/, "");
+}
 
 interface Props {
   data: CharacterData;
@@ -26,6 +30,11 @@ interface Props {
 
 export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) {
   const derived = deriveStats(data.attributes);
+  const essence = currentEssence(data);
+  const magicRaw = data.attributes.magic;
+  const resonanceRaw = data.attributes.resonance;
+  const magicEffective = effectiveMagic(data);
+  const resonanceEffective = effectiveResonance(data);
   const skillEntries = Object.entries(data.skills).filter(([, rank]) => rank > 0);
   const qualityCatalog = combineQualityCatalog(qualityRules);
   const racialQualities = data.metatype
@@ -50,6 +59,28 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
               </div>
             );
           })}
+          <div>
+            <dt>Essence</dt>
+            <dd>{formatEssence(essence)}</dd>
+          </div>
+          {magicRaw !== undefined && (
+            <div>
+              <dt>Magic</dt>
+              <dd>
+                {magicEffective}
+                {magicEffective !== magicRaw && ` (${magicRaw} base, capped by Essence loss)`}
+              </dd>
+            </div>
+          )}
+          {resonanceRaw !== undefined && (
+            <div>
+              <dt>Resonance</dt>
+              <dd>
+                {resonanceEffective}
+                {resonanceEffective !== resonanceRaw && ` (${resonanceRaw} base, capped by Essence loss)`}
+              </dd>
+            </div>
+          )}
         </dl>
       </section>
 

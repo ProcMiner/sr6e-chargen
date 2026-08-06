@@ -58,6 +58,7 @@ function isValidCharacterData(data: unknown): boolean {
       const g = line as Record<string, unknown>;
       if (typeof g.qty !== "number" || !Number.isFinite(g.qty) || g.qty < 0) return false;
       if (typeof g.unitCost !== "number" || !Number.isFinite(g.unitCost) || g.unitCost < 0) return false;
+      if (g.essenceCost !== undefined && !isFiniteInRange(g.essenceCost, 0, Infinity)) return false;
     }
   }
 

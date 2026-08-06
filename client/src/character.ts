@@ -15,6 +15,8 @@ export interface GearLine {
   unitCost: number;
   /** Chosen level, for catalog entries with a `levels` range. */
   rating?: number;
+  /** Essence consumed per unit, snapshotted at purchase time like `unitCost`. Undefined for non-augmentation gear. */
+  essenceCost?: number;
   notes?: string;
 }
 

@@ -86,6 +86,19 @@ rulebook and sourcebook PDFs already on disk one directory up.
   267-273" estimate, since the optics/audio/sensor sections (pp. 274-277)
   weren't named in that scoping at all.
 
+- **Essence tracking**: every character starts at Essence 6.00, derived down
+  from gear with an `essenceCost` (cyberware/bioware) via
+  `client/src/deriveEssence.ts` - not a separate, isolated number. Per the
+  core rulebook (identical phrasing for both attributes), Magic and Resonance
+  are capped at `6 - floor(points of Essence lost)`; the Summary sheet shows
+  the capped (effective) value and flags when it's below the character's raw
+  rating. Initiate/Submersion Grade aren't tracked yet (post-creation Karma
+  advancement, not built), so this is the Grade-0 case of that formula - a
+  future Grade-tracking feature adds `+ grade` with no call-site changes.
+  Exercisable today via the Gear picker's "Add custom item" form (which now
+  has an Essence cost field) even though the Augmentations catalog itself
+  hasn't shipped yet.
+
 No chargen-core work is currently in progress - pick from the deferred
 list below.
 
@@ -158,11 +171,9 @@ and `GearCatalogEntry` for the shared shape/conventions).
    Cyberprogram Everything PACK maps onto the Software section here.
 5. Augmentations (cyberware/bioware) - core rulebook pp. 282-293;
    Companion's Hacker/Cybereyes/Cyberears/Skill Rig/Torso Augmentation
-   PACKs. **Flagged**: the app has no Essence attribute/tracking today, so
-   this chunk either needs Essence added to the character model first, or
-   ships as catalog-and-cost-only with Essence shown but not deducted - an
-   explicit known gap, not a silent one (same precedent as the two skipped
-   core-rulebook qualities noted in `qualities.ts`).
+   PACKs. Previously flagged as blocked on Essence tracking - that's now
+   done (see Essence tracking above), so this chunk just needs the catalog
+   entries themselves, each with an `essenceCost` set.
 6. Magical equipment - core rulebook p. 294+ (foci, reagents)
 7. Vehicles - Companion's Vehicle PACKs (Cars, Trucks and Vans, Boats)
 8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
