@@ -11,6 +11,7 @@ import { augmentationsGear } from "../rules/augmentations.js";
 import { magicalEquipmentGear } from "../rules/magicalEquipment.js";
 import { vehiclesGear } from "../rules/vehicles.js";
 import { vehicleUpgradesGear } from "../rules/vehicleUpgrades.js";
+import { dronesGear } from "../rules/drones.js";
 
 export const rulesRouter = Router();
 
@@ -37,6 +38,7 @@ rulesRouter.get("/gear", (_req, res) => {
       ...magicalEquipmentGear,
       ...vehiclesGear,
       ...vehicleUpgradesGear,
+      ...dronesGear,
     ],
   });
 });

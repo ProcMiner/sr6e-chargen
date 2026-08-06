@@ -143,6 +143,19 @@ rulebook and sourcebook PDFs already on disk one directory up.
   together. The Companion's fuller Vehicle Upgrade PACKs (if it has more
   content beyond the core book) hasn't been checked - same class of gap as
   qualities.ts's sourcebook-by-sourcebook expansion.
+  **Drones + Rigger Command Consoles** chunk complete: Microdrones,
+  Minidrones, Small/Medium/Large Drones (`drones.ts`, core rulebook pp.
+  299-303, continuing directly from Vehicles' stat table sequence - drones
+  "use the same statistical block as vehicles" per the book's own text) and
+  Rigger Command Console (book pp. 197-198, found in the Rigging chapter,
+  not the Gear chapter - located by searching the full book text rather
+  than assumed to sit near Drones). 30 entries. Autosofts and RCC-mountable
+  programs (Armor, Encryption, Signal Scrubber, Stealth, Toolbox, Virtual
+  Machine) are deliberately NOT catalogued here - they're generic-priced
+  Matrix programs already covered by the Electronics chunk's "Autosoft" and
+  "Cyberprogram, Basic" entries; the book prices them the same way it
+  prices any other program, with no separate named/priced catalog per
+  autosoft type.
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -237,10 +250,11 @@ and `GearCatalogEntry` for the shared shape/conventions).
 7. ~~Vehicles~~ - done (Bikes, Cars, Trucks and Vans, Boats, Submarines,
    Fixed-Wing Aircraft, Rotorcraft, VTOL/VSTOL; core rulebook pp. 295-298;
    Companion's Vehicle PACKs).
-8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
-   Console PACKs, Drone Autosoft PACKs. Continues directly from the
-   Vehicles chunk's stat table sequence at core rulebook p. 299 (chunk 7
-   left off right before Microdrones).
+8. ~~Drones + Rigger Command Consoles~~ - done (Microdrones, Minidrones,
+   Small/Medium/Large Drones, Rigger Command Console; core rulebook pp.
+   197-198, 299-303; Companion's Drone PACKs, Console PACKs). Autosofts
+   were already covered by the Electronics chunk's generic-priced Software
+   entries - no separate Drone Autosoft PACK content needed.
 9. ~~Vehicle upgrades~~ - done (Rigger Interface, Standard/Heavy Weapon
    Mount, Manual Operation; core rulebook p. 295 - the entirety of what the
    core book prints here). Done ahead of chunk 8 at the user's request.
