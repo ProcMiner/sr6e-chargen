@@ -102,6 +102,15 @@ rulebook and sourcebook PDFs already on disk one directory up.
   1 price with the real formula noted in the summary, same treatment as
   General gear's Tranq Patch gap. Implant Grades (Used/Alpha/Beta/Delta cost
   multipliers) aren't modeled - every entry is standard grade only.
+  **Magical equipment** chunk complete: Foci, Formulae, and Magical Supplies
+  (`magicalEquipment.ts`, core rulebook pp. 294-295). 21 entries. Foci also
+  cost Karma to bond, not just nuyen - the first gear item type to need a
+  Karma cost, so `GearCatalogEntry`/`GearLine` gained a `bondingKarma` field
+  alongside `essenceCost`, and `data.karma` (the character's Karma pool, set
+  by `QualityPicker.tsx`) now has a `karmaRemaining` derivation in
+  `deriveGear.ts` mirroring `nuyenRemaining` - the Gear picker and Summary
+  sheet both show pool/spent/remaining for Karma the same way they do for
+  nuyen, and purchases are blocked if either budget is insufficient.
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -191,7 +200,8 @@ and `GearCatalogEntry` for the shared shape/conventions).
    Cultured Bioware; core rulebook pp. 282-293, the one chunk whose original
    estimate held exactly - Companion's Hacker/Cybereyes/Cyberears/Skill
    Rig/Torso Augmentation PACKs).
-6. Magical equipment - core rulebook p. 294+ (foci, reagents)
+6. ~~Magical equipment~~ - done (Foci, Formulae, Magical Supplies; core
+   rulebook pp. 294-295).
 7. Vehicles - Companion's Vehicle PACKs (Cars, Trucks and Vans, Boats)
 8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
    Console PACKs, Drone Autosoft PACKs

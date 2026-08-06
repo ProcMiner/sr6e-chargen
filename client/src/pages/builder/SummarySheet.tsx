@@ -1,7 +1,7 @@
 import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
-import { gearCostTotal, nuyenRemaining } from "../../deriveGear";
+import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type { MetatypeAttributes, QualityRulesResponse } from "../../rules";
 
@@ -160,6 +160,7 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
             {data.gear.map((g, i) => (
               <li key={i}>
                 {g.name} x{g.qty}
+                {g.bondingKarma ? ` (${g.bondingKarma * g.qty} Karma bonding)` : ""}
               </li>
             ))}
           </ul>
@@ -171,7 +172,9 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
         <p>{data.nuyen.toLocaleString()}¥ earned</p>
         <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
         <p>{nuyenRemaining(data).toLocaleString()}¥ remaining</p>
-        <p>{data.karma} Karma</p>
+        <p>{data.karma.toLocaleString()} Karma pool</p>
+        <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
+        <p>{karmaRemaining(data).toLocaleString()} Karma remaining</p>
       </section>
     </div>
   );

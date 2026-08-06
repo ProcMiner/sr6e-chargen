@@ -6,6 +6,13 @@
 // always derived from nuyen minus gear cost, never stored, so a future
 // career-mode nuyen-earning feature just adds to `data.nuyen` and this math
 // keeps working unchanged.
+//
+// `data.karma` follows the same pattern for a second, independent pool:
+// QualityPicker.tsx sets it to (starting Karma + net quality Karma) - that's
+// the character's total available Karma pool, untouched here. Magical foci
+// additionally cost Karma to bond (see GearCatalogEntry.bondingKarma below),
+// so `karmaRemaining` derives the pool minus gear-based bonding costs, never
+// stored, exactly mirroring `nuyenRemaining`.
 import type { CharacterData, GearLine } from "./character";
 import type { GearCatalogEntry } from "./rules";
 
@@ -19,6 +26,14 @@ export function gearCostTotal(gear: GearLine[]): number {
 
 export function nuyenRemaining(data: CharacterData): number {
   return data.nuyen - gearCostTotal(data.gear);
+}
+
+export function gearBondingKarmaTotal(gear: GearLine[]): number {
+  return gear.reduce((sum, line) => sum + (line.bondingKarma ?? 0) * line.qty, 0);
+}
+
+export function karmaRemaining(data: CharacterData): number {
+  return data.karma - gearBondingKarmaTotal(data.gear);
 }
 
 export function ratingFor(entry: GearCatalogEntry, rating: number | undefined): number {
@@ -36,4 +51,10 @@ export function gearUnitCost(entry: GearCatalogEntry, rating: number | undefined
 export function gearUnitEssenceCost(entry: GearCatalogEntry, rating: number | undefined): number | undefined {
   if (entry.essenceCost === undefined) return undefined;
   return entry.levels ? entry.essenceCost * ratingFor(entry, rating) : entry.essenceCost;
+}
+
+/** Karma bonding cost for a catalog entry at a given rating, same per-level convention as gearUnitCost. */
+export function gearUnitBondingKarma(entry: GearCatalogEntry, rating: number | undefined): number | undefined {
+  if (entry.bondingKarma === undefined) return undefined;
+  return entry.levels ? entry.bondingKarma * ratingFor(entry, rating) : entry.bondingKarma;
 }

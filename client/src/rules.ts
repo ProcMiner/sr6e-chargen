@@ -128,6 +128,8 @@ export interface GearCatalogEntry {
   stats?: Record<string, string>;
   /** Essence consumed per unit (cyberware/bioware); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
   essenceCost?: number;
+  /** Karma cost to bond this item (magical foci); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
+  bondingKarma?: number;
 }
 
 export interface GearRulesResponse {

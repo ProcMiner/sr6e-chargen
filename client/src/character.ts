@@ -17,6 +17,8 @@ export interface GearLine {
   rating?: number;
   /** Essence consumed per unit, snapshotted at purchase time like `unitCost`. Undefined for non-augmentation gear. */
   essenceCost?: number;
+  /** Karma cost to bond this item, snapshotted at purchase time like `unitCost`. Undefined for non-magical gear. */
+  bondingKarma?: number;
   notes?: string;
 }
 

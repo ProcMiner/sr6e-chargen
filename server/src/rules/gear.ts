@@ -46,6 +46,8 @@ export interface GearCatalogEntry {
   levels?: { min: number; max: number };
   /** Essence consumed per unit (cyberware/bioware); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
   essenceCost?: number;
+  /** Karma cost to bond this item (magical foci); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
+  bondingKarma?: number;
   /** Free-form display-only stat fields (Damage, Modes, Attack Ratings, Ammo, Mount, Blast...); not strongly typed since each weapon subtype uses a different subset. */
   stats?: Record<string, string>;
 }

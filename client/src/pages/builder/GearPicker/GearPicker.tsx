@@ -3,9 +3,12 @@ import type { CharacterData, GearLine } from "../../../character";
 import type { GearCatalogEntry, GearRulesResponse } from "../../../rules";
 import {
   findGearEntry,
+  gearBondingKarmaTotal,
   gearCostTotal,
+  gearUnitBondingKarma,
   gearUnitCost,
   gearUnitEssenceCost,
+  karmaRemaining,
   nuyenRemaining,
   ratingFor,
 } from "../../../deriveGear";
@@ -20,12 +23,14 @@ export function GearPicker({ rules, data, onChange }: Props) {
   const catalog = rules.gear;
   const selected = data.gear;
   const remaining = nuyenRemaining(data);
+  const karmaBudget = karmaRemaining(data);
 
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
   const [customQty, setCustomQty] = useState(1);
   const [customCost, setCustomCost] = useState(0);
   const [customEssenceCost, setCustomEssenceCost] = useState(0);
+  const [customBondingKarma, setCustomBondingKarma] = useState(0);
 
   const searchTerm = search.trim().toLowerCase();
   function matchesSearch(entry: GearCatalogEntry) {
@@ -46,7 +51,11 @@ export function GearPicker({ rules, data, onChange }: Props) {
   }
 
   function canAdd(entry: GearCatalogEntry) {
-    return gearUnitCost(entry, entry.levels?.min) <= remaining;
+    const rating = entry.levels?.min;
+    if (gearUnitCost(entry, rating) > remaining) return false;
+    const bondingKarma = gearUnitBondingKarma(entry, rating);
+    if (bondingKarma !== undefined && bondingKarma > karmaBudget) return false;
+    return true;
   }
 
   function addFromCatalog(entry: GearCatalogEntry) {
@@ -61,6 +70,7 @@ export function GearPicker({ rules, data, onChange }: Props) {
         unitCost: gearUnitCost(entry, rating),
         rating,
         essenceCost: gearUnitEssenceCost(entry, rating),
+        bondingKarma: gearUnitBondingKarma(entry, rating),
       },
     ]);
   }
@@ -71,16 +81,29 @@ export function GearPicker({ rules, data, onChange }: Props) {
     applyGear(next);
   }
 
-  /** Budget left for a given line if it were removed first, i.e. what's available to spend on it. */
+  /** Nuyen budget left for a given line if it were removed first, i.e. what's available to spend on it. */
   function budgetFor(index: number): number {
     const line = selected[index];
     return data.nuyen - (gearCostTotal(selected) - line.qty * line.unitCost);
   }
 
+  /** Karma budget left for a given line if it were removed first. */
+  function karmaBudgetFor(index: number): number {
+    const line = selected[index];
+    return data.karma - (gearBondingKarmaTotal(selected) - (line.bondingKarma ?? 0) * line.qty);
+  }
+
+  function maxAffordableQty(index: number, unitCost: number, bondingKarma: number | undefined): number {
+    let maxQty = unitCost > 0 ? Math.floor(budgetFor(index) / unitCost) : Infinity;
+    if (bondingKarma) {
+      maxQty = Math.min(maxQty, Math.floor(karmaBudgetFor(index) / bondingKarma));
+    }
+    return maxQty;
+  }
+
   function updateQty(index: number, qty: number) {
     const line = selected[index];
-    const budget = budgetFor(index);
-    const maxQty = line.unitCost > 0 ? Math.floor(budget / line.unitCost) : qty;
+    const maxQty = maxAffordableQty(index, line.unitCost, line.bondingKarma);
     const clamped = Math.max(1, Math.min(qty, Math.max(1, maxQty)));
     const next = [...selected];
     next[index] = { ...line, qty: clamped };
@@ -94,18 +117,19 @@ export function GearPicker({ rules, data, onChange }: Props) {
     const clampedRating = ratingFor(entry, rating);
     const unitCost = gearUnitCost(entry, clampedRating);
     const essenceCost = gearUnitEssenceCost(entry, clampedRating);
-    const budget = budgetFor(index);
-    const maxQty = unitCost > 0 ? Math.floor(budget / unitCost) : line.qty;
+    const bondingKarma = gearUnitBondingKarma(entry, clampedRating);
+    const maxQty = maxAffordableQty(index, unitCost, bondingKarma);
     const qty = Math.max(1, Math.min(line.qty, Math.max(1, maxQty)));
     const next = [...selected];
-    next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, qty };
+    next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, bondingKarma, qty };
     applyGear(next);
   }
 
   function addCustom() {
     const name = customName.trim();
-    if (!name || customQty < 1 || customCost < 0 || customEssenceCost < 0) return;
+    if (!name || customQty < 1 || customCost < 0 || customEssenceCost < 0 || customBondingKarma < 0) return;
     if (customCost * customQty > remaining) return;
+    if (customBondingKarma * customQty > karmaBudget) return;
     applyGear([
       ...selected,
       {
@@ -113,12 +137,14 @@ export function GearPicker({ rules, data, onChange }: Props) {
         qty: customQty,
         unitCost: customCost,
         essenceCost: customEssenceCost > 0 ? customEssenceCost : undefined,
+        bondingKarma: customBondingKarma > 0 ? customBondingKarma : undefined,
       },
     ]);
     setCustomName("");
     setCustomQty(1);
     setCustomCost(0);
     setCustomEssenceCost(0);
+    setCustomBondingKarma(0);
   }
 
   return (
@@ -127,6 +153,10 @@ export function GearPicker({ rules, data, onChange }: Props) {
       <p className="hint">
         {data.nuyen.toLocaleString()}¥ earned - {gearCostTotal(selected).toLocaleString()}¥ spent ={" "}
         {remaining.toLocaleString()}¥ remaining
+      </p>
+      <p className="hint">
+        {data.karma.toLocaleString()} Karma pool - {gearBondingKarmaTotal(selected).toLocaleString()} spent bonding
+        foci = {karmaBudget.toLocaleString()} remaining
       </p>
 
       {selected.length > 0 && (
@@ -138,7 +168,8 @@ export function GearPicker({ rules, data, onChange }: Props) {
                 <div className="module-instance">
                   <div className="module-instance-header">
                     <strong>
-                      {line.name} ({(line.qty * line.unitCost).toLocaleString()}¥)
+                      {line.name} ({(line.qty * line.unitCost).toLocaleString()}¥
+                      {line.bondingKarma ? `, ${(line.qty * line.bondingKarma).toLocaleString()} Karma` : ""})
                     </strong>
                     <button className="danger" onClick={() => removeAt(i)}>
                       Remove
@@ -246,7 +277,21 @@ export function GearPicker({ rules, data, onChange }: Props) {
               onChange={(e) => setCustomEssenceCost(Math.max(0, Number(e.target.value)))}
             />
           </label>
-          <button onClick={addCustom} disabled={!customName.trim() || customCost * customQty > remaining}>
+          <label className="inline-field">
+            Bonding Karma
+            <input
+              type="number"
+              min={0}
+              value={customBondingKarma}
+              onChange={(e) => setCustomBondingKarma(Math.max(0, Number(e.target.value)))}
+            />
+          </label>
+          <button
+            onClick={addCustom}
+            disabled={
+              !customName.trim() || customCost * customQty > remaining || customBondingKarma * customQty > karmaBudget
+            }
+          >
             Add
           </button>
         </div>
