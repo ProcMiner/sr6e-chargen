@@ -65,10 +65,32 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
     return metatypeInfo ? Math.min(6, metatypeInfo[key].max) : 6;
   }
 
-  const attributePointsSpent = CORE_ATTRIBUTE_KEYS.reduce(
-    (sum, key) => sum + (Math.min(data.attributes[key], normalCap(key)) - 1),
-    0
-  );
+  function isSpecialAttribute(key: (typeof CORE_ATTRIBUTE_KEYS)[number]) {
+    return !!metatypeInfo && metatypeInfo[key].max > 6;
+  }
+
+  // House rule (not RAW - see PrioritySystemState.adjustmentFundedAttributes):
+  // a special racial attribute can optionally be funded entirely from
+  // Adjustment Points instead of splitting 1-6 across Attribute Points and
+  // the excess across Adjustment Points, freeing Attribute Points for other
+  // attributes. RAW's Adjustment Points pool otherwise has no other sink
+  // once Edge/Magic/Resonance are covered, so high-Adjustment-Point
+  // metatypes (Troll, Ork, Dwarf) can end up with unspendable leftovers.
+  const adjustmentFundedAttributes = state.adjustmentFundedAttributes ?? [];
+  function isAdjustmentFunded(key: (typeof CORE_ATTRIBUTE_KEYS)[number]) {
+    return adjustmentFundedAttributes.includes(key);
+  }
+  function toggleAdjustmentFunding(key: (typeof CORE_ATTRIBUTE_KEYS)[number]) {
+    const next = isAdjustmentFunded(key)
+      ? adjustmentFundedAttributes.filter((k) => k !== key)
+      : [...adjustmentFundedAttributes, key];
+    onChange({ ...data, systemState: { ...state, adjustmentFundedAttributes: next } });
+  }
+
+  const attributePointsSpent = CORE_ATTRIBUTE_KEYS.reduce((sum, key) => {
+    if (isSpecialAttribute(key) && isAdjustmentFunded(key)) return sum;
+    return sum + (Math.min(data.attributes[key], normalCap(key)) - 1);
+  }, 0);
   const attributePointsTotal = attributeRow?.attributePoints ?? 0;
   const attributePointsRemaining = attributePointsTotal - attributePointsSpent;
 
@@ -78,12 +100,18 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   // Adjustment Points (from the Metatype priority) fund three things:
   // Edge, pushing a "special racial attribute" above 6, and boosting
   // Magic/Resonance above its base rating - up to a hard cap of 6 (p. 65).
+  // (Plus, under the house rule above, the full cost of any special
+  // attribute toggled to Adjustment-funding.)
   const adjustmentPointsTotal = metatypeRow?.metatype.find((m) => m.metatype === data.metatype)?.adjustmentPoints ?? 0;
 
   const edgeSpent = (data.attributes.edge ?? 1) - 1;
 
-  const racialOverflowSpent = metatypeInfo
-    ? CORE_ATTRIBUTE_KEYS.reduce((sum, key) => sum + Math.max(0, data.attributes[key] - 6), 0)
+  const racialAdjustmentSpent = metatypeInfo
+    ? CORE_ATTRIBUTE_KEYS.reduce((sum, key) => {
+        if (!isSpecialAttribute(key)) return sum;
+        if (isAdjustmentFunded(key)) return sum + (data.attributes[key] - 1);
+        return sum + Math.max(0, data.attributes[key] - 6);
+      }, 0)
     : 0;
 
   const selectedMagicOption = state.magicOption
@@ -99,7 +127,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
       ? Math.max(0, currentMagicOrResonance - magicBaseRating)
       : 0;
 
-  const adjustmentPointsSpent = edgeSpent + racialOverflowSpent + magicBoostSpent;
+  const adjustmentPointsSpent = edgeSpent + racialAdjustmentSpent + magicBoostSpent;
   const adjustmentPointsRemaining = adjustmentPointsTotal - adjustmentPointsSpent;
 
   return (
@@ -163,35 +191,49 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
             Attributes ({attributePointsRemaining} / {attributePointsTotal} points remaining)
           </h3>
           <p className="hint">
-            Values above 6 are "special racial attributes" and are paid for from Adjustment Points
-            (below), not from these points.
+            Values above 6 are "special racial attributes" and are normally paid for from Adjustment
+            Points (below) past 6 only. House rule: check "fund from Adjustment Points" on a special
+            attribute to pay for its full value from Adjustment Points instead, freeing these points
+            for other attributes.
           </p>
           <div className="attribute-editor">
             {CORE_ATTRIBUTE_KEYS.map((key) => {
               const range = metatypeInfo[key];
               const value = data.attributes[key];
               return (
-                <label key={key}>
-                  {key}
-                  <input
-                    type="number"
-                    min={range.min}
-                    max={range.max}
-                    value={value}
-                    onChange={(e) => {
-                      const next = Number(e.target.value);
-                      if (Number.isNaN(next)) return;
-                      const clamped = Math.min(range.max, Math.max(range.min, next));
-                      onChange({
-                        ...data,
-                        attributes: { ...data.attributes, [key]: clamped },
-                      });
-                    }}
-                  />
-                  <span className="range-hint">
-                    {range.min}-{range.max}
-                  </span>
-                </label>
+                <div key={key} className="attribute-editor-row">
+                  <label>
+                    {key}
+                    <input
+                      type="number"
+                      min={range.min}
+                      max={range.max}
+                      value={value}
+                      onChange={(e) => {
+                        const next = Number(e.target.value);
+                        if (Number.isNaN(next)) return;
+                        const clamped = Math.min(range.max, Math.max(range.min, next));
+                        onChange({
+                          ...data,
+                          attributes: { ...data.attributes, [key]: clamped },
+                        });
+                      }}
+                    />
+                    <span className="range-hint">
+                      {range.min}-{range.max}
+                    </span>
+                  </label>
+                  {isSpecialAttribute(key) && (
+                    <label className="inline-field">
+                      <input
+                        type="checkbox"
+                        checked={isAdjustmentFunded(key)}
+                        onChange={() => toggleAdjustmentFunding(key)}
+                      />
+                      fund from Adjustment Points
+                    </label>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -260,8 +302,9 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
             Adjustment Points ({adjustmentPointsRemaining} / {adjustmentPointsTotal} points remaining)
           </h3>
           <p className="hint">
-            Spent on Edge, on pushing a special racial attribute (above) past 6, and on boosting
-            Magic/Resonance above its base rating (up to 6).
+            Spent on Edge, on pushing a special racial attribute (above) past 6 - or its full value if
+            "fund from Adjustment Points" is checked - and on boosting Magic/Resonance above its base
+            rating (up to 6).
           </p>
           <div className="attribute-editor">
             <label>

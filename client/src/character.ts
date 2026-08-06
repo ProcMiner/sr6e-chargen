@@ -31,6 +31,14 @@ export interface PrioritySystemState {
     resources?: "A" | "B" | "C" | "D" | "E";
   };
   magicOption?: string;
+  /**
+   * House rule (not RAW): attribute keys whose "special racial attribute"
+   * cost (p. 63 - normally just the portion above 6) is instead funded
+   * entirely from Adjustment Points, freeing the equivalent Attribute
+   * Points to spend elsewhere. Only meaningful for attributes where the
+   * chosen metatype's max exceeds 6.
+   */
+  adjustmentFundedAttributes?: string[];
 }
 
 export interface LifepathSystemState {

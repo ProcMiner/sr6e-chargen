@@ -41,7 +41,20 @@ rulebook and sourcebook PDFs already on disk one directory up.
 
 - **Priority System**: tables complete, including the Metatype column's
   Adjustment Points (spent on Edge, pushing a racial attribute above 6, or
-  boosting Magic/Resonance above its base rating).
+  boosting Magic/Resonance above its base rating). **House rule (not RAW)**:
+  a checkbox next to each "special racial attribute" (any attribute whose
+  metatype max exceeds 6) lets its entire value be funded from Adjustment
+  Points instead of just the portion above 6, freeing the equivalent
+  Attribute Points to spend elsewhere. RAW's Adjustment Points have no other
+  sink once Edge/Magic/Resonance are covered, so high-Adjustment-Point
+  metatypes (Troll, Ork, Dwarf) can otherwise end up with unspendable
+  leftover points - a Priority-A Troll has 13 Adjustment Points but RAW can
+  only ever spend at most 11 of them (5 on Edge, 3 each on Body/Strength's
+  excess above 6), even maxing everything out. See
+  `PrioritySystemState.adjustmentFundedAttributes` in `character.ts` and
+  `PriorityBuilder.tsx`'s `isAdjustmentFunded`/`toggleAdjustmentFunding`.
+  Off by default per character (nothing is force-migrated), so existing
+  saved characters are unaffected until a player opts in.
 - **Life Path**: the full Companion catalog is transcribed - all 3 starting
   modules (including Coming of Age's complete grant list: skill, best
   attribute, qualities, nuyen; only its 1-contact grant isn't wired up yet,
