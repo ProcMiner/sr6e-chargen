@@ -31,3 +31,9 @@ export function ratingFor(entry: GearCatalogEntry, rating: number | undefined): 
 export function gearUnitCost(entry: GearCatalogEntry, rating: number | undefined): number {
   return entry.levels ? entry.cost * ratingFor(entry, rating) : entry.cost;
 }
+
+/** Essence cost for a catalog entry at a given rating, same per-level convention as gearUnitCost. */
+export function gearUnitEssenceCost(entry: GearCatalogEntry, rating: number | undefined): number | undefined {
+  if (entry.essenceCost === undefined) return undefined;
+  return entry.levels ? entry.essenceCost * ratingFor(entry, rating) : entry.essenceCost;
+}

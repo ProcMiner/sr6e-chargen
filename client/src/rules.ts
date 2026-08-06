@@ -126,7 +126,7 @@ export interface GearCatalogEntry {
   levels?: { min: number; max: number };
   /** Free-form display-only stat fields (Damage, Modes, Attack Ratings, Ammo, Mount, Blast...). */
   stats?: Record<string, string>;
-  /** Essence consumed per unit (cyberware/bioware); undefined for everything else. */
+  /** Essence consumed per unit (cyberware/bioware); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
   essenceCost?: number;
 }
 

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import type { CharacterData, GearLine } from "../../../character";
 import type { GearCatalogEntry, GearRulesResponse } from "../../../rules";
-import { findGearEntry, gearCostTotal, gearUnitCost, nuyenRemaining, ratingFor } from "../../../deriveGear";
+import {
+  findGearEntry,
+  gearCostTotal,
+  gearUnitCost,
+  gearUnitEssenceCost,
+  nuyenRemaining,
+  ratingFor,
+} from "../../../deriveGear";
 
 interface Props {
   rules: GearRulesResponse;
@@ -53,7 +60,7 @@ export function GearPicker({ rules, data, onChange }: Props) {
         qty: 1,
         unitCost: gearUnitCost(entry, rating),
         rating,
-        essenceCost: entry.essenceCost,
+        essenceCost: gearUnitEssenceCost(entry, rating),
       },
     ]);
   }
@@ -86,11 +93,12 @@ export function GearPicker({ rules, data, onChange }: Props) {
     if (!entry) return;
     const clampedRating = ratingFor(entry, rating);
     const unitCost = gearUnitCost(entry, clampedRating);
+    const essenceCost = gearUnitEssenceCost(entry, clampedRating);
     const budget = budgetFor(index);
     const maxQty = unitCost > 0 ? Math.floor(budget / unitCost) : line.qty;
     const qty = Math.max(1, Math.min(line.qty, Math.max(1, maxQty)));
     const next = [...selected];
-    next[index] = { ...line, rating: clampedRating, unitCost, qty };
+    next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, qty };
     applyGear(next);
   }
 

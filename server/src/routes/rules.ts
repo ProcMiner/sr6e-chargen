@@ -7,6 +7,7 @@ import { weaponGear } from "../rules/gear.js";
 import { armorGear } from "../rules/armor.js";
 import { generalGear } from "../rules/generalGear.js";
 import { electronicsGear } from "../rules/electronics.js";
+import { augmentationsGear } from "../rules/augmentations.js";
 
 export const rulesRouter = Router();
 
@@ -23,5 +24,5 @@ rulesRouter.get("/qualities", (_req, res) => {
 });
 
 rulesRouter.get("/gear", (_req, res) => {
-  res.json({ gear: [...weaponGear, ...armorGear, ...generalGear, ...electronicsGear] });
+  res.json({ gear: [...weaponGear, ...armorGear, ...generalGear, ...electronicsGear, ...augmentationsGear] });
 });

@@ -85,6 +85,23 @@ rulebook and sourcebook PDFs already on disk one directory up.
   pp. 267-277) - substantially bigger than the roadmap's original "pp.
   267-273" estimate, since the optics/audio/sensor sections (pp. 274-277)
   weren't named in that scoping at all.
+  **Augmentations (cyberware/bioware)** chunk complete: Headware, Eyeware,
+  Earware, Bodyware, Cyberlimbs, Cyberlimb Accessories, Cyber Implant
+  Weapons, Bioware, and Cultured Bioware (`augmentations.ts`, core rulebook
+  pp. 282-293 - the one chunk so far whose page-range estimate held exactly).
+  125 entries. This was the chunk blocked on Essence tracking, which now
+  exists (see above) - every Essence-costing item here has `essenceCost` set,
+  so buying it reduces Essence and caps Magic/Resonance automatically. Also
+  needed an architecture fix: `essenceCost` now scales per-level the same way
+  `cost` does when `levels` is set (`gearUnitEssenceCost` in
+  `client/src/deriveGear.ts`), since most rated cyberware/bioware here prices
+  both cost and Essence as "Rating x N." A handful of items (Datalock,
+  Olfactory/Taste Booster, Voice Modulator, Internal Air Tank, Retinal
+  Duplication, Select Sound Filter) print a flat Essence cost that does NOT
+  scale with rating while their nuyen cost does - catalogued at their Rating
+  1 price with the real formula noted in the summary, same treatment as
+  General gear's Tranq Patch gap. Implant Grades (Used/Alpha/Beta/Delta cost
+  multipliers) aren't modeled - every entry is standard grade only.
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -169,11 +186,11 @@ and `GearCatalogEntry` for the shared shape/conventions).
    arrays, single sensors) - the "priced Sensors table" chunk 3 couldn't
    locate turned out to live in this chunk, not missing. Companion's
    Cyberprogram Everything PACK maps onto the Software section here.
-5. Augmentations (cyberware/bioware) - core rulebook pp. 282-293;
-   Companion's Hacker/Cybereyes/Cyberears/Skill Rig/Torso Augmentation
-   PACKs. Previously flagged as blocked on Essence tracking - that's now
-   done (see Essence tracking above), so this chunk just needs the catalog
-   entries themselves, each with an `essenceCost` set.
+5. ~~Augmentations~~ - done (Headware, Eyeware, Earware, Bodyware,
+   Cyberlimbs, Cyberlimb Accessories, Cyber Implant Weapons, Bioware,
+   Cultured Bioware; core rulebook pp. 282-293, the one chunk whose original
+   estimate held exactly - Companion's Hacker/Cybereyes/Cyberears/Skill
+   Rig/Torso Augmentation PACKs).
 6. Magical equipment - core rulebook p. 294+ (foci, reagents)
 7. Vehicles - Companion's Vehicle PACKs (Cars, Trucks and Vans, Boats)
 8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
