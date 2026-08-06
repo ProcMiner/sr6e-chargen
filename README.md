@@ -122,6 +122,14 @@ rulebook and sourcebook PDFs already on disk one directory up.
   Modifications" table (rigger interface, weapon mounts) that opens this
   section of the book was deliberately left for the separate Vehicle
   upgrades chunk (9).
+  **Vehicle upgrades** chunk complete: Rigger Interface, Standard/Heavy
+  Weapon Mount, and Manual Operation (`vehicleUpgrades.ts`, core rulebook
+  p. 295). Only 4 entries - that's genuinely everything the core rulebook
+  prints under "Vehicle Modifications." Done out of roadmap order (before
+  Drones) at the user's request, to close out vehicle-adjacent content
+  together. The Companion's fuller Vehicle Upgrade PACKs (if it has more
+  content beyond the core book) hasn't been checked - same class of gap as
+  qualities.ts's sourcebook-by-sourcebook expansion.
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -217,8 +225,12 @@ and `GearCatalogEntry` for the shared shape/conventions).
    Fixed-Wing Aircraft, Rotorcraft, VTOL/VSTOL; core rulebook pp. 295-298;
    Companion's Vehicle PACKs).
 8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
-   Console PACKs, Drone Autosoft PACKs
-9. Vehicle upgrades - Companion's Vehicle Upgrade PACKs
+   Console PACKs, Drone Autosoft PACKs. Continues directly from the
+   Vehicles chunk's stat table sequence at core rulebook p. 299 (chunk 7
+   left off right before Microdrones).
+9. ~~Vehicle upgrades~~ - done (Rigger Interface, Standard/Heavy Weapon
+   Mount, Manual Operation; core rulebook p. 295 - the entirety of what the
+   core book prints here). Done ahead of chunk 8 at the user's request.
 10. PACK bundle-buying + Complete Character PACKs (capstone) - once enough
     categories above exist, add a `PackCatalogEntry` (id, category, cost,
     `items: {itemId, qty}[]`) + a "buy this PACK" action that expands into
