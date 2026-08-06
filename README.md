@@ -111,6 +111,17 @@ rulebook and sourcebook PDFs already on disk one directory up.
   `deriveGear.ts` mirroring `nuyenRemaining` - the Gear picker and Summary
   sheet both show pool/spent/remaining for Karma the same way they do for
   nuyen, and purchases are blocked if either budget is insufficient.
+  **Vehicles** chunk complete: Bikes, Cars, Trucks and Vans, Boats,
+  Submarines, Fixed-Wing Aircraft, Rotorcraft, and VTOL/VSTOL
+  (`vehicles.ts`, core rulebook pp. 295-298). 34 entries, each with a full
+  Handling/Acceleration/Speed Interval/Top Speed/Body/Armor/Pilot/Sensor/
+  Seats stat block in the free-form `stats` field. Bikes are included even
+  though the roadmap's original one-line summary only named "Cars, Trucks
+  and Vans, Boats" - they're the same continuous vehicle table in the book,
+  just not called out in the chunk's short description. The "Vehicle
+  Modifications" table (rigger interface, weapon mounts) that opens this
+  section of the book was deliberately left for the separate Vehicle
+  upgrades chunk (9).
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -202,7 +213,9 @@ and `GearCatalogEntry` for the shared shape/conventions).
    Rig/Torso Augmentation PACKs).
 6. ~~Magical equipment~~ - done (Foci, Formulae, Magical Supplies; core
    rulebook pp. 294-295).
-7. Vehicles - Companion's Vehicle PACKs (Cars, Trucks and Vans, Boats)
+7. ~~Vehicles~~ - done (Bikes, Cars, Trucks and Vans, Boats, Submarines,
+   Fixed-Wing Aircraft, Rotorcraft, VTOL/VSTOL; core rulebook pp. 295-298;
+   Companion's Vehicle PACKs).
 8. Drones + Rigger Command Consoles + Autosofts - Companion's Drone PACKs,
    Console PACKs, Drone Autosoft PACKs
 9. Vehicle upgrades - Companion's Vehicle Upgrade PACKs
@@ -220,8 +233,26 @@ and `GearCatalogEntry` for the shared shape/conventions).
     just PACK-level summaries - this is why it's sequenced last.
 
 **Other deferred items**:
-- Spells catalog + picker UI for magicians (Magic x2 limit already noted in
-  rules data comments).
+- Spells catalog + picker UI for magicians - core rulebook pp. 130-143
+  (Learning Spells, Spell Descriptions, Combat/Detection/Health/Illusion/
+  Manipulation Spells, Counterspelling, Ritual Spellcasting). Magic x2 limit
+  already noted in rules data comments. The Magical Equipment gear chunk's
+  spell formulae (`magicalEquipment.ts`) are catalogued generically by
+  category rather than by named spell for exactly this reason - this is
+  where the actual spell list belongs.
+- Adept Powers picker for Adepts/Mystic Adepts - core rulebook pp. 156-158
+  (Power Points, Adept Powers). Not tracked anywhere today: the Priority and
+  Life Path builders let a character become an Adept or Mystic Adept and set
+  a Magic rating, but there's no picker for spending Power Points on actual
+  powers (Improved Reflexes, Killing Hands, Combat Sense, etc.), and no
+  Power Points pool is calculated or stored.
+- Technomancer "streams" (Hack & Slash, "Resonant Streams," book pp.
+  130-131) - a bundled stream-selection system (fixed benefits + an
+  "aspect peripheral" power + a purchasable complex form per stream) for
+  technomancers/EIs, similar in spirit to the qualities catalog but
+  structurally different (it's not a flat list of purchasable qualities).
+  Excluded from the qualities catalog for that reason - would need its own
+  data model and picker UI if ever implemented.
 - Astral Beacon and Scorched qualities (see above), plus the Companion's
   additional qualities (pp. 132-138) and its "Quality Paths" narrative
   advancement system (pp. 138-143) - out of scope for the initial catalog,
@@ -237,13 +268,6 @@ and `GearCatalogEntry` for the shared shape/conventions).
   path to go with them, but the app has no AI character type anywhere in
   the schema (Priority or Life Path). Those qualities are excluded from the
   qualities catalog until AI chargen itself is scoped.
-- Technomancer "streams" (Hack & Slash, "Resonant Streams," book pp.
-  130-131) - a bundled stream-selection system (fixed benefits + an
-  "aspect peripheral" power + a purchasable complex form per stream) for
-  technomancers/EIs, similar in spirit to the qualities catalog but
-  structurally different (it's not a flat list of purchasable qualities).
-  Excluded from the qualities catalog for that reason - would need its own
-  data model and picker UI if ever implemented.
 
 ## Ops
 
