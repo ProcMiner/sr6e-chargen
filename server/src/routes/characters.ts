@@ -56,6 +56,17 @@ function isValidCharacterData(data: unknown): boolean {
     if (!Array.isArray(d.spells) || d.spells.some((s) => typeof s !== "string")) return false;
   }
 
+  if (d.mysticAdeptPowerPoints !== undefined && !isFiniteInRange(d.mysticAdeptPowerPoints, 0, 8)) return false;
+
+  if (Array.isArray(d.adeptPowers)) {
+    for (const line of d.adeptPowers as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const p = line as Record<string, unknown>;
+      if (typeof p.powerId !== "string") return false;
+      if (p.level !== undefined && !isFiniteInRange(p.level, 0, 20)) return false;
+    }
+  }
+
   if (Array.isArray(d.gear)) {
     for (const line of d.gear as unknown[]) {
       if (line === null || typeof line !== "object") return false;

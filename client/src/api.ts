@@ -69,6 +69,7 @@ export const api = {
   gear: () => request<import("./rules").GearRulesResponse>("/rules/gear"),
   packs: () => request<import("./rules").PackRulesResponse>("/rules/packs"),
   spells: () => request<import("./rules").SpellRulesResponse>("/rules/spells"),
+  adeptPowers: () => request<import("./rules").AdeptPowerRulesResponse>("/rules/adept-powers"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),

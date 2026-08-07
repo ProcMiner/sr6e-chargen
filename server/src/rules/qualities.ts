@@ -338,6 +338,16 @@ export const positiveQualities: QualityCatalogEntry[] = [
     requiresParam: "custom",
   },
   {
+    id: "adept-way",
+    name: "Adept Way (Street Wyrd)",
+    category: "positive",
+    karma: 20,
+    summary: "Adepts and Mystic Adepts only. You've committed to a specific philosophy of channeling your magic - Artisan's, Artist's, Athlete's, Beast's, Burnout's, Invisible, Magician's, Speaker's, or Warrior's Way.",
+    effect:
+      "Gain Innate Talent, Focused Channeling, and Spark of Brilliance (reduce Edge Boost costs by one once per encounter on tests modified by an adept power/metamagic; may resist adept drain with an alternate attribute, chosen and fixed when the way is taken), plus your chosen Way's specific benefit (Street Wyrd pp. 76-77 - each Way swaps in a wild die on a different pair of skills, or grants a mentor-spirit-style bonus).",
+    requiresParam: "custom",
+  },
+  {
     id: "photographic-memory",
     name: "Photographic Memory",
     category: "positive",

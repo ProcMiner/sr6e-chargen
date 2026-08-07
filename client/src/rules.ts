@@ -179,6 +179,28 @@ export interface SpellRulesResponse {
   spells: SpellCatalogEntry[];
 }
 
+export interface AdeptPowerCatalogEntry {
+  id: string;
+  name: string;
+  /** Power Point cost; PER LEVEL if `levels` is set. */
+  cost: number;
+  /** For rated powers; cost is PER LEVEL, same convention as GearCatalogEntry.levels. */
+  levels?: { min: number; max: number };
+  /** Passive, Minor Action, Major Action, or a longer free-form description. */
+  activation: string;
+  /** Another power this one requires, e.g. "Killing Hands". */
+  prerequisite?: string;
+  /** Free-form descriptors, e.g. "Element" for the Elemental Missile/Strike/Weapon family. */
+  tags?: string[];
+  summary: string;
+  /** Sourcebook this entry is transcribed from. */
+  book: string;
+}
+
+export interface AdeptPowerRulesResponse {
+  adeptPowers: AdeptPowerCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

@@ -15,6 +15,8 @@ import { dronesGear } from "../rules/drones.js";
 import { packs } from "../rules/packs.js";
 import { coreSpells } from "../rules/spells.js";
 import { streetWyrdSpells } from "../rules/spellsStreetWyrd.js";
+import { coreAdeptPowers } from "../rules/adeptPowers.js";
+import { streetWyrdAdeptPowers } from "../rules/adeptPowersStreetWyrd.js";
 
 export const rulesRouter = Router();
 
@@ -52,4 +54,8 @@ rulesRouter.get("/packs", (_req, res) => {
 
 rulesRouter.get("/spells", (_req, res) => {
   res.json({ spells: [...coreSpells, ...streetWyrdSpells] });
+});
+
+rulesRouter.get("/adept-powers", (_req, res) => {
+  res.json({ adeptPowers: [...coreAdeptPowers, ...streetWyrdAdeptPowers] });
 });

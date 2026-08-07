@@ -327,13 +327,38 @@ and `GearCatalogEntry` for the shared shape/conventions).
     catalog, out of scope here; the Magic-x2-spells-*or-rituals* choice is
     modeled as spells-only for now.
 
+12. ~~Adept Powers~~ - done (`server/src/rules/adeptPowers.ts` +
+    `adeptPowersStreetWyrd.ts`, 67 entries: 23 from the core rulebook's
+    Adept Powers list, pp. 156-158 - "Improved Ability (Skill)" split into
+    two entries since Combat/other skills price differently - plus 44 new
+    powers from Street Wyrd's "Force and Grace" chapter, "New Adept Powers"
+    section, pp. 77-84). `AdeptPowerPicker.tsx` shows the Power Point pool,
+    spent/remaining, and a searchable list grouped by book; only renders for
+    Adept/Mystic Adept characters (Priority `magicOption` or Life Path
+    `awakenedType`). Power Points track *current effective Magic*
+    (Essence-capped) for a pure Adept - unlike the frozen Priority-table-base
+    convention used for the free spell allotment, this pool rises and falls
+    with Magic as printed on p. 156. Mystic Adepts get a new
+    `mysticAdeptPowerPoints` field to record how much of their (base) Magic
+    they dedicate to the adept side (core rulebook p. 158-159); this also
+    **fixed** the Spells chunk's Mystic Adept approximation, which
+    previously granted the full Magic x2 free spells because Adept Powers
+    didn't exist yet to model the split - it now correctly computes
+    `(magicBase - mysticAdeptPowerPoints) x 2`, verified live in the browser
+    (allocating 3 of 4 Magic to Power Points dropped the free spell
+    allotment from 8 to 2 and immediately reflected the Karma cost of the
+    character's other already-known spells). **Not done**: "Adept Ways and
+    Their Benefits" (Street Wyrd pp. 76-77, a 20-Karma package quality with
+    a chosen sub-benefit) is modeled as a single `adept-way` entry in
+    `qualities.ts` instead, mirroring the Mentor Spirit precedent (pick via
+    notes, effect text points to the book) rather than simulating each of
+    the 9 Ways mechanically. Adept Metamagics (Street Wyrd pp. 84-85:
+    Animal Attunement, Astral Projection, Finding Your Way, Infusion, Item
+    Attunement, Virtuoso) require Initiation, which this app doesn't track -
+    excluded, consistent with the existing Initiation/Submersion gap noted
+    in `deriveEssence.ts`.
+
 **Other deferred items**:
-- Adept Powers picker for Adepts/Mystic Adepts - core rulebook pp. 156-158
-  (Power Points, Adept Powers). Not tracked anywhere today: the Priority and
-  Life Path builders let a character become an Adept or Mystic Adept and set
-  a Magic rating, but there's no picker for spending Power Points on actual
-  powers (Improved Reflexes, Killing Hands, Combat Sense, etc.), and no
-  Power Points pool is calculated or stored.
 - Technomancer "streams" (Hack & Slash, "Resonant Streams," book pp.
   130-131) - a bundled stream-selection system (fixed benefits + an
   "aspect peripheral" power + a purchasable complex form per stream) for
@@ -356,6 +381,26 @@ and `GearCatalogEntry` for the shared shape/conventions).
   path to go with them, but the app has no AI character type anywhere in
   the schema (Priority or Life Path). Those qualities are excluded from the
   qualities catalog until AI chargen itself is scoped.
+- NPC stat blocks (grunts, security, rival runner teams, corp/GM-facing
+  archetypes) - core rulebook has a grunt-rating framework around p. 280s
+  (Ratings 1-4 semi-trained through veteran), but full pre-built NPC stat
+  blocks are more likely concentrated in other sourcebooks (Firing Squad -
+  Combat Sourcebook, Collapsing Now - Runner Groups, Power Plays - Corp
+  Info) - none of those chapters have been read yet this session, page
+  ranges TBD. Not part of character creation itself, so this would be a new
+  section of the app (GM-facing NPC library?) rather than a builder chunk.
+- Spirits - core rulebook's Conjuring chapter has base Spirit Types (Air,
+  Fire, Water, Earth, Man, Beast, etc.) with a Spirit Powers/critter-style
+  stat block per type; Street Wyrd's "A Congress of Spirits" chapter (pp.
+  54-71) substantially expands this with Plant/Guardian/Guidance/Task
+  Spirits, Free Spirits, Ally Spirits, Great Form Spirits, and a general
+  Spirit Powers list - not read in detail yet. Relevant to both a
+  conjurer's summoned-spirit tracking and any future NPC/GM tooling.
+- Creatures/Critters - core rulebook's "Critters" chapter, p. 215 onward
+  (Mundane Critters p. 215, Awakened Critters p. 216+) - stat blocks for
+  wildlife and paranormal animals, structurally similar to the Vehicles
+  chunk's stat-block approach (would likely reuse the free-form `stats`
+  field). Not started.
 
 ## Ops
 

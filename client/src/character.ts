@@ -71,6 +71,15 @@ export interface SelectedQuality {
   param?: string;
 }
 
+export interface AdeptPowerLine {
+  /** Catalog entry id. */
+  powerId: string;
+  /** Chosen level, for catalog entries with a `levels` range. */
+  level?: number;
+  /** Free-text sub-choice for powers that need one (an element, attribute, or skill) - see AdeptPowerCatalogEntry's header comment. */
+  notes?: string;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   attributes: Attributes;
@@ -81,6 +90,17 @@ export interface CharacterData {
   gear: GearLine[];
   /** Known spell catalog ids. The first freeSpellAllotment() of these are free (Priority build only); every one beyond that costs 5 Karma (see deriveSpells.ts). */
   spells: string[];
+  /** Known adept powers, purchased with Power Points (see deriveAdeptPowers.ts). Meaningful only for Adept/Mystic Adept characters. */
+  adeptPowers: AdeptPowerLine[];
+  /**
+   * Mystic Adepts split their Magic between Power Points and spells at
+   * chargen (core rulebook p. 158-159): this many points of Magic are
+   * dedicated to the adept side (1 Power Point each), and the remainder is
+   * doubled for their free spell allotment (see deriveSpells.ts). Meaningful
+   * only when magicOption/awakenedType is "Mystic Adept"; undefined/0
+   * elsewhere.
+   */
+  mysticAdeptPowerPoints?: number;
   nuyen: number;
   karma: number;
   notes?: string;
@@ -108,6 +128,7 @@ export function emptyCharacterData(): CharacterData {
     contacts: [],
     gear: [],
     spells: [],
+    adeptPowers: [],
     nuyen: 0,
     karma: 0,
     systemState: {},

@@ -10,6 +10,7 @@ import type {
   GearRulesResponse,
   PackRulesResponse,
   SpellRulesResponse,
+  AdeptPowerRulesResponse,
 } from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
@@ -17,6 +18,7 @@ import { QualityPicker } from "./QualityPicker/QualityPicker";
 import { GearPicker } from "./GearPicker/GearPicker";
 import { PackPicker } from "./PackPicker/PackPicker";
 import { SpellPicker } from "./SpellPicker/SpellPicker";
+import { AdeptPowerPicker } from "./AdeptPowerPicker/AdeptPowerPicker";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 
@@ -30,6 +32,7 @@ export function BuilderRoot() {
   const [gearRules, setGearRules] = useState<GearRulesResponse | null>(null);
   const [packRules, setPackRules] = useState<PackRulesResponse | null>(null);
   const [spellRules, setSpellRules] = useState<SpellRulesResponse | null>(null);
+  const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -47,6 +50,7 @@ export function BuilderRoot() {
     api.gear().then(setGearRules);
     api.packs().then(setPackRules);
     api.spells().then(setSpellRules);
+    api.adeptPowers().then(setAdeptPowerRules);
   }, [id]);
 
   async function handleSave() {
@@ -71,7 +75,8 @@ export function BuilderRoot() {
     !qualityRules ||
     !gearRules ||
     !packRules ||
-    !spellRules
+    !spellRules ||
+    !adeptPowerRules
   ) {
     return (
       <div className="page">
@@ -117,6 +122,7 @@ export function BuilderRoot() {
             onChange={setData}
           />
           <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
+          <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={setData} />
           <PackPicker packRules={packRules} gearRules={gearRules} data={data} onChange={setData} />
           <GearPicker
             rules={gearRules}
@@ -132,6 +138,7 @@ export function BuilderRoot() {
             metatypeAttributes={priorityRules.metatypeAttributes}
             spellRules={spellRules}
             priorityRules={priorityRules}
+            adeptPowerRules={adeptPowerRules}
           />
         </aside>
       </div>

@@ -3,8 +3,15 @@ import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
-import type { MetatypeAttributes, PriorityRulesResponse, QualityRulesResponse, SpellRulesResponse } from "../../rules";
+import type {
+  AdeptPowerRulesResponse,
+  MetatypeAttributes,
+  PriorityRulesResponse,
+  QualityRulesResponse,
+  SpellRulesResponse,
+} from "../../rules";
 import { freeSpellAllotment, spellKarmaCost } from "../../deriveSpells";
+import { adeptPowerPointPool, adeptPowerPointsSpent, findAdeptPowerEntry } from "../../deriveAdeptPowers";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -29,11 +36,14 @@ interface Props {
   metatypeAttributes: MetatypeAttributes[];
   spellRules: SpellRulesResponse;
   priorityRules: PriorityRulesResponse;
+  adeptPowerRules: AdeptPowerRulesResponse;
 }
 
-export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRules, priorityRules }: Props) {
+export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRules, priorityRules, adeptPowerRules }: Props) {
   const spellKarma = spellKarmaCost(data, priorityRules);
   const spellsFree = freeSpellAllotment(data, priorityRules);
+  const powerPointPool = adeptPowerPointPool(data);
+  const powerPointsSpent = adeptPowerPointsSpent(data.adeptPowers, adeptPowerRules.adeptPowers);
   const derived = deriveStats(data.attributes);
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
@@ -169,6 +179,27 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
             {data.spells.map((id, i) => {
               const entry = spellRules.spells.find((s) => s.id === id);
               return <li key={i}>{entry?.name ?? id}</li>;
+            })}
+          </ul>
+        </section>
+      )}
+
+      {data.adeptPowers.length > 0 && (
+        <section>
+          <h3>Adept Powers</h3>
+          <p className="hint">
+            {powerPointsSpent.toLocaleString()} / {powerPointPool.toLocaleString()} Power Points spent
+          </p>
+          <ul>
+            {data.adeptPowers.map((line, i) => {
+              const entry = findAdeptPowerEntry(line.powerId, adeptPowerRules.adeptPowers);
+              return (
+                <li key={i}>
+                  {entry?.name ?? line.powerId}
+                  {line.level ? ` (level ${line.level})` : ""}
+                  {line.notes ? ` - ${line.notes}` : ""}
+                </li>
+              );
             })}
           </ul>
         </section>
