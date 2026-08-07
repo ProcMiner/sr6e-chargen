@@ -402,6 +402,25 @@ and `GearCatalogEntry` for the shared shape/conventions).
   chunk's stat-block approach (would likely reuse the free-form `stats`
   field). Not started.
 
+## UX
+
+- **Stepped builder flow** - `BuilderRoot.tsx` currently renders every
+  picker (Priority/Life Path, Qualities, Spells, Adept Powers, PACKs, Gear)
+  stacked on one long page, with the Summary sheet as a sidebar. That's fine
+  for testing/power users but dumps the whole character sheet on a new
+  player at once. Idea: break the builder into sequential steps (e.g.
+  Metatype/Priorities → Attributes → Skills → Magic/Resonance → Qualities →
+  Spells/Adept Powers, shown only if relevant → Gear/PACKs → Review) with
+  next/back navigation and a progress indicator, similar to a typical
+  onboarding wizard. Not started - needs a design pass first: whether this
+  is a new top-level mode alongside the current single-page view (so power
+  users/existing characters aren't disrupted) or a full replacement, how
+  step validity/completion is tracked, and whether the existing Picker
+  components can be reused as-is inside step containers or need their own
+  "focused" layout. Likely doesn't need any character.ts schema changes -
+  this is a presentation-layer restructure of `BuilderRoot.tsx`, not new
+  data.
+
 ## Ops
 
 - Not urgent, but worth doing sooner rather than later: actually stand up
