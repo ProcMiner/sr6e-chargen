@@ -3,11 +3,18 @@ import { Link, useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import type { CharacterData } from "../../character";
 import { emptyCharacterData } from "../../character";
-import type { PriorityRulesResponse, LifepathRulesResponse, QualityRulesResponse, GearRulesResponse } from "../../rules";
+import type {
+  PriorityRulesResponse,
+  LifepathRulesResponse,
+  QualityRulesResponse,
+  GearRulesResponse,
+  PackRulesResponse,
+} from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
 import { QualityPicker } from "./QualityPicker/QualityPicker";
 import { GearPicker } from "./GearPicker/GearPicker";
+import { PackPicker } from "./PackPicker/PackPicker";
 import { SummarySheet } from "./SummarySheet";
 
 export function BuilderRoot() {
@@ -18,6 +25,7 @@ export function BuilderRoot() {
   const [lifepathRules, setLifepathRules] = useState<LifepathRulesResponse | null>(null);
   const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [gearRules, setGearRules] = useState<GearRulesResponse | null>(null);
+  const [packRules, setPackRules] = useState<PackRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -33,6 +41,7 @@ export function BuilderRoot() {
     api.lifepathModules().then(setLifepathRules);
     api.qualities().then(setQualityRules);
     api.gear().then(setGearRules);
+    api.packs().then(setPackRules);
   }, [id]);
 
   async function handleSave() {
@@ -49,7 +58,7 @@ export function BuilderRoot() {
     }
   }
 
-  if (!character || !data || !priorityRules || !lifepathRules || !qualityRules || !gearRules) {
+  if (!character || !data || !priorityRules || !lifepathRules || !qualityRules || !gearRules || !packRules) {
     return (
       <div className="page">
         <p>Loading...</p>
@@ -93,6 +102,7 @@ export function BuilderRoot() {
             data={data}
             onChange={setData}
           />
+          <PackPicker packRules={packRules} gearRules={gearRules} data={data} onChange={setData} />
           <GearPicker rules={gearRules} data={data} onChange={setData} />
         </div>
         <aside className="builder-sidebar">

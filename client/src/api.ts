@@ -67,6 +67,7 @@ export const api = {
   lifepathModules: () => request<import("./rules").LifepathRulesResponse>("/rules/lifepath-modules"),
   qualities: () => request<import("./rules").QualityRulesResponse>("/rules/qualities"),
   gear: () => request<import("./rules").GearRulesResponse>("/rules/gear"),
+  packs: () => request<import("./rules").PackRulesResponse>("/rules/packs"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),

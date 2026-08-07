@@ -156,6 +156,36 @@ rulebook and sourcebook PDFs already on disk one directory up.
   "Cyberprogram, Basic" entries; the book prices them the same way it
   prices any other program, with no separate named/priced catalog per
   autosoft type.
+  **PACK bundle-buying** (the gear rollout's tenth and final individual-item
+  chunk) is complete: `server/src/rules/packs.ts` defines `PackCatalogEntry`
+  (id/name/category/subcategory/cost/summary/`items: {itemId, qty, rating?,
+  notes?}[]`), a `GET /api/rules/packs` endpoint, and 115 category PACKs
+  transcribed from the Sixth World Companion's "Suit Up" chapter (Weapons,
+  Armor, Sensor, Identity, Augmentation, Console, Drone Autosoft PACKs -
+  pp. 56-71, plus Rigger Command Console PACKs cross-referencing pp.
+  197-198). Buying a PACK (`PackPicker.tsx`) expands it into real `GearLine`s
+  via `client/src/derivePacks.ts`'s `explodePackToGearLines`, reusing the
+  exact same `gearUnitCost`/`gearUnitEssenceCost`/`gearUnitBondingKarma`
+  helpers a manual purchase uses - plus one automatic "bundle adjustment"
+  line carrying the exact difference between the PACK's stated flat price
+  and the sum of its real constituent items (usually a discount, occasionally
+  a premium), so nuyen/Essence/Karma accounting is always exact even though
+  most PACKs aren't itemized down to every accessory. Verified in the
+  Browser pane: a Weapons PACK's total matched its stated price exactly, and
+  an Augmentation PACK's Essence drop matched the book's own printed
+  Essence Cost figure exactly (both survived save/reload from the DB).
+  Deliberately out of scope, confirmed with the user before starting:
+  **Complete Character PACKs** (~15 entries, pp. 49-56) nest other PACKs
+  inside themselves, include Lifestyle costs this app doesn't track as gear
+  at all, and sometimes carry embedded player choices or conditional
+  Karma-only costs - a natural follow-up once a Lifestyle-tracking gap is
+  addressed. **Vehicle Upgrade PACKs** (p. 71) turn out to source from
+  *Double Clutch* (the Rigger sourcebook), not the Companion itself - not
+  read this session, flagged rather than guessed at. A handful of Hacker
+  PACKs specify a cyberware Grade (Used) that `augmentations.ts` doesn't
+  model; approximated with the standard-grade item and flagged per-entry -
+  every other Augmentation PACK is standard grade already and its computed
+  Essence total was verified to match the book's printed figure exactly.
 
 - **Essence tracking**: every character starts at Essence 6.00, derived down
   from gear with an `essenceCost` (cyberware/bioware) via
@@ -258,18 +288,21 @@ and `GearCatalogEntry` for the shared shape/conventions).
 9. ~~Vehicle upgrades~~ - done (Rigger Interface, Standard/Heavy Weapon
    Mount, Manual Operation; core rulebook p. 295 - the entirety of what the
    core book prints here). Done ahead of chunk 8 at the user's request.
-10. PACK bundle-buying + Complete Character PACKs (capstone) - once enough
-    categories above exist, add a `PackCatalogEntry` (id, category, cost,
-    `items: {itemId, qty}[]`) + a "buy this PACK" action that expands into
-    constituent `GearLine`s at the PACK's flat price, plus the ~15 Complete
-    Character PACKs (Companion pp. 49-56: Dirt Poor, Full Magician, Close
-    Combat Adept, Face, Gunslinger Adept, Cybered Covert Operative, Decker,
-    Full Conversion Cyborg, Street Samurai, Vat Job Bioware-Augmented Combat
-    Specialist, Weapons Specialist, Max Hardware Decker, Transport Rigger,
-    Drone Rigger, Augmented for Firearms) that bundle across categories.
-    Note the dependency: PACKs are just curated bundles of individual items,
-    so full fidelity needs those individual items in the catalog first, not
-    just PACK-level summaries - this is why it's sequenced last.
+10. ~~PACK bundle-buying~~ - done for category PACKs (`packs.ts`, 115
+    entries: Weapons/Armor/Sensor/Identity/Augmentation/Console/Drone
+    Autosoft PACKs, Companion pp. 56-71 + Rigger Command Console pp.
+    197-198). **Not done**: the ~15 Complete Character PACKs (Companion pp.
+    49-56: Dirt Poor, Full Magician, Close Combat Adept, Face, Gunslinger
+    Adept, Cybered Covert Operative, Decker, Full Conversion Cyborg, Street
+    Samurai, Vat Job Bioware-Augmented Combat Specialist, Weapons
+    Specialist, Max Hardware Decker, Transport Rigger, Drone Rigger,
+    Augmented for Firearms) - these nest other PACKs inside themselves,
+    include Lifestyle costs (not tracked as gear anywhere in this app), and
+    sometimes carry embedded player choices or conditional Karma-only
+    costs, so they don't fit the flat-bundle `PackCatalogEntry` model this
+    chunk built. A natural follow-up once a Lifestyle-tracking gap is
+    addressed. Also not done: Vehicle Upgrade PACKs (p. 71) source from
+    *Double Clutch*, not the Companion - not read this session.
 
 **Other deferred items**:
 - Spells catalog + picker UI for magicians - core rulebook pp. 130-143

@@ -136,6 +136,24 @@ export interface GearRulesResponse {
   gear: GearCatalogEntry[];
 }
 
+export interface PackCatalogEntry {
+  id: string;
+  name: string;
+  /** Broad grouping key, e.g. "weapon-pack" - opaque string, not a fixed union, matching GearCatalogEntry.category. */
+  category: string;
+  /** Narrower grouping for the picker UI, e.g. "Heavy Pistols". */
+  subcategory?: string;
+  /** The book's stated flat nuyen price for the whole bundle. */
+  cost: number;
+  summary: string;
+  /** References into the existing gear catalogs - not new items of their own. */
+  items: { itemId: string; qty: number; rating?: number; notes?: string }[];
+}
+
+export interface PackRulesResponse {
+  packs: PackCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;
