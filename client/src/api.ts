@@ -68,6 +68,7 @@ export const api = {
   qualities: () => request<import("./rules").QualityRulesResponse>("/rules/qualities"),
   gear: () => request<import("./rules").GearRulesResponse>("/rules/gear"),
   packs: () => request<import("./rules").PackRulesResponse>("/rules/packs"),
+  spells: () => request<import("./rules").SpellRulesResponse>("/rules/spells"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),

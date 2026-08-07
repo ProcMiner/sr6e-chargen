@@ -17,13 +17,15 @@ interface Props {
   rules: GearRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
+  /** Karma already committed outside gear (e.g. spells beyond the free allotment - see deriveSpells.ts), so this picker's afford checks reflect the whole shared Karma pool. */
+  extraKarmaSpent?: number;
 }
 
-export function GearPicker({ rules, data, onChange }: Props) {
+export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0 }: Props) {
   const catalog = rules.gear;
   const selected = data.gear;
   const remaining = nuyenRemaining(data);
-  const karmaBudget = karmaRemaining(data);
+  const karmaBudget = karmaRemaining(data, extraKarmaSpent);
 
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");

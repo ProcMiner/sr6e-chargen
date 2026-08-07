@@ -304,14 +304,30 @@ and `GearCatalogEntry` for the shared shape/conventions).
     addressed. Also not done: Vehicle Upgrade PACKs (p. 71) source from
     *Double Clutch*, not the Companion - not read this session.
 
+11. ~~Spells~~ - done (`server/src/rules/spells.ts` + `spellsStreetWyrd.ts`,
+    140 entries: 73 from the core rulebook's Combat/Detection/Health/
+    Illusion/Manipulation Spells, pp. 132-142, plus 67 new spells from Street
+    Wyrd's "The Tome of Now" chapter, pp. 25-43, and its two worked
+    custom-spell examples, pp. 51-53). The Sixth World Companion has no
+    Spells chapter and contributes nothing (checked directly against its
+    extracted text, not assumed absent). Street Wyrd reprints several core
+    spells verbatim as in-fiction "shop catalog" flavor (Manabolt, Fireball,
+    Clout, etc.) - those aren't duplicated, only genuinely new spells are
+    catalogued from it. New architecture: a `SpellPicker.tsx` lets a
+    character build a "known spells" list; the first `Magic (in the Priority
+    table) x 2` are free for Priority-built Full/Aspected/Mystic Adept
+    magicians (core rulebook p. 65-66 - no equivalent free-grant text exists
+    for Life Path, so Life Path characters pay for every spell), and every
+    spell beyond that costs 5 Karma ("New Spells", p. 69-70) from the same
+    shared Karma pool bonding-cost gear already draws from - `GearPicker`'s
+    and `SummarySheet`'s Karma-remaining math were extended to include it so
+    the pool stays consistent everywhere it's shown. **Not done**: Rituals
+    (Ritual Spellcasting, p. 143+, e.g. Prodigal Spell) are a structurally
+    different multi-participant casting system with their own named
+    catalog, out of scope here; the Magic-x2-spells-*or-rituals* choice is
+    modeled as spells-only for now.
+
 **Other deferred items**:
-- Spells catalog + picker UI for magicians - core rulebook pp. 130-143
-  (Learning Spells, Spell Descriptions, Combat/Detection/Health/Illusion/
-  Manipulation Spells, Counterspelling, Ritual Spellcasting). Magic x2 limit
-  already noted in rules data comments. The Magical Equipment gear chunk's
-  spell formulae (`magicalEquipment.ts`) are catalogued generically by
-  category rather than by named spell for exactly this reason - this is
-  where the actual spell list belongs.
 - Adept Powers picker for Adepts/Mystic Adepts - core rulebook pp. 156-158
   (Power Points, Adept Powers). Not tracked anywhere today: the Priority and
   Life Path builders let a character become an Adept or Mystic Adept and set

@@ -79,6 +79,8 @@ export interface CharacterData {
   qualities: SelectedQuality[];
   contacts: Contact[];
   gear: GearLine[];
+  /** Known spell catalog ids. The first freeSpellAllotment() of these are free (Priority build only); every one beyond that costs 5 Karma (see deriveSpells.ts). */
+  spells: string[];
   nuyen: number;
   karma: number;
   notes?: string;
@@ -105,6 +107,7 @@ export function emptyCharacterData(): CharacterData {
     qualities: [],
     contacts: [],
     gear: [],
+    spells: [],
     nuyen: 0,
     karma: 0,
     systemState: {},

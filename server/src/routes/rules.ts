@@ -13,6 +13,8 @@ import { vehiclesGear } from "../rules/vehicles.js";
 import { vehicleUpgradesGear } from "../rules/vehicleUpgrades.js";
 import { dronesGear } from "../rules/drones.js";
 import { packs } from "../rules/packs.js";
+import { coreSpells } from "../rules/spells.js";
+import { streetWyrdSpells } from "../rules/spellsStreetWyrd.js";
 
 export const rulesRouter = Router();
 
@@ -46,4 +48,8 @@ rulesRouter.get("/gear", (_req, res) => {
 
 rulesRouter.get("/packs", (_req, res) => {
   res.json({ packs });
+});
+
+rulesRouter.get("/spells", (_req, res) => {
+  res.json({ spells: [...coreSpells, ...streetWyrdSpells] });
 });

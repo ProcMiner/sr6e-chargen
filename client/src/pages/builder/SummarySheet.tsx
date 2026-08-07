@@ -3,7 +3,8 @@ import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
-import type { MetatypeAttributes, QualityRulesResponse } from "../../rules";
+import type { MetatypeAttributes, PriorityRulesResponse, QualityRulesResponse, SpellRulesResponse } from "../../rules";
+import { freeSpellAllotment, spellKarmaCost } from "../../deriveSpells";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -26,9 +27,13 @@ interface Props {
   data: CharacterData;
   qualityRules: QualityRulesResponse;
   metatypeAttributes: MetatypeAttributes[];
+  spellRules: SpellRulesResponse;
+  priorityRules: PriorityRulesResponse;
 }
 
-export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) {
+export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRules, priorityRules }: Props) {
+  const spellKarma = spellKarmaCost(data, priorityRules);
+  const spellsFree = freeSpellAllotment(data, priorityRules);
   const derived = deriveStats(data.attributes);
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
@@ -153,6 +158,22 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
         </section>
       )}
 
+      {data.spells.length > 0 && (
+        <section>
+          <h3>Spells</h3>
+          <p className="hint">
+            {Math.min(data.spells.length, spellsFree)} / {spellsFree} free
+            {data.spells.length > spellsFree ? `, ${data.spells.length - spellsFree} at 5 Karma each` : ""}
+          </p>
+          <ul>
+            {data.spells.map((id, i) => {
+              const entry = spellRules.spells.find((s) => s.id === id);
+              return <li key={i}>{entry?.name ?? id}</li>;
+            })}
+          </ul>
+        </section>
+      )}
+
       {data.gear.length > 0 && (
         <section>
           <h3>Gear</h3>
@@ -174,7 +195,8 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes }: Props) 
         <p>{nuyenRemaining(data).toLocaleString()}¥ remaining</p>
         <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
-        <p>{karmaRemaining(data).toLocaleString()} Karma remaining</p>
+        <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
+        <p>{karmaRemaining(data, spellKarma).toLocaleString()} Karma remaining</p>
       </section>
     </div>
   );

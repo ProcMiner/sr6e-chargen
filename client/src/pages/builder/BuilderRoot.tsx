@@ -9,13 +9,16 @@ import type {
   QualityRulesResponse,
   GearRulesResponse,
   PackRulesResponse,
+  SpellRulesResponse,
 } from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
 import { QualityPicker } from "./QualityPicker/QualityPicker";
 import { GearPicker } from "./GearPicker/GearPicker";
 import { PackPicker } from "./PackPicker/PackPicker";
+import { SpellPicker } from "./SpellPicker/SpellPicker";
 import { SummarySheet } from "./SummarySheet";
+import { spellKarmaCost } from "../../deriveSpells";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -26,6 +29,7 @@ export function BuilderRoot() {
   const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [gearRules, setGearRules] = useState<GearRulesResponse | null>(null);
   const [packRules, setPackRules] = useState<PackRulesResponse | null>(null);
+  const [spellRules, setSpellRules] = useState<SpellRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -42,6 +46,7 @@ export function BuilderRoot() {
     api.qualities().then(setQualityRules);
     api.gear().then(setGearRules);
     api.packs().then(setPackRules);
+    api.spells().then(setSpellRules);
   }, [id]);
 
   async function handleSave() {
@@ -58,7 +63,16 @@ export function BuilderRoot() {
     }
   }
 
-  if (!character || !data || !priorityRules || !lifepathRules || !qualityRules || !gearRules || !packRules) {
+  if (
+    !character ||
+    !data ||
+    !priorityRules ||
+    !lifepathRules ||
+    !qualityRules ||
+    !gearRules ||
+    !packRules ||
+    !spellRules
+  ) {
     return (
       <div className="page">
         <p>Loading...</p>
@@ -102,11 +116,23 @@ export function BuilderRoot() {
             data={data}
             onChange={setData}
           />
+          <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
           <PackPicker packRules={packRules} gearRules={gearRules} data={data} onChange={setData} />
-          <GearPicker rules={gearRules} data={data} onChange={setData} />
+          <GearPicker
+            rules={gearRules}
+            data={data}
+            onChange={setData}
+            extraKarmaSpent={spellKarmaCost(data, priorityRules)}
+          />
         </div>
         <aside className="builder-sidebar">
-          <SummarySheet data={data} qualityRules={qualityRules} metatypeAttributes={priorityRules.metatypeAttributes} />
+          <SummarySheet
+            data={data}
+            qualityRules={qualityRules}
+            metatypeAttributes={priorityRules.metatypeAttributes}
+            spellRules={spellRules}
+            priorityRules={priorityRules}
+          />
         </aside>
       </div>
     </div>

@@ -12,7 +12,11 @@
 // the character's total available Karma pool, untouched here. Magical foci
 // additionally cost Karma to bond (see GearCatalogEntry.bondingKarma below),
 // so `karmaRemaining` derives the pool minus gear-based bonding costs, never
-// stored, exactly mirroring `nuyenRemaining`.
+// stored, exactly mirroring `nuyenRemaining`. Learning spells beyond the
+// free allotment also spends from this same pool (see deriveSpells.ts's
+// spellKarmaCost) - callers that need that too pass it as the optional
+// second argument, since computing it here would require pulling in
+// PriorityRulesResponse for a file that's otherwise gear-only.
 import type { CharacterData, GearLine } from "./character";
 import type { GearCatalogEntry } from "./rules";
 
@@ -32,8 +36,8 @@ export function gearBondingKarmaTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.bondingKarma ?? 0) * line.qty, 0);
 }
 
-export function karmaRemaining(data: CharacterData): number {
-  return data.karma - gearBondingKarmaTotal(data.gear);
+export function karmaRemaining(data: CharacterData, extraKarmaSpent = 0): number {
+  return data.karma - gearBondingKarmaTotal(data.gear) - extraKarmaSpent;
 }
 
 export function ratingFor(entry: GearCatalogEntry, rating: number | undefined): number {

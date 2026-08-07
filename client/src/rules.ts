@@ -154,6 +154,31 @@ export interface PackRulesResponse {
   packs: PackCatalogEntry[];
 }
 
+export interface SpellCatalogEntry {
+  id: string;
+  name: string;
+  category: "Combat" | "Detection" | "Health" | "Illusion" | "Manipulation";
+  /** Free-form descriptors from the book, e.g. "Direct Combat", "Area", "Single-Sense". */
+  tags?: string[];
+  /** Touch, LOS, or LOS(A) for an area effect. */
+  range: string;
+  /** M (mana) or P (physical). */
+  type: "M" | "P";
+  /** I (Instantaneous), S (Sustained), L (Limited), or P (Permanent). */
+  duration: string;
+  /** Drain Value; "Special" for the rare spell whose Drain is defined narratively instead of a flat number. */
+  drainValue: number | string;
+  /** Combat spells only: S (Stun), P (Physical), or "P, Special" for spells with a non-standard damage model explained in the summary. */
+  damage?: string;
+  summary: string;
+  /** Sourcebook this entry is transcribed from. */
+  book: string;
+}
+
+export interface SpellRulesResponse {
+  spells: SpellCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

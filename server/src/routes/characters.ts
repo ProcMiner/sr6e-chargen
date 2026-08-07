@@ -52,6 +52,10 @@ function isValidCharacterData(data: unknown): boolean {
     }
   }
 
+  if (d.spells !== undefined) {
+    if (!Array.isArray(d.spells) || d.spells.some((s) => typeof s !== "string")) return false;
+  }
+
   if (Array.isArray(d.gear)) {
     for (const line of d.gear as unknown[]) {
       if (line === null || typeof line !== "object") return false;
