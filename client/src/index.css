@@ -231,7 +231,22 @@ a {
 
 .attribute-editor input,
 .skill-editor input {
-  width: 3.5rem;
+  width: 3rem;
+}
+
+.number-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.number-stepper-button {
+  padding: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  line-height: 1;
+  font-size: 1rem;
+  flex: none;
 }
 
 .attribute-editor-row {

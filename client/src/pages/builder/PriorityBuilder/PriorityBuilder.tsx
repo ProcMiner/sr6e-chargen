@@ -1,5 +1,6 @@
 import type { CharacterData, PrioritySystemState } from "../../../character";
 import type { PriorityLetter, PriorityRulesResponse } from "../../../rules";
+import { NumberStepper } from "../../../components/NumberStepper";
 
 const LETTERS: PriorityLetter[] = ["A", "B", "C", "D", "E"];
 const CATEGORIES = [
@@ -204,20 +205,17 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                 <div key={key} className="attribute-editor-row">
                   <label>
                     {key}
-                    <input
-                      type="number"
+                    <NumberStepper
+                      label={key}
                       min={range.min}
                       max={range.max}
                       value={value}
-                      onChange={(e) => {
-                        const next = Number(e.target.value);
-                        if (Number.isNaN(next)) return;
-                        const clamped = Math.min(range.max, Math.max(range.min, next));
+                      onChange={(next) =>
                         onChange({
                           ...data,
-                          attributes: { ...data.attributes, [key]: clamped },
-                        });
-                      }}
+                          attributes: { ...data.attributes, [key]: next },
+                        })
+                      }
                     />
                     <span className="range-hint">
                       {range.min}-{range.max}
@@ -249,17 +247,12 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
             {rules.skillList.map((skill) => (
               <label key={skill}>
                 {skill}
-                <input
-                  type="number"
+                <NumberStepper
+                  label={skill}
                   min={0}
                   max={6}
                   value={data.skills[skill] ?? 0}
-                  onChange={(e) => {
-                    const next = Number(e.target.value);
-                    if (Number.isNaN(next)) return;
-                    const clamped = Math.min(6, Math.max(0, next));
-                    onChange({ ...data, skills: { ...data.skills, [skill]: clamped } });
-                  }}
+                  onChange={(next) => onChange({ ...data, skills: { ...data.skills, [skill]: next } })}
                 />
               </label>
             ))}
@@ -309,17 +302,12 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
           <div className="attribute-editor">
             <label>
               edge
-              <input
-                type="number"
+              <NumberStepper
+                label="edge"
                 min={metatypeInfo.edge.min}
                 max={metatypeInfo.edge.max}
                 value={data.attributes.edge}
-                onChange={(e) => {
-                  const next = Number(e.target.value);
-                  if (Number.isNaN(next)) return;
-                  const clamped = Math.min(metatypeInfo.edge.max, Math.max(metatypeInfo.edge.min, next));
-                  onChange({ ...data, attributes: { ...data.attributes, edge: clamped } });
-                }}
+                onChange={(next) => onChange({ ...data, attributes: { ...data.attributes, edge: next } })}
               />
               <span className="range-hint">
                 {metatypeInfo.edge.min}-{metatypeInfo.edge.max}
@@ -328,23 +316,20 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
             {selectedMagicOption && selectedMagicOption.option !== "Mundane" && (
               <label>
                 {magicIsResonance ? "resonance" : "magic"}
-                <input
-                  type="number"
+                <NumberStepper
+                  label={magicIsResonance ? "resonance" : "magic"}
                   min={magicBaseRating}
                   max={6}
                   value={currentMagicOrResonance}
-                  onChange={(e) => {
-                    const next = Number(e.target.value);
-                    if (Number.isNaN(next)) return;
-                    const clamped = Math.min(6, Math.max(magicBaseRating, next));
+                  onChange={(next) =>
                     onChange({
                       ...data,
                       attributes: {
                         ...data.attributes,
-                        [magicIsResonance ? "resonance" : "magic"]: clamped,
+                        [magicIsResonance ? "resonance" : "magic"]: next,
                       },
-                    });
-                  }}
+                    })
+                  }
                 />
                 <span className="range-hint">{magicBaseRating}-6</span>
               </label>
