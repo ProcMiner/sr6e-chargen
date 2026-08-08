@@ -21,6 +21,7 @@ import { SpellPicker } from "./SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "./AdeptPowerPicker/AdeptPowerPicker";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
+import { metavariantKarmaCost } from "../../deriveMetavariant";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -109,6 +110,7 @@ export function BuilderRoot() {
             <LifepathBuilder
               rules={lifepathRules}
               metatypeAttributes={priorityRules.metatypeAttributes}
+              metavariants={priorityRules.metavariants}
               skillList={priorityRules.skillList}
               data={data}
               onChange={setData}
@@ -117,6 +119,7 @@ export function BuilderRoot() {
           <QualityPicker
             rules={qualityRules}
             metatypeAttributes={priorityRules.metatypeAttributes}
+            metavariants={priorityRules.metavariants}
             skillList={priorityRules.skillList}
             data={data}
             onChange={setData}
@@ -128,7 +131,7 @@ export function BuilderRoot() {
             rules={gearRules}
             data={data}
             onChange={setData}
-            extraKarmaSpent={spellKarmaCost(data, priorityRules)}
+            extraKarmaSpent={spellKarmaCost(data, priorityRules) + metavariantKarmaCost(data, priorityRules.metavariants)}
           />
         </div>
         <aside className="builder-sidebar">

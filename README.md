@@ -55,6 +55,27 @@ rulebook and sourcebook PDFs already on disk one directory up.
   `PriorityBuilder.tsx`'s `isAdjustmentFunded`/`toggleAdjustmentFunding`.
   Off by default per character (nothing is force-migrated), so existing
   saved characters are unaffected until a player opts in.
+- **Metavariants**: `server/src/rules/metavariants.ts` transcribes the SR6
+  Companion's "Creating a Metavariant or Metasapient Player Character"
+  section (pp. 91-93) - 20 metavariants across the 5 base metatypes (e.g.
+  Dwarf's Duende/Gnome/Hanuman/Koborokuru/Menehune), each with its own
+  attribute ranges, per-Priority Adjustment Points, a Customization Karma
+  cost, and a free-text racial traits list (mechanics not modeled, same
+  precedent as `MetatypeAttributes.racialQualities`). Selectable as an
+  optional override in both `PriorityBuilder` and `LifepathBuilder` once a
+  base metatype is picked; its Karma cost is spent from the same 50-point
+  customization Karma pool as qualities/spells/bonding, via
+  `deriveMetavariant.ts`'s `metavariantKarmaCost` (never written into
+  `data.karma` directly, to avoid clobbering the other Karma spenders -
+  same pattern as `spellKarmaCost`/gear bonding). Nartaki's printed
+  Customization Karma is "5/10" depending on its Shiva Arms trait's level
+  (1 vs 2) - not itself a modeled choice, so captured as a `karmaNote`
+  hint rather than a real cost switch. **Metasapients** (Centaur, Merrow,
+  Naga, Pixie, Sasquatch) are deliberately out of scope, confirmed with the
+  user before starting: they're explicitly GM-discretion per the book and
+  bring in mechanics this app doesn't model anywhere (an innate Magic
+  rating, natural weapons, movement rates, Dual Natured) - same precedent
+  as the deferred Complete Character/Vehicle Upgrade PACKs.
 - **Life Path**: the full Companion catalog is transcribed - all 3 starting
   modules (including Coming of Age's complete grant list: skill, best
   attribute, qualities, nuyen; only its 1-contact grant isn't wired up yet,

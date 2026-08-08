@@ -12,6 +12,7 @@ import type {
 } from "../../rules";
 import { freeSpellAllotment, spellKarmaCost } from "../../deriveSpells";
 import { adeptPowerPointPool, adeptPowerPointsSpent, findAdeptPowerEntry } from "../../deriveAdeptPowers";
+import { combinedRacialQualities, findMetavariant, metavariantKarmaCost } from "../../deriveMetavariant";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -42,6 +43,8 @@ interface Props {
 export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRules, priorityRules, adeptPowerRules }: Props) {
   const spellKarma = spellKarmaCost(data, priorityRules);
   const spellsFree = freeSpellAllotment(data, priorityRules);
+  const selectedMetavariant = findMetavariant(data, priorityRules.metavariants);
+  const metavariantKarma = metavariantKarmaCost(data, priorityRules.metavariants);
   const powerPointPool = adeptPowerPointPool(data);
   const powerPointsSpent = adeptPowerPointsSpent(data.adeptPowers, adeptPowerRules.adeptPowers);
   const derived = deriveStats(data.attributes);
@@ -52,14 +55,17 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
   const resonanceEffective = effectiveResonance(data);
   const skillEntries = Object.entries(data.skills).filter(([, rank]) => rank > 0);
   const qualityCatalog = combineQualityCatalog(qualityRules);
-  const racialQualities = data.metatype
-    ? metatypeAttributes.find((m) => m.metatype === data.metatype)?.racialQualities ?? []
-    : [];
+  const racialQualities = combinedRacialQualities(data, metatypeAttributes, priorityRules.metavariants);
 
   return (
     <div className="summary-sheet">
       <h2>Summary</h2>
-      {data.metatype && <p className="metatype">{data.metatype}</p>}
+      {data.metatype && (
+        <p className="metatype">
+          {data.metatype}
+          {selectedMetavariant ? ` (${selectedMetavariant.name})` : ""}
+        </p>
+      )}
 
       <section>
         <h3>Attributes</h3>
@@ -227,7 +233,8 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
         <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
-        <p>{karmaRemaining(data, spellKarma).toLocaleString()} Karma remaining</p>
+        {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}
+        <p>{karmaRemaining(data, spellKarma + metavariantKarma).toLocaleString()} Karma remaining</p>
       </section>
     </div>
   );

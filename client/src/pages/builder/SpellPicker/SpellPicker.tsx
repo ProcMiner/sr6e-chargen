@@ -3,6 +3,7 @@ import type { CharacterData } from "../../../character";
 import type { PriorityRulesResponse, SpellCatalogEntry, SpellRulesResponse } from "../../../rules";
 import { karmaRemaining } from "../../../deriveGear";
 import { KARMA_PER_SPELL, freeSpellAllotment, spellKarmaCost } from "../../../deriveSpells";
+import { metavariantKarmaCost } from "../../../deriveMetavariant";
 
 const CATEGORIES: SpellCatalogEntry["category"][] = ["Combat", "Detection", "Health", "Illusion", "Manipulation"];
 
@@ -23,7 +24,10 @@ export function SpellPicker({ rules, priorityRules, data, onChange }: Props) {
   const known = data.spells;
   const free = freeSpellAllotment(data, priorityRules);
   const currentSpellKarma = spellKarmaCost(data, priorityRules);
-  const karmaBudget = karmaRemaining(data, currentSpellKarma);
+  const karmaBudget = karmaRemaining(
+    data,
+    currentSpellKarma + metavariantKarmaCost(data, priorityRules.metavariants)
+  );
 
   const [search, setSearch] = useState("");
   const searchTerm = search.trim().toLowerCase();

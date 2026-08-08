@@ -46,9 +46,32 @@ export interface MetatypeAttributes {
   racialQualities: string[];
 }
 
+export interface MetavariantCatalogEntry {
+  id: string;
+  name: string;
+  parentMetatype: Metatype;
+  /** Customization Karma cost, deducted from the 50-point customization Karma pool. */
+  karma: number;
+  /** Only set for entries whose printed Karma cost varies by an unmodeled sub-choice (e.g. Nartaki's Shiva Arms level). */
+  karmaNote?: string;
+  body: AttributeRange;
+  agility: AttributeRange;
+  reaction: AttributeRange;
+  strength: AttributeRange;
+  willpower: AttributeRange;
+  logic: AttributeRange;
+  intuition: AttributeRange;
+  charisma: AttributeRange;
+  edge: AttributeRange;
+  /** Adjustment Points at each Priority letter; a missing letter means the metavariant isn't available at that priority. */
+  adjustmentPoints: Partial<Record<PriorityLetter, number>>;
+  racialTraits: string[];
+}
+
 export interface PriorityRulesResponse {
   priorityTable: PriorityRow[];
   metatypeAttributes: MetatypeAttributes[];
+  metavariants: MetavariantCatalogEntry[];
   skillList: string[];
 }
 

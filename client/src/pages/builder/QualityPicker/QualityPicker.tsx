@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { CharacterData, SelectedQuality } from "../../../character";
-import type { MetatypeAttributes, QualityCatalogEntry, QualityRulesResponse } from "../../../rules";
+import type { MetatypeAttributes, MetavariantCatalogEntry, QualityCatalogEntry, QualityRulesResponse } from "../../../rules";
 import {
   combineQualityCatalog,
   findQualityEntry,
@@ -8,6 +8,7 @@ import {
   qualityKarmaAmount,
   qualityKarmaTotal,
 } from "../../../deriveQualities";
+import { combinedRacialQualities } from "../../../deriveMetavariant";
 
 const MAX_QUALITIES = 6;
 const NET_KARMA_CAP = 20;
@@ -31,12 +32,13 @@ const ATTRIBUTE_NAMES = [
 interface Props {
   rules: QualityRulesResponse;
   metatypeAttributes: MetatypeAttributes[];
+  metavariants: MetavariantCatalogEntry[];
   skillList: string[];
   data: CharacterData;
   onChange: (data: CharacterData) => void;
 }
 
-export function QualityPicker({ rules, metatypeAttributes, skillList, data, onChange }: Props) {
+export function QualityPicker({ rules, metatypeAttributes, metavariants, skillList, data, onChange }: Props) {
   const catalog = combineQualityCatalog(rules);
   const selected = data.qualities;
   const netKarma = qualityKarmaTotal(selected, catalog);
@@ -49,9 +51,7 @@ export function QualityPicker({ rules, metatypeAttributes, skillList, data, onCh
     return entry.name.toLowerCase().includes(searchTerm) || entry.summary.toLowerCase().includes(searchTerm);
   }
 
-  const racialQualities = data.metatype
-    ? metatypeAttributes.find((m) => m.metatype === data.metatype)?.racialQualities ?? []
-    : [];
+  const racialQualities = combinedRacialQualities(data, metatypeAttributes, metavariants);
 
   function applySelection(next: SelectedQuality[]) {
     onChange({ ...data, qualities: next, karma: STARTING_KARMA + qualityKarmaTotal(next, catalog) });

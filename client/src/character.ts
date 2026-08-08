@@ -82,6 +82,8 @@ export interface AdeptPowerLine {
 
 export interface CharacterData {
   metatype?: Metatype;
+  /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
+  metavariant?: string;
   attributes: Attributes;
   skills: Record<string, number>;
   knowledgeSkills: string[];

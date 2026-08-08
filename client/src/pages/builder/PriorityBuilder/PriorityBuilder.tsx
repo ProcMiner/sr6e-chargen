@@ -1,6 +1,7 @@
 import type { CharacterData, PrioritySystemState } from "../../../character";
 import type { PriorityLetter, PriorityRulesResponse } from "../../../rules";
 import { NumberStepper } from "../../../components/NumberStepper";
+import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavariant";
 
 const LETTERS: PriorityLetter[] = ["A", "B", "C", "D", "E"];
 const CATEGORIES = [
@@ -55,9 +56,14 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   const magicRow = rules.priorityTable.find((r) => r.priority === state.priorities.magic);
   const resourcesRow = rules.priorityTable.find((r) => r.priority === state.priorities.resources);
 
-  const metatypeInfo = data.metatype
-    ? rules.metatypeAttributes.find((m) => m.metatype === data.metatype)
-    : undefined;
+  const metatypeInfo = effectiveMetatypeInfo(data, rules.metatypeAttributes, rules.metavariants);
+  const selectedMetavariant = findMetavariant(data, rules.metavariants);
+  const metatypePriorityLetter = state.priorities.metatype;
+  const availableMetavariants = rules.metavariants.filter(
+    (m) =>
+      m.parentMetatype === data.metatype &&
+      (!metatypePriorityLetter || m.adjustmentPoints[metatypePriorityLetter] !== undefined)
+  );
 
   // Normal attribute points can only raise a core attribute up to 6, even
   // if the metatype's max is higher - anything above 6 ("special racial
@@ -103,7 +109,9 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   // Magic/Resonance above its base rating - up to a hard cap of 6 (p. 65).
   // (Plus, under the house rule above, the full cost of any special
   // attribute toggled to Adjustment-funding.)
-  const adjustmentPointsTotal = metatypeRow?.metatype.find((m) => m.metatype === data.metatype)?.adjustmentPoints ?? 0;
+  const adjustmentPointsTotal = selectedMetavariant
+    ? (metatypePriorityLetter && selectedMetavariant.adjustmentPoints[metatypePriorityLetter]) || 0
+    : (metatypeRow?.metatype.find((m) => m.metatype === data.metatype)?.adjustmentPoints ?? 0);
 
   const edgeSpent = (data.attributes.edge ?? 1) - 1;
 
@@ -177,12 +185,41 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
               <button
                 key={m.metatype}
                 className={data.metatype === m.metatype ? "chip selected" : "chip"}
-                onClick={() => onChange({ ...data, metatype: m.metatype })}
+                onClick={() => onChange({ ...data, metatype: m.metatype, metavariant: undefined })}
               >
                 {m.metatype} ({m.adjustmentPoints} adj. pts)
               </button>
             ))}
           </div>
+          {availableMetavariants.length > 0 && (
+            <>
+              <h4>Metavariant (optional)</h4>
+              <p className="hint">
+                Overrides attribute ranges and Adjustment Points; its Karma cost is deducted from your
+                customization Karma pool (see Resources/Karma below).
+              </p>
+              <div className="chip-row">
+                <button
+                  className={!data.metavariant ? "chip selected" : "chip"}
+                  onClick={() => onChange({ ...data, metavariant: undefined })}
+                >
+                  Base {data.metatype}
+                </button>
+                {availableMetavariants.map((m) => (
+                  <button
+                    key={m.id}
+                    className={data.metavariant === m.id ? "chip selected" : "chip"}
+                    onClick={() => onChange({ ...data, metavariant: m.id })}
+                    title={m.racialTraits.join(", ")}
+                  >
+                    {m.name} ({m.karma} Karma
+                    {metatypePriorityLetter ? `, ${m.adjustmentPoints[metatypePriorityLetter]} adj. pts` : ""})
+                  </button>
+                ))}
+              </div>
+              {selectedMetavariant?.karmaNote && <p className="hint">{selectedMetavariant.karmaNote}</p>}
+            </>
+          )}
         </section>
       )}
 

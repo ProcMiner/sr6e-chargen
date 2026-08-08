@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { emptyAttributes } from "../../../character";
 import type { CharacterData, LifepathSystemState } from "../../../character";
-import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes } from "../../../rules";
+import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes, MetavariantCatalogEntry } from "../../../rules";
+import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavariant";
 
 const BASE_ATTR_KEYS = [
   "body",
@@ -28,6 +29,7 @@ const ADULT_SLOTS = 8;
 interface Props {
   rules: LifepathRulesResponse;
   metatypeAttributes: MetatypeAttributes[];
+  metavariants: MetavariantCatalogEntry[];
   skillList: string[];
   data: CharacterData;
   onChange: (data: CharacterData) => void;
@@ -37,21 +39,25 @@ function isBlank(state: LifepathSystemState) {
   return !state.selectedModuleIds;
 }
 
-export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, onChange }: Props) {
+export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skillList, data, onChange }: Props) {
   const raw = data.systemState as LifepathSystemState;
   const state: LifepathSystemState = isBlank(raw)
     ? { selectedModuleIds: [], choices: {} }
     : raw;
 
   // ---- Born This Way ----
-  const metatypeInfo = data.metatype
-    ? metatypeAttributes.find((m) => m.metatype === data.metatype)
-    : undefined;
+  const metatypeInfo = effectiveMetatypeInfo(data, metatypeAttributes, metavariants);
+  const selectedMetavariant = findMetavariant(data, metavariants);
+  const availableMetavariants = metavariants.filter((m) => m.parentMetatype === data.metatype);
 
   function applyMetatype(metatype: string) {
     const info = metatypeAttributes.find((m) => m.metatype === metatype);
     if (!info) return;
-    recompute(state, metatype);
+    recompute(state, metatype, undefined);
+  }
+
+  function applyMetavariant(metavariantId: string | undefined) {
+    recompute(state, data.metatype, metavariantId);
   }
 
   function applyAwakenedType(type: string) {
@@ -132,8 +138,16 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
   // type's magic/resonance/edge, Growing Up skills, Coming of Age skill)
   // from scratch every time, so recompute() never has to treat already-
   // boosted data as its starting point.
-  function computeBaseAttributesAndSkills(nextState: LifepathSystemState, metatype: string | undefined) {
-    const info = metatype ? metatypeAttributes.find((m) => m.metatype === metatype) : undefined;
+  function computeBaseAttributesAndSkills(
+    nextState: LifepathSystemState,
+    metatype: string | undefined,
+    metavariantId: string | undefined
+  ) {
+    const info = effectiveMetatypeInfo(
+      { ...data, metatype: metatype as CharacterData["metatype"], metavariant: metavariantId },
+      metatypeAttributes,
+      metavariants
+    );
     const attrs: CharacterData["attributes"] = { ...emptyAttributes };
     for (const key of BASE_ATTR_KEYS) {
       attrs[key] = info && info[key].max > 6 ? 2 : 1;
@@ -171,8 +185,12 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     return { attrs, skills };
   }
 
-  function recompute(nextState: LifepathSystemState, metatype: string | undefined = data.metatype) {
-    const { attrs, skills } = computeBaseAttributesAndSkills(nextState, metatype);
+  function recompute(
+    nextState: LifepathSystemState,
+    metatype: string | undefined = data.metatype,
+    metavariantId: string | undefined = data.metavariant
+  ) {
+    const { attrs, skills } = computeBaseAttributesAndSkills(nextState, metatype, metavariantId);
     // Coming of Age grants +25,000 nuyen; gated on the skill pick since
     // that's this module's primary "have I done this yet" signal.
     let nuyen = nextState.comingOfAgeSkill ? 25_000 : 0;
@@ -216,6 +234,7 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
     onChange({
       ...data,
       metatype: metatype as CharacterData["metatype"],
+      metavariant: metavariantId,
       attributes: attrs,
       skills,
       nuyen,
@@ -263,6 +282,34 @@ export function LifepathBuilder({ rules, metatypeAttributes, skillList, data, on
           </button>
         ))}
       </div>
+      {availableMetavariants.length > 0 && (
+        <>
+          <h3>Metavariant (optional)</h3>
+          <p className="hint">
+            Overrides attribute ranges; its Karma cost is deducted from your customization Karma pool
+            (see Resources/Karma on the summary sheet).
+          </p>
+          <div className="chip-row">
+            <button
+              className={!data.metavariant ? "chip selected" : "chip"}
+              onClick={() => applyMetavariant(undefined)}
+            >
+              Base {data.metatype}
+            </button>
+            {availableMetavariants.map((m) => (
+              <button
+                key={m.id}
+                className={data.metavariant === m.id ? "chip selected" : "chip"}
+                onClick={() => applyMetavariant(m.id)}
+                title={m.racialTraits.join(", ")}
+              >
+                {m.name} ({m.karma} Karma)
+              </button>
+            ))}
+          </div>
+          {selectedMetavariant?.karmaNote && <p className="hint">{selectedMetavariant.karmaNote}</p>}
+        </>
+      )}
       {metatypeInfo && (
         <>
           <div className="chip-row">
