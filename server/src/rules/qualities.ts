@@ -19,11 +19,12 @@
 //   separate narrative system, out of scope like the Companion's Quality
 //   Paths. Also includes "Paragon" (book p. 129, "Virtual Life" chapter) -
 //   a Mentor-Spirit-shaped quality for technomancers/EIs that align with a
-//   paragon. That chapter's "Resonant Streams" (book pp. 130-131) is a
-//   bundled stream-selection system (fixed benefits + an "aspect
-//   peripheral" power + a purchasable complex form per stream) that
-//   doesn't fit this flat-quality schema - excluded, not transcribed here;
-//   worth its own feature if the app ever models Technomancer streams.
+//   paragon - and "Resonant Stream" (book pp. 130-132, "New Technomancer
+//   Qualities: Resonant Streams"), added the same lightweight way: the three
+//   streams' fixed benefits and Aspect Peripheral powers aren't individually
+//   modeled, only the book-reference effect text and the complex form each
+//   stream unlocks (see complexFormsHackAndSlash.ts's Loto/Hyperthreading/
+//   Control Virtual Life entries).
 // - Double Clutch, "Gearhead Anatomy" chapter (book pp. 167-172). The five
 //   "Driving Style: X" entries are genuinely five separate qualities, each
 //   with its own distinct Karma cost and fixed list of specific Edge-cost
@@ -850,6 +851,16 @@ export const positiveQualities: QualityCatalogEntry[] = [
     summary: "You believe in something other than yourself to help guide and channel your resonance, and that something believes in you, too.",
     effect:
       "Gain the benefits associated with your chosen paragon (see the Sample Paragons list). Failing to stay aligned with its tenets costs you favor with your paragon and all associated bonuses.",
+    requiresParam: "custom",
+  },
+  {
+    id: "resonant-stream",
+    name: "Resonant Stream",
+    category: "positive",
+    karma: 20,
+    summary: "You've identified a path through the Resonance that focuses your abilities: Machinists, Sourcerors, or Technoshamans.",
+    effect:
+      "Choose one stream (Machinists, Sourcerors, or Technoshamans). Gain that stream's fixed benefits and Aspect Peripheral power, and unlock its associated complex form for purchase (not granted free) - see the Resonant Streams section for each stream's specifics. A technomancer can only follow one stream at a time; unlike most qualities, this one isn't subject to the double-Karma-cost-after-creation rule.",
     requiresParam: "custom",
   },
 

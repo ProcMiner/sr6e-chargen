@@ -90,6 +90,21 @@ export interface AdeptPowerLine {
   notes?: string;
 }
 
+export interface ComplexFormLine {
+  /** Catalog entry id (server/src/rules/complexForms.ts / complexFormsHackAndSlash.ts). */
+  formId: string;
+  /** Free-text sub-choice for forms that need one (e.g. which Matrix attribute Diffusion/Infusion targets, or which program Emulate runs) - mirrors AdeptPowerLine.notes. Also lets the same form be bought more than once, same as adept powers. */
+  notes?: string;
+}
+
+/** A technomancer's Living Persona bonus-point distribution across their four Matrix attributes (core rulebook p. 189) - see deriveLivingPersona.ts. */
+export interface LivingPersonaAllocation {
+  attack?: number;
+  sleaze?: number;
+  dataProcessing?: number;
+  firewall?: number;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
@@ -106,6 +121,10 @@ export interface CharacterData {
   spells: string[];
   /** Known adept powers, purchased with Power Points (see deriveAdeptPowers.ts). Meaningful only for Adept/Mystic Adept characters. */
   adeptPowers: AdeptPowerLine[];
+  /** Known complex forms. The first freeComplexFormAllotment() of these are free (Priority build only); every one beyond that costs 5 Karma (see deriveComplexForms.ts). Meaningful only for Technomancer characters. */
+  complexForms: ComplexFormLine[];
+  /** Living Persona Matrix-attribute bonus distribution (see deriveLivingPersona.ts). Meaningful only for Technomancer characters. */
+  livingPersonaAllocation?: LivingPersonaAllocation;
   /**
    * Mystic Adepts split their Magic between Power Points and spells at
    * chargen (core rulebook p. 158-159): this many points of Magic are
@@ -144,6 +163,7 @@ export function emptyCharacterData(): CharacterData {
     lifestyles: [],
     spells: [],
     adeptPowers: [],
+    complexForms: [],
     nuyen: 0,
     karma: 0,
     systemState: {},

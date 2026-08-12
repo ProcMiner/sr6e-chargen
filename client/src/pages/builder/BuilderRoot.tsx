@@ -12,6 +12,7 @@ import type {
   SpellRulesResponse,
   AdeptPowerRulesResponse,
   LifestyleRulesResponse,
+  ComplexFormRulesResponse,
 } from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
@@ -21,10 +22,13 @@ import { PackPicker } from "./PackPicker/PackPicker";
 import { SpellPicker } from "./SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "./AdeptPowerPicker/AdeptPowerPicker";
 import { LifestylePicker } from "./LifestylePicker/LifestylePicker";
+import { ComplexFormPicker } from "./ComplexFormPicker/ComplexFormPicker";
+import { LivingPersonaPanel } from "./LivingPersonaPanel/LivingPersonaPanel";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
+import { complexFormKarmaCost } from "../../deriveComplexForms";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -38,6 +42,7 @@ export function BuilderRoot() {
   const [spellRules, setSpellRules] = useState<SpellRulesResponse | null>(null);
   const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
   const [lifestyleRules, setLifestyleRules] = useState<LifestyleRulesResponse | null>(null);
+  const [complexFormRules, setComplexFormRules] = useState<ComplexFormRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -57,6 +62,7 @@ export function BuilderRoot() {
     api.spells().then(setSpellRules);
     api.adeptPowers().then(setAdeptPowerRules);
     api.lifestyles().then(setLifestyleRules);
+    api.complexForms().then(setComplexFormRules);
   }, [id]);
 
   async function handleSave() {
@@ -83,7 +89,8 @@ export function BuilderRoot() {
     !packRules ||
     !spellRules ||
     !adeptPowerRules ||
-    !lifestyleRules
+    !lifestyleRules ||
+    !complexFormRules
   ) {
     return (
       <div className="page">
@@ -132,6 +139,8 @@ export function BuilderRoot() {
           />
           <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
           <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={setData} />
+          <ComplexFormPicker rules={complexFormRules} priorityRules={priorityRules} data={data} onChange={setData} />
+          <LivingPersonaPanel data={data} onChange={setData} />
           <LifestylePicker rules={lifestyleRules} data={data} onChange={setData} />
           <PackPicker
             packRules={packRules}
@@ -144,7 +153,11 @@ export function BuilderRoot() {
             rules={gearRules}
             data={data}
             onChange={setData}
-            extraKarmaSpent={spellKarmaCost(data, priorityRules) + metavariantKarmaCost(data, priorityRules.metavariants)}
+            extraKarmaSpent={
+              spellKarmaCost(data, priorityRules) +
+              complexFormKarmaCost(data, priorityRules) +
+              metavariantKarmaCost(data, priorityRules.metavariants)
+            }
             extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
           />
         </div>
@@ -156,6 +169,7 @@ export function BuilderRoot() {
             spellRules={spellRules}
             priorityRules={priorityRules}
             adeptPowerRules={adeptPowerRules}
+            complexFormRules={complexFormRules}
           />
         </aside>
       </div>

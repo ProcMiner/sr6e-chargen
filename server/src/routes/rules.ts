@@ -19,6 +19,8 @@ import { streetWyrdSpells } from "../rules/spellsStreetWyrd.js";
 import { coreAdeptPowers } from "../rules/adeptPowers.js";
 import { streetWyrdAdeptPowers } from "../rules/adeptPowersStreetWyrd.js";
 import { lifestyles } from "../rules/lifestyles.js";
+import { coreComplexForms } from "../rules/complexForms.js";
+import { hackAndSlashComplexForms } from "../rules/complexFormsHackAndSlash.js";
 
 export const rulesRouter = Router();
 
@@ -64,4 +66,8 @@ rulesRouter.get("/adept-powers", (_req, res) => {
 
 rulesRouter.get("/lifestyles", (_req, res) => {
   res.json({ lifestyles });
+});
+
+rulesRouter.get("/complex-forms", (_req, res) => {
+  res.json({ complexForms: [...coreComplexForms, ...hackAndSlashComplexForms] });
 });

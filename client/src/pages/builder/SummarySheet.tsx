@@ -5,6 +5,7 @@ import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } 
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type {
   AdeptPowerRulesResponse,
+  ComplexFormRulesResponse,
   MetatypeAttributes,
   PriorityRulesResponse,
   QualityRulesResponse,
@@ -14,6 +15,12 @@ import { freeSpellAllotment, spellKarmaCost } from "../../deriveSpells";
 import { adeptPowerPointPool, adeptPowerPointsSpent, findAdeptPowerEntry } from "../../deriveAdeptPowers";
 import { combinedRacialQualities, findMetavariant, metavariantKarmaCost } from "../../deriveMetavariant";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
+import { complexFormKarmaCost, freeComplexFormAllotment } from "../../deriveComplexForms";
+import {
+  MATRIX_ATTRIBUTE_KEYS,
+  MATRIX_ATTRIBUTE_LABELS,
+  livingPersonaAttribute,
+} from "../../deriveLivingPersona";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -39,9 +46,18 @@ interface Props {
   spellRules: SpellRulesResponse;
   priorityRules: PriorityRulesResponse;
   adeptPowerRules: AdeptPowerRulesResponse;
+  complexFormRules: ComplexFormRulesResponse;
 }
 
-export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRules, priorityRules, adeptPowerRules }: Props) {
+export function SummarySheet({
+  data,
+  qualityRules,
+  metatypeAttributes,
+  spellRules,
+  priorityRules,
+  adeptPowerRules,
+  complexFormRules,
+}: Props) {
   const spellKarma = spellKarmaCost(data, priorityRules);
   const spellsFree = freeSpellAllotment(data, priorityRules);
   const selectedMetavariant = findMetavariant(data, priorityRules.metavariants);
@@ -49,6 +65,8 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
   const powerPointPool = adeptPowerPointPool(data);
   const powerPointsSpent = adeptPowerPointsSpent(data.adeptPowers, adeptPowerRules.adeptPowers);
   const lifestyleSpend = lifestyleCostTotal(data.lifestyles);
+  const complexFormKarma = complexFormKarmaCost(data, priorityRules);
+  const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const derived = deriveStats(data.attributes);
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
@@ -213,6 +231,43 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
         </section>
       )}
 
+      {data.complexForms.length > 0 && (
+        <section>
+          <h3>Complex Forms</h3>
+          <p className="hint">
+            {Math.min(data.complexForms.length, complexFormsFree)} / {complexFormsFree} free
+            {data.complexForms.length > complexFormsFree
+              ? `, ${data.complexForms.length - complexFormsFree} at 5 Karma each`
+              : ""}
+          </p>
+          <ul>
+            {data.complexForms.map((line, i) => {
+              const entry = complexFormRules.complexForms.find((f) => f.id === line.formId);
+              return (
+                <li key={i}>
+                  {entry?.name ?? line.formId}
+                  {line.notes ? ` - ${line.notes}` : ""}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {data.attributes.resonance !== undefined && (
+        <section>
+          <h3>Living Persona</h3>
+          <dl className="attribute-grid">
+            {MATRIX_ATTRIBUTE_KEYS.map((key) => (
+              <div key={key}>
+                <dt>{MATRIX_ATTRIBUTE_LABELS[key]}</dt>
+                <dd>{livingPersonaAttribute(data, key)}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       {data.lifestyles.length > 0 && (
         <section>
           <h3>Lifestyle</h3>
@@ -250,8 +305,11 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
         <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
+        {complexFormKarma > 0 && <p>{complexFormKarma.toLocaleString()} Karma spent on complex forms</p>}
         {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}
-        <p>{karmaRemaining(data, spellKarma + metavariantKarma).toLocaleString()} Karma remaining</p>
+        <p>
+          {karmaRemaining(data, spellKarma + complexFormKarma + metavariantKarma).toLocaleString()} Karma remaining
+        </p>
       </section>
     </div>
   );

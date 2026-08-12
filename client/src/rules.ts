@@ -238,6 +238,27 @@ export interface LifestyleRulesResponse {
   lifestyles: LifestyleCatalogEntry[];
 }
 
+export interface ComplexFormCatalogEntry {
+  id: string;
+  name: string;
+  /**
+   * Fade Value: a flat number, "Hits" (Hack & Slash's newer convention -
+   * equal to total hits, not net hits, on the Electronics + Resonance
+   * test), "None" for the one core form with no fading at all, or "Varies"
+   * for the rare form whose Fade Value depends on what it merges.
+   */
+  fadeValue: number | "Hits" | "None" | "Varies";
+  /** I (Instantaneous), S (Sustained), or P (Permanent); "I/S" for the one form whose duration changes based on its result. */
+  duration: string;
+  summary: string;
+  /** Sourcebook this entry is transcribed from. */
+  book: string;
+}
+
+export interface ComplexFormRulesResponse {
+  complexForms: ComplexFormCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;
