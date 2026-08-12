@@ -11,6 +11,7 @@ import type {
   PackRulesResponse,
   SpellRulesResponse,
   AdeptPowerRulesResponse,
+  LifestyleRulesResponse,
 } from "../../rules";
 import { PriorityBuilder } from "./PriorityBuilder/PriorityBuilder";
 import { LifepathBuilder } from "./LifepathBuilder/LifepathBuilder";
@@ -19,9 +20,11 @@ import { GearPicker } from "./GearPicker/GearPicker";
 import { PackPicker } from "./PackPicker/PackPicker";
 import { SpellPicker } from "./SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "./AdeptPowerPicker/AdeptPowerPicker";
+import { LifestylePicker } from "./LifestylePicker/LifestylePicker";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
+import { lifestyleCostTotal } from "../../deriveLifestyle";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -34,6 +37,7 @@ export function BuilderRoot() {
   const [packRules, setPackRules] = useState<PackRulesResponse | null>(null);
   const [spellRules, setSpellRules] = useState<SpellRulesResponse | null>(null);
   const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
+  const [lifestyleRules, setLifestyleRules] = useState<LifestyleRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -52,6 +56,7 @@ export function BuilderRoot() {
     api.packs().then(setPackRules);
     api.spells().then(setSpellRules);
     api.adeptPowers().then(setAdeptPowerRules);
+    api.lifestyles().then(setLifestyleRules);
   }, [id]);
 
   async function handleSave() {
@@ -77,7 +82,8 @@ export function BuilderRoot() {
     !gearRules ||
     !packRules ||
     !spellRules ||
-    !adeptPowerRules
+    !adeptPowerRules ||
+    !lifestyleRules
   ) {
     return (
       <div className="page">
@@ -126,12 +132,20 @@ export function BuilderRoot() {
           />
           <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
           <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={setData} />
-          <PackPicker packRules={packRules} gearRules={gearRules} data={data} onChange={setData} />
+          <LifestylePicker rules={lifestyleRules} data={data} onChange={setData} />
+          <PackPicker
+            packRules={packRules}
+            gearRules={gearRules}
+            data={data}
+            onChange={setData}
+            extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
+          />
           <GearPicker
             rules={gearRules}
             data={data}
             onChange={setData}
             extraKarmaSpent={spellKarmaCost(data, priorityRules) + metavariantKarmaCost(data, priorityRules.metavariants)}
+            extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
           />
         </div>
         <aside className="builder-sidebar">

@@ -13,6 +13,7 @@ import type {
 import { freeSpellAllotment, spellKarmaCost } from "../../deriveSpells";
 import { adeptPowerPointPool, adeptPowerPointsSpent, findAdeptPowerEntry } from "../../deriveAdeptPowers";
 import { combinedRacialQualities, findMetavariant, metavariantKarmaCost } from "../../deriveMetavariant";
+import { lifestyleCostTotal } from "../../deriveLifestyle";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -47,6 +48,7 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
   const metavariantKarma = metavariantKarmaCost(data, priorityRules.metavariants);
   const powerPointPool = adeptPowerPointPool(data);
   const powerPointsSpent = adeptPowerPointsSpent(data.adeptPowers, adeptPowerRules.adeptPowers);
+  const lifestyleSpend = lifestyleCostTotal(data.lifestyles);
   const derived = deriveStats(data.attributes);
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
@@ -211,6 +213,20 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
         </section>
       )}
 
+      {data.lifestyles.length > 0 && (
+        <section>
+          <h3>Lifestyle</h3>
+          <ul>
+            {data.lifestyles.map((line, i) => (
+              <li key={i}>
+                {line.name} - {line.monthsPrepaid} month{line.monthsPrepaid === 1 ? "" : "s"} (
+                {(line.monthsPrepaid * line.costPerMonth).toLocaleString()}¥)
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {data.gear.length > 0 && (
         <section>
           <h3>Gear</h3>
@@ -229,7 +245,8 @@ export function SummarySheet({ data, qualityRules, metatypeAttributes, spellRule
         <h3>Resources</h3>
         <p>{data.nuyen.toLocaleString()}¥ earned</p>
         <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
-        <p>{nuyenRemaining(data).toLocaleString()}¥ remaining</p>
+        {lifestyleSpend > 0 && <p>{lifestyleSpend.toLocaleString()}¥ spent on lifestyle</p>}
+        <p>{nuyenRemaining(data, lifestyleSpend).toLocaleString()}¥ remaining</p>
         <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>

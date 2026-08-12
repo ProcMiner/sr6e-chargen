@@ -8,10 +8,12 @@ interface Props {
   gearRules: GearRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
+  /** Nuyen already committed outside gear (e.g. lifestyle purchases - see deriveLifestyle.ts), so this picker's afford checks reflect the whole shared nuyen pool. */
+  extraNuyenSpent?: number;
 }
 
-export function PackPicker({ packRules, gearRules, data, onChange }: Props) {
-  const remaining = nuyenRemaining(data);
+export function PackPicker({ packRules, gearRules, data, onChange, extraNuyenSpent = 0 }: Props) {
+  const remaining = nuyenRemaining(data, extraNuyenSpent);
 
   const bySubcategory = new Map<string, PackCatalogEntry[]>();
   for (const pack of packRules.packs) {

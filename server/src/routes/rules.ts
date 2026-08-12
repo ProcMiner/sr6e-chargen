@@ -18,6 +18,7 @@ import { coreSpells } from "../rules/spells.js";
 import { streetWyrdSpells } from "../rules/spellsStreetWyrd.js";
 import { coreAdeptPowers } from "../rules/adeptPowers.js";
 import { streetWyrdAdeptPowers } from "../rules/adeptPowersStreetWyrd.js";
+import { lifestyles } from "../rules/lifestyles.js";
 
 export const rulesRouter = Router();
 
@@ -59,4 +60,8 @@ rulesRouter.get("/spells", (_req, res) => {
 
 rulesRouter.get("/adept-powers", (_req, res) => {
   res.json({ adeptPowers: [...coreAdeptPowers, ...streetWyrdAdeptPowers] });
+});
+
+rulesRouter.get("/lifestyles", (_req, res) => {
+  res.json({ lifestyles });
 });

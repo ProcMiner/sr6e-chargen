@@ -224,6 +224,20 @@ export interface AdeptPowerRulesResponse {
   adeptPowers: AdeptPowerCatalogEntry[];
 }
 
+export interface LifestyleCatalogEntry {
+  id: string;
+  name: string;
+  /** Nuyen per month; flat, no rating/levels for the basic tiers. */
+  costPerMonth: number;
+  summary: string;
+  /** Sourcebook this entry is transcribed from. */
+  book: string;
+}
+
+export interface LifestyleRulesResponse {
+  lifestyles: LifestyleCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

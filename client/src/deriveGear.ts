@@ -5,7 +5,10 @@
 // Path's module accumulation already set it. Remaining spending money is
 // always derived from nuyen minus gear cost, never stored, so a future
 // career-mode nuyen-earning feature just adds to `data.nuyen` and this math
-// keeps working unchanged.
+// keeps working unchanged. Lifestyle purchases (see deriveLifestyle.ts's
+// lifestyleCostTotal) also spend from this same pool - callers thread it in
+// as `nuyenRemaining`'s optional second argument, same pattern as
+// `karmaRemaining`'s extraKarmaSpent below.
 //
 // `data.karma` follows the same pattern for a second, independent pool:
 // QualityPicker.tsx sets it to (starting Karma + net quality Karma) - that's
@@ -28,8 +31,8 @@ export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + line.qty * line.unitCost, 0);
 }
 
-export function nuyenRemaining(data: CharacterData): number {
-  return data.nuyen - gearCostTotal(data.gear);
+export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {
+  return data.nuyen - gearCostTotal(data.gear) - extraNuyenSpent;
 }
 
 export function gearBondingKarmaTotal(gear: GearLine[]): number {

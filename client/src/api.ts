@@ -70,6 +70,7 @@ export const api = {
   packs: () => request<import("./rules").PackRulesResponse>("/rules/packs"),
   spells: () => request<import("./rules").SpellRulesResponse>("/rules/spells"),
   adeptPowers: () => request<import("./rules").AdeptPowerRulesResponse>("/rules/adept-powers"),
+  lifestyles: () => request<import("./rules").LifestyleRulesResponse>("/rules/lifestyles"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),

@@ -22,6 +22,16 @@ export interface GearLine {
   notes?: string;
 }
 
+export interface LifestyleLine {
+  /** Catalog entry id (server/src/rules/lifestyles.ts); absent for a freeform/custom lifestyle not in the catalog. */
+  itemId?: string;
+  name: string;
+  monthsPrepaid: number;
+  /** Nuyen per month, snapshotted at purchase time so later catalog price edits don't rewrite an already-bought line, same convention as GearLine.unitCost. */
+  costPerMonth: number;
+  notes?: string;
+}
+
 export interface PrioritySystemState {
   priorities: {
     metatype?: "A" | "B" | "C" | "D" | "E";
@@ -90,6 +100,8 @@ export interface CharacterData {
   qualities: SelectedQuality[];
   contacts: Contact[];
   gear: GearLine[];
+  /** Purchased lifestyle-months. Multiple lines are allowed (e.g. a primary residence plus a safehouse). */
+  lifestyles: LifestyleLine[];
   /** Known spell catalog ids. The first freeSpellAllotment() of these are free (Priority build only); every one beyond that costs 5 Karma (see deriveSpells.ts). */
   spells: string[];
   /** Known adept powers, purchased with Power Points (see deriveAdeptPowers.ts). Meaningful only for Adept/Mystic Adept characters. */
@@ -129,6 +141,7 @@ export function emptyCharacterData(): CharacterData {
     qualities: [],
     contacts: [],
     gear: [],
+    lifestyles: [],
     spells: [],
     adeptPowers: [],
     nuyen: 0,

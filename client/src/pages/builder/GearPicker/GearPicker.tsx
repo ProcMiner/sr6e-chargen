@@ -19,12 +19,14 @@ interface Props {
   onChange: (data: CharacterData) => void;
   /** Karma already committed outside gear (e.g. spells beyond the free allotment - see deriveSpells.ts), so this picker's afford checks reflect the whole shared Karma pool. */
   extraKarmaSpent?: number;
+  /** Nuyen already committed outside gear (e.g. lifestyle purchases - see deriveLifestyle.ts), so this picker's afford checks reflect the whole shared nuyen pool. */
+  extraNuyenSpent?: number;
 }
 
-export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0 }: Props) {
+export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNuyenSpent = 0 }: Props) {
   const catalog = rules.gear;
   const selected = data.gear;
-  const remaining = nuyenRemaining(data);
+  const remaining = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
 
   const [search, setSearch] = useState("");
@@ -86,7 +88,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0 }: Props
   /** Nuyen budget left for a given line if it were removed first, i.e. what's available to spend on it. */
   function budgetFor(index: number): number {
     const line = selected[index];
-    return data.nuyen - (gearCostTotal(selected) - line.qty * line.unitCost);
+    return data.nuyen - extraNuyenSpent - (gearCostTotal(selected) - line.qty * line.unitCost);
   }
 
   /** Karma budget left for a given line if it were removed first. */
