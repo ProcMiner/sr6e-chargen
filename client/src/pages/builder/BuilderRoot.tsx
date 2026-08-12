@@ -29,6 +29,7 @@ import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
+import { downloadCharacterSheetPdf, generateCharacterSheetPdf } from "../../pdfSheet";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -46,6 +47,8 @@ export function BuilderRoot() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [downloadingSheet, setDownloadingSheet] = useState(false);
+  const [sheetError, setSheetError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -79,6 +82,29 @@ export function BuilderRoot() {
     }
   }
 
+  async function handleDownloadSheet() {
+    if (!character || !data || !priorityRules || !qualityRules || !gearRules) return;
+    setDownloadingSheet(true);
+    setSheetError(null);
+    try {
+      const bytes = await generateCharacterSheetPdf({
+        characterAlias: character.name,
+        data,
+        priorityRules,
+        metatypeAttributes: priorityRules.metatypeAttributes,
+        qualityRules,
+        gearRules,
+        spellKarmaSpent: spellKarmaCost(data, priorityRules),
+        complexFormKarmaSpent: complexFormKarmaCost(data, priorityRules),
+      });
+      downloadCharacterSheetPdf(bytes, character.name);
+    } catch (err) {
+      setSheetError(err instanceof Error ? err.message : "Failed to generate character sheet.");
+    } finally {
+      setDownloadingSheet(false);
+    }
+  }
+
   if (
     !character ||
     !data ||
@@ -108,7 +134,11 @@ export function BuilderRoot() {
           <button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save"}
           </button>
+          <button onClick={handleDownloadSheet} disabled={downloadingSheet}>
+            {downloadingSheet ? "Generating..." : "Download Character Sheet"}
+          </button>
           {saveError && <span className="save-error">{saveError}</span>}
+          {sheetError && <span className="save-error">{sheetError}</span>}
           {!saveError && lastSaved && (
             <span className="saved-at">Saved {lastSaved.toLocaleTimeString()}</span>
           )}

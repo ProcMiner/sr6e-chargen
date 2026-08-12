@@ -73,6 +73,8 @@ export interface PriorityRulesResponse {
   metatypeAttributes: MetatypeAttributes[];
   metavariants: MetavariantCatalogEntry[];
   skillList: string[];
+  /** Each skill's Primary Linked Attribute (core rulebook pp. 92-97), keyed by skill name - e.g. "Firearms": "agility". */
+  skillLinkedAttribute: Record<string, string>;
 }
 
 export interface Boost {

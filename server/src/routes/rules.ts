@@ -2,7 +2,7 @@ import { Router } from "express";
 import { priorityTable, metatypeAttributes } from "../rules/priority-tables.js";
 import { metavariants } from "../rules/metavariants.js";
 import { startingModules, adultModules } from "../rules/lifepath-modules.js";
-import { skillList } from "../rules/skills.js";
+import { skillList, skillLinkedAttribute } from "../rules/skills.js";
 import { positiveQualities, negativeQualities } from "../rules/qualities.js";
 import { weaponGear } from "../rules/gear.js";
 import { armorGear } from "../rules/armor.js";
@@ -25,7 +25,7 @@ import { hackAndSlashComplexForms } from "../rules/complexFormsHackAndSlash.js";
 export const rulesRouter = Router();
 
 rulesRouter.get("/priority-tables", (_req, res) => {
-  res.json({ priorityTable, metatypeAttributes, metavariants, skillList });
+  res.json({ priorityTable, metatypeAttributes, metavariants, skillList, skillLinkedAttribute });
 });
 
 rulesRouter.get("/lifepath-modules", (_req, res) => {
