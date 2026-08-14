@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type NpcSummary } from "../../api";
 import { emptyNpcData, type NpcData } from "../../npc";
+import type { NpcTemplateEntry } from "../../rules";
 
 /** Local editable copy of the non-live fields, saved via an explicit Save button rather than on every keystroke - mirrors BuilderRoot.tsx's Save convention. */
 interface DetailsForm {
@@ -28,9 +29,11 @@ function toForm(data: Partial<NpcData>): DetailsForm {
 
 export function NpcRoster() {
   const [npcs, setNpcs] = useState<NpcSummary[] | null>(null);
+  const [templates, setTemplates] = useState<NpcTemplateEntry[] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [importingId, setImportingId] = useState<string | null>(null);
   const [form, setForm] = useState<DetailsForm | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -39,6 +42,30 @@ export function NpcRoster() {
   }
 
   useEffect(refresh, []);
+  useEffect(() => {
+    api.npcTemplates().then((res) => setTemplates(res.npcTemplates));
+  }, []);
+
+  const templatesByRating = new Map<number, NpcTemplateEntry[]>();
+  for (const template of templates ?? []) {
+    if (!templatesByRating.has(template.professionalRating)) {
+      templatesByRating.set(template.professionalRating, []);
+    }
+    templatesByRating.get(template.professionalRating)!.push(template);
+  }
+  const ratings = [...templatesByRating.keys()].sort((a, b) => a - b);
+
+  async function handleImport(template: NpcTemplateEntry) {
+    setImportingId(template.id);
+    try {
+      const npc = await api.createNpc(template.name, template.data);
+      refresh();
+      setSelectedId(npc.id);
+      setForm(toForm(npc.data));
+    } finally {
+      setImportingId(null);
+    }
+  }
 
   const selected = npcs?.find((n) => n.id === selectedId) ?? null;
 
@@ -127,6 +154,36 @@ export function NpcRoster() {
           Add NPC
         </button>
       </form>
+
+      <details className="quality-section">
+        <summary>Import from book ({templates?.length ?? 0})</summary>
+        <p className="hint">
+          Core Rulebook Grunts (Professional Rating 0-10) and Prime Runners, p. 203-211. Adding one creates a new
+          NPC pre-filled from the printed stat block, ready to tweak.
+        </p>
+        {ratings.map((rating) => (
+          <div key={rating}>
+            <h4>
+              Professional Rating {rating} - {templatesByRating.get(rating)![0].category}
+            </h4>
+            <ul className="module-slots">
+              {templatesByRating.get(rating)!.map((template) => (
+                <li key={template.id}>
+                  <div className="module-instance">
+                    <div className="module-instance-header">
+                      <strong>{template.name}</strong>
+                      <button onClick={() => handleImport(template)} disabled={importingId === template.id}>
+                        {importingId === template.id ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                    <p className="hint">{template.summary}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </details>
 
       {npcs === null && <p>Loading...</p>}
       {npcs?.length === 0 && <p>No NPCs yet - add one above.</p>}
@@ -238,7 +295,8 @@ export function NpcRoster() {
                       </label>
                       <label className="inline-field">
                         Combat
-                        <input
+                        <textarea
+                          rows={4}
                           placeholder="e.g. Firearms 10, Ares Predator VI (3P, AR 9)"
                           value={form.combat}
                           onChange={(e) => setForm({ ...form, combat: e.target.value })}
@@ -246,7 +304,8 @@ export function NpcRoster() {
                       </label>
                       <label className="inline-field">
                         Notes
-                        <input
+                        <textarea
+                          rows={3}
                           placeholder="Tactics, loot, anything else"
                           value={form.notes}
                           onChange={(e) => setForm({ ...form, notes: e.target.value })}

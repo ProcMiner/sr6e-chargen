@@ -21,6 +21,7 @@ import { streetWyrdAdeptPowers } from "../rules/adeptPowersStreetWyrd.js";
 import { lifestyles } from "../rules/lifestyles.js";
 import { coreComplexForms } from "../rules/complexForms.js";
 import { hackAndSlashComplexForms } from "../rules/complexFormsHackAndSlash.js";
+import { coreNpcTemplates } from "../rules/npcTemplates.js";
 
 export const rulesRouter = Router();
 
@@ -70,4 +71,8 @@ rulesRouter.get("/lifestyles", (_req, res) => {
 
 rulesRouter.get("/complex-forms", (_req, res) => {
   res.json({ complexForms: [...coreComplexForms, ...hackAndSlashComplexForms] });
+});
+
+rulesRouter.get("/npc-templates", (_req, res) => {
+  res.json({ npcTemplates: coreNpcTemplates });
 });

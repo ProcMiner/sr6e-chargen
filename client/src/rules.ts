@@ -293,6 +293,31 @@ export interface ComplexFormRulesResponse {
   complexForms: ComplexFormCatalogEntry[];
 }
 
+/** Pre-built NPC stat block a GM can drop straight into the NPC roster - mirrors server/src/rules/npcTemplates.ts. */
+export interface NpcTemplateEntry {
+  id: string;
+  name: string;
+  professionalRating: number;
+  category: string;
+  summary: string;
+  book: string;
+  data: {
+    description: string;
+    physicalMonitor: number;
+    stunMonitor: number;
+    physicalDamage: number;
+    stunDamage: number;
+    armor: number;
+    initiative: string;
+    combat: string;
+    notes: string;
+  };
+}
+
+export interface NpcTemplateRulesResponse {
+  npcTemplates: NpcTemplateEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

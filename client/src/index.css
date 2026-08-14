@@ -52,7 +52,8 @@ button.link-button {
 }
 
 input,
-select {
+select,
+textarea {
   font: inherit;
   background: var(--panel);
   color: var(--text);

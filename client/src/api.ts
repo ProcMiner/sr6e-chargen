@@ -81,6 +81,7 @@ export const api = {
   adeptPowers: () => request<import("./rules").AdeptPowerRulesResponse>("/rules/adept-powers"),
   lifestyles: () => request<import("./rules").LifestyleRulesResponse>("/rules/lifestyles"),
   complexForms: () => request<import("./rules").ComplexFormRulesResponse>("/rules/complex-forms"),
+  npcTemplates: () => request<import("./rules").NpcTemplateRulesResponse>("/rules/npc-templates"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),
