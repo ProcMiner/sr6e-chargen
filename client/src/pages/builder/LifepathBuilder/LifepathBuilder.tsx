@@ -15,6 +15,9 @@ const BASE_ATTR_KEYS = [
   "charisma",
 ] as const;
 
+const MENTAL_ATTR_KEYS = ["willpower", "logic", "intuition", "charisma"] as const;
+const PHYSICAL_ATTR_KEYS = ["body", "agility", "reaction", "strength"] as const;
+
 const AWAKENED_TYPES = [
   "Mundane",
   "Full Magician",
@@ -44,6 +47,7 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
   const state: LifepathSystemState = isBlank(raw)
     ? { selectedModuleIds: [], choices: {} }
     : raw;
+  const { hasMagic, hasResonance } = magicResonancePresence(state.awakenedType);
 
   // ---- Born This Way ----
   const metatypeInfo = effectiveMetatypeInfo(data, metatypeAttributes, metavariants);
@@ -191,6 +195,7 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
     metavariantId: string | undefined = data.metavariant
   ) {
     const { attrs, skills } = computeBaseAttributesAndSkills(nextState, metatype, metavariantId);
+    const { hasMagic, hasResonance } = magicResonancePresence(nextState.awakenedType);
     // Coming of Age grants +25,000 nuyen; gated on the skill pick since
     // that's this module's primary "have I done this yet" signal.
     let nuyen = nextState.comingOfAgeSkill ? 25_000 : 0;
@@ -208,9 +213,10 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
 
       mod.boosts?.forEach((boost, bi) => {
         const picks = boost.count ?? 1;
+        const options = resolveBoostOptions(boost.from, skillList, hasMagic, hasResonance);
         for (let p = 0; p < picks; p++) {
           const choiceKey = `${key}:boost:${bi}:${p}`;
-          const chosen = nextState.choices[choiceKey] ?? (boost.from.length === 1 ? boost.from[0] : undefined);
+          const chosen = nextState.choices[choiceKey] ?? (options.length === 1 ? options[0] : undefined);
           if (!chosen) continue;
           // A handful of modules offer a flat +25,000 nuyen as an
           // alternative to one of their attribute/skill choices.
@@ -249,20 +255,14 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
     key: string,
     amount: number
   ) {
+    // `key` is always a concrete attribute/skill name by this point -
+    // resolveBoostOptions() (see BoostPicker/recompute above) expands every
+    // "any-X" placeholder token into real options before a choice is ever
+    // stored, so there's nothing left to resolve here.
     const attrKeys = ["body", "agility", "reaction", "strength", "willpower", "logic", "intuition", "charisma", "edge", "magic", "resonance"];
     const attrsRecord = attrs as unknown as Record<string, number>;
     if (attrKeys.includes(key)) {
       attrsRecord[key] = (attrsRecord[key] ?? 0) + amount;
-    } else if (
-      key === "any" ||
-      key === "any-attribute" ||
-      key === "any-special-attribute" ||
-      key === "any-mental-attribute" ||
-      key === "any-physical-attribute" ||
-      key === "any-skill-or-attribute"
-    ) {
-      // left for the player to resolve manually via the sidebar until a
-      // concrete target is picked - no-op here.
     } else {
       skills[key] = (skills[key] ?? 0) + amount;
     }
@@ -407,6 +407,8 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
                 instanceKey={instanceKey(id, selected.slice(0, i + 1).filter((s) => s === id).length)}
                 choices={state.choices}
                 skillList={skillList}
+                hasMagic={hasMagic}
+                hasResonance={hasResonance}
                 onChoice={setChoice}
                 onRemove={() => removeModuleAt(i)}
               />
@@ -479,6 +481,8 @@ function ModuleInstance({
   instanceKey,
   choices,
   skillList,
+  hasMagic,
+  hasResonance,
   onChoice,
   onRemove,
 }: {
@@ -486,6 +490,8 @@ function ModuleInstance({
   instanceKey: string;
   choices: Record<string, string>;
   skillList: string[];
+  hasMagic: boolean;
+  hasResonance: boolean;
   onChoice: (key: string, value: string) => void;
   onRemove: () => void;
 }) {
@@ -506,6 +512,8 @@ function ModuleInstance({
           boostIndex={bi}
           choices={choices}
           skillList={skillList}
+          hasMagic={hasMagic}
+          hasResonance={hasResonance}
           onChoice={onChoice}
         />
       ))}
@@ -550,12 +558,68 @@ function ModuleInstance({
   );
 }
 
+/** Whether the Born This Way awakened type grants a Magic or Resonance attribute - mirrors computeBaseAttributesAndSkills's own magic/resonance assignment above. */
+function magicResonancePresence(awakenedType: string | undefined): { hasMagic: boolean; hasResonance: boolean } {
+  if (awakenedType === "Emerged") return { hasMagic: false, hasResonance: true };
+  if (awakenedType && ["Full Magician", "Mystic Adept", "Adept", "Aspected Magician"].includes(awakenedType)) {
+    return { hasMagic: true, hasResonance: false };
+  }
+  return { hasMagic: false, hasResonance: false };
+}
+
+/**
+ * Expands a single Boost.from entry into real, pickable attribute/skill
+ * names. Most tokens are already concrete (e.g. "edge", "Firearms") and
+ * pass through unchanged; a handful of placeholder tokens (see
+ * lifepath-modules.ts's header comment) stand in for "any X" and need
+ * expanding into the actual list the player can choose from.
+ */
+function expandBoostToken(token: string, skillList: string[], hasMagic: boolean, hasResonance: boolean): string[] {
+  switch (token) {
+    case "any":
+      return skillList;
+    case "any-attribute":
+      return [...BASE_ATTR_KEYS];
+    case "any-special-attribute": {
+      const specials: string[] = ["edge"];
+      if (hasMagic) specials.push("magic");
+      if (hasResonance) specials.push("resonance");
+      return specials;
+    }
+    case "any-mental-attribute":
+      return [...MENTAL_ATTR_KEYS];
+    case "any-physical-attribute":
+      return [...PHYSICAL_ATTR_KEYS];
+    case "any-skill-or-attribute":
+      return [...skillList, ...BASE_ATTR_KEYS];
+    default:
+      return [token];
+  }
+}
+
+/** Expands every token in a Boost.from array and dedupes the result - a module can mix concrete names and placeholder tokens in one choice (e.g. "any-attribute" alongside "any-special-attribute"). */
+function resolveBoostOptions(from: string[], skillList: string[], hasMagic: boolean, hasResonance: boolean): string[] {
+  const seen = new Set<string>();
+  const options: string[] = [];
+  for (const token of from) {
+    for (const option of expandBoostToken(token, skillList, hasMagic, hasResonance)) {
+      if (!seen.has(option)) {
+        seen.add(option);
+        options.push(option);
+      }
+    }
+  }
+  return options;
+}
+
 function BoostPicker({
   boost,
   instanceKey,
   boostIndex,
   choices,
   skillList,
+  hasMagic,
+  hasResonance,
   onChoice,
 }: {
   boost: Boost;
@@ -563,10 +627,12 @@ function BoostPicker({
   boostIndex: number;
   choices: Record<string, string>;
   skillList: string[];
+  hasMagic: boolean;
+  hasResonance: boolean;
   onChoice: (key: string, value: string) => void;
 }) {
   const picks = boost.count ?? 1;
-  const options = boost.from[0] === "any" ? skillList : boost.from;
+  const options = resolveBoostOptions(boost.from, skillList, hasMagic, hasResonance);
 
   return (
     <>
