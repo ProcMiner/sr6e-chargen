@@ -9,6 +9,7 @@ import { authRouter } from "./auth.js";
 import { charactersRouter } from "./routes/characters.js";
 import { rulesRouter } from "./routes/rules.js";
 import { playRouter } from "./routes/play.js";
+import { npcsRouter } from "./routes/npcs.js";
 import { SqliteSessionStore } from "./sessionStore.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,6 +50,7 @@ app.use("/api", authRouter);
 app.use("/api/characters", charactersRouter);
 app.use("/api/rules", rulesRouter);
 app.use("/api/play", playRouter);
+app.use("/api/npcs", npcsRouter);
 
 if (isProd) {
   const clientDist = path.join(__dirname, "..", "..", "client", "dist");

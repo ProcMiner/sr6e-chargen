@@ -1,4 +1,5 @@
 import type { CharacterData } from "./character";
+import type { NpcData } from "./npc";
 import type { PlayState, PlaySessionSummary, SessionDetail } from "./playState";
 
 export class ApiError extends Error {
@@ -35,6 +36,14 @@ export interface CharacterSummary {
   name: string;
   system: "priority" | "lifepath";
   data: Partial<CharacterData>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NpcSummary {
+  id: number;
+  name: string;
+  data: Partial<NpcData>;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,4 +94,11 @@ export const api = {
     }),
   leaveSession: (sessionId: number, characterId: number) =>
     request<void>(`/play/sessions/${sessionId}/leave`, { method: "POST", body: JSON.stringify({ characterId }) }),
+
+  listNpcs: () => request<NpcSummary[]>("/npcs"),
+  createNpc: (name: string, data: Partial<NpcData>) =>
+    request<NpcSummary>("/npcs", { method: "POST", body: JSON.stringify({ name, data }) }),
+  updateNpc: (id: number, patch: { name?: string; data?: Partial<NpcData> }) =>
+    request<NpcSummary>(`/npcs/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
+  deleteNpc: (id: number) => request<void>(`/npcs/${id}`, { method: "DELETE" }),
 };

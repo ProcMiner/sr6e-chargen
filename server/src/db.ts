@@ -41,6 +41,17 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS npcs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    gm_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    data TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_npcs_gm_user_id ON npcs(gm_user_id);
+
   CREATE TABLE IF NOT EXISTS session_characters (
     session_id INTEGER NOT NULL REFERENCES play_sessions(id) ON DELETE CASCADE,
     character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,

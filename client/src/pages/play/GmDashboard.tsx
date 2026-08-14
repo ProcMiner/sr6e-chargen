@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../api";
 import { useAuth } from "../../AuthContext";
 import type { PlaySessionSummary, SessionDetail } from "../../playState";
+import { NpcRoster } from "./NpcRoster";
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -148,6 +149,11 @@ export function GmDashboard() {
           </div>
         </section>
       )}
+
+      <section>
+        <h2>NPCs</h2>
+        <NpcRoster />
+      </section>
     </div>
   );
 }

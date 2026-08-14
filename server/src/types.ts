@@ -17,6 +17,15 @@ export interface CharacterRow {
   updated_at: string;
 }
 
+export interface NpcRow {
+  id: number;
+  gm_user_id: number;
+  name: string;
+  data: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Attributes {
   body: number;
   agility: number;
