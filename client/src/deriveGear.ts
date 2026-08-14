@@ -28,7 +28,7 @@ export function findGearEntry(id: string, catalog: GearCatalogEntry[]): GearCata
 }
 
 export function gearCostTotal(gear: GearLine[]): number {
-  return gear.reduce((sum, line) => sum + line.qty * line.unitCost, 0);
+  return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }
 
 export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {

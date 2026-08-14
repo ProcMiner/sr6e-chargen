@@ -75,6 +75,19 @@ function isValidCharacterData(data: unknown): boolean {
       if (typeof g.unitCost !== "number" || !Number.isFinite(g.unitCost) || g.unitCost < 0) return false;
       if (g.essenceCost !== undefined && !isFiniteInRange(g.essenceCost, 0, Infinity)) return false;
       if (g.bondingKarma !== undefined && !isFiniteInRange(g.bondingKarma, 0, Infinity)) return false;
+      if (g.free !== undefined && typeof g.free !== "boolean") return false;
+    }
+  }
+
+  if (Array.isArray(d.advancement)) {
+    for (const line of d.advancement as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const a = line as Record<string, unknown>;
+      if (a.type !== "attribute" && a.type !== "skill") return false;
+      if (typeof a.key !== "string" || !a.key) return false;
+      if (!isFiniteInRange(a.fromRating, 0, 20)) return false;
+      if (!isFiniteInRange(a.toRating, 0, 20)) return false;
+      if (!isFiniteInRange(a.karmaCost, 0, Infinity)) return false;
     }
   }
 

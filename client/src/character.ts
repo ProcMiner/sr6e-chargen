@@ -28,6 +28,8 @@ export interface GearLine {
   bondingKarma?: number;
   /** Resolved attribute/derived-stat bonuses, snapshotted at purchase time like `essenceCost`. Undefined for non-augmentation gear. */
   modifiers?: ResolvedModifier[];
+  /** True if this item was acquired for free during play (loot/payment-in-kind from a run) rather than bought with the nuyen pool. `unitCost` still holds the item's normal market value for reference; `gearCostTotal` (deriveGear.ts) just excludes free lines from the spend total. Undefined (falsy) for everything bought normally, including at chargen. */
+  free?: boolean;
   notes?: string;
 }
 
@@ -116,6 +118,24 @@ export interface LivingPersonaAllocation {
   firewall?: number;
 }
 
+/**
+ * One post-chargen ("career mode") Karma purchase raising an attribute or
+ * skill by one rating - core rulebook "Improvement Cost" table, p. 71.
+ * Itemized rather than a running total so the total Karma spent can always
+ * be derived from the log (see deriveAdvancement.ts's advancementKarmaTotal),
+ * same convention as gear's bondingKarma total in deriveGear.ts.
+ */
+export interface AdvancementEntry {
+  id: string;
+  type: "attribute" | "skill";
+  /** Attribute key (e.g. "body") or skill name (e.g. "Firearms"). */
+  key: string;
+  fromRating: number;
+  toRating: number;
+  karmaCost: number;
+  date: string;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
@@ -147,6 +167,8 @@ export interface CharacterData {
   mysticAdeptPowerPoints?: number;
   nuyen: number;
   karma: number;
+  /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
+  advancement?: AdvancementEntry[];
   notes?: string;
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }
@@ -177,6 +199,7 @@ export function emptyCharacterData(): CharacterData {
     complexForms: [],
     nuyen: 0,
     karma: 0,
+    advancement: [],
     systemState: {},
   };
 }

@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
-import { emptyAttributes } from "../../character";
+import { emptyAttributes, emptyCharacterData, type CharacterData } from "../../character";
+import type { GearRulesResponse, PriorityRulesResponse } from "../../rules";
 import { deriveStats } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
+import { lifestyleCostTotal } from "../../deriveLifestyle";
+import { spellKarmaCost } from "../../deriveSpells";
+import { complexFormKarmaCost } from "../../deriveComplexForms";
+import { metavariantKarmaCost } from "../../deriveMetavariant";
+import { advancementKarmaTotal } from "../../deriveAdvancement";
+import { GearPicker } from "../builder/GearPicker/GearPicker";
+import { Advancement } from "./Advancement";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 
 const COMMON_STATUS_EFFECTS = [
@@ -22,6 +30,9 @@ const SAVE_DEBOUNCE_MS = 500;
 export function LivePlay() {
   const { id } = useParams();
   const [character, setCharacter] = useState<CharacterSummary | null>(null);
+  const [characterData, setCharacterData] = useState<CharacterData | null>(null);
+  const [gearRules, setGearRules] = useState<GearRulesResponse | null>(null);
+  const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
   const [playState, setPlayState] = useState<PlayState | null>(null);
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [joinCode, setJoinCode] = useState("");
@@ -30,6 +41,11 @@ export function LivePlay() {
   const [saving, setSaving] = useState(false);
   const saveTimeout = useRef<number | null>(null);
   const pendingSave = useRef<PlayState | null>(null);
+
+  const [dataSaving, setDataSaving] = useState(false);
+  const dataSaveTimeout = useRef<number | null>(null);
+  const pendingDataSave = useRef<CharacterData | null>(null);
+  const [nuyenAward, setNuyenAward] = useState("");
 
   const [effectName, setEffectName] = useState("");
   const [effectRounds, setEffectRounds] = useState("");
@@ -42,8 +58,13 @@ export function LivePlay() {
 
   useEffect(() => {
     if (!id) return;
-    api.getCharacter(Number(id)).then(setCharacter);
+    api.getCharacter(Number(id)).then((c) => {
+      setCharacter(c);
+      setCharacterData({ ...emptyCharacterData(), ...(c.data as Partial<CharacterData>) });
+    });
     api.getPlayState(Number(id)).then(setPlayState);
+    api.gear().then(setGearRules);
+    api.priorityTables().then(setPriorityRules);
     refreshSessions();
   }, [id]);
 
@@ -83,6 +104,39 @@ export function LivePlay() {
     };
   }, [id]);
 
+  useEffect(() => {
+    return () => {
+      if (dataSaveTimeout.current === null || pendingDataSave.current === null || !id) return;
+      window.clearTimeout(dataSaveTimeout.current);
+      api.updateCharacter(Number(id), { data: pendingDataSave.current });
+      dataSaveTimeout.current = null;
+      pendingDataSave.current = null;
+    };
+  }, [id]);
+
+  function scheduleDataSave(next: CharacterData) {
+    setCharacterData(next);
+    pendingDataSave.current = next;
+    if (dataSaveTimeout.current) window.clearTimeout(dataSaveTimeout.current);
+    dataSaveTimeout.current = window.setTimeout(() => {
+      if (!id) return;
+      setDataSaving(true);
+      api
+        .updateCharacter(Number(id), { data: next })
+        .finally(() => setDataSaving(false));
+      dataSaveTimeout.current = null;
+      pendingDataSave.current = null;
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  function awardNuyen() {
+    if (!characterData) return;
+    const amount = Number(nuyenAward);
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    scheduleDataSave({ ...characterData, nuyen: characterData.nuyen + amount });
+    setNuyenAward("");
+  }
+
   function scheduleSave(next: PlayState) {
     setPlayState(next);
     pendingSave.current = next;
@@ -98,7 +152,7 @@ export function LivePlay() {
     }, SAVE_DEBOUNCE_MS);
   }
 
-  if (!character || !playState) {
+  if (!character || !playState || !characterData) {
     return (
       <div className="page">
         <p>Loading...</p>
@@ -106,10 +160,17 @@ export function LivePlay() {
     );
   }
 
-  const attributes = { ...emptyAttributes, ...(character.data.attributes ?? {}) };
-  const derived = deriveStats(attributes, modifierBonuses(character.data.gear ?? [], character.data.adeptPowers ?? []));
+  const attributes = { ...emptyAttributes, ...(characterData.attributes ?? {}) };
+  const derived = deriveStats(attributes, modifierBonuses(characterData.gear ?? [], characterData.adeptPowers ?? []));
   const physicalOverflow = playState.physicalDamage - derived.physicalMonitor;
   const stunOverflow = playState.stunDamage - derived.stunMonitor;
+
+  const extraKarmaSpent =
+    spellKarmaCost(characterData, priorityRules ?? undefined) +
+    complexFormKarmaCost(characterData, priorityRules ?? undefined) +
+    metavariantKarmaCost(characterData, priorityRules?.metavariants ?? []) +
+    advancementKarmaTotal(characterData.advancement);
+  const extraNuyenSpent = lifestyleCostTotal(characterData.lifestyles);
 
   function adjustDamage(field: "physicalDamage" | "stunDamage", delta: number) {
     scheduleSave({ ...playState!, [field]: Math.max(0, playState![field] + delta) });
@@ -153,7 +214,9 @@ export function LivePlay() {
     <div className="page live-play-page">
       <header className="page-header">
         <h1>{character.name} - Live Play</h1>
-        <div className="header-actions">{saving && <span className="saved-at">Saving...</span>}</div>
+        <div className="header-actions">
+          {(saving || dataSaving) && <span className="saved-at">Saving...</span>}
+        </div>
       </header>
 
       <section>
@@ -301,6 +364,44 @@ export function LivePlay() {
           </button>
         </div>
       </section>
+
+      {priorityRules && (
+        <section>
+          <Advancement data={characterData} onChange={scheduleDataSave} priorityRules={priorityRules} />
+        </section>
+      )}
+
+      {gearRules && (
+        <section>
+          <h2>Equipment</h2>
+          <form
+            className="inline-field"
+            onSubmit={(e) => {
+              e.preventDefault();
+              awardNuyen();
+            }}
+          >
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Nuyen earned from a run"
+              value={nuyenAward}
+              onChange={(e) => setNuyenAward(e.target.value.replace(/[^0-9]/g, ""))}
+            />
+            <button type="submit" disabled={!nuyenAward}>
+              Award Nuyen
+            </button>
+          </form>
+          <GearPicker
+            rules={gearRules}
+            data={characterData}
+            onChange={scheduleDataSave}
+            extraKarmaSpent={extraKarmaSpent}
+            extraNuyenSpent={extraNuyenSpent}
+            allowFree
+          />
+        </section>
+      )}
     </div>
   );
 }

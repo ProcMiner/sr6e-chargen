@@ -22,15 +22,25 @@ interface Props {
   extraKarmaSpent?: number;
   /** Nuyen already committed outside gear (e.g. lifestyle purchases - see deriveLifestyle.ts), so this picker's afford checks reflect the whole shared nuyen pool. */
   extraNuyenSpent?: number;
+  /** Shows a "Free (loot from a run)" checkbox that adds items without spending nuyen - see GearLine.free. Only meaningful in play mode (pages/play/LivePlay.tsx); chargen never sets this. */
+  allowFree?: boolean;
 }
 
-export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNuyenSpent = 0 }: Props) {
+export function GearPicker({
+  rules,
+  data,
+  onChange,
+  extraKarmaSpent = 0,
+  extraNuyenSpent = 0,
+  allowFree = false,
+}: Props) {
   const catalog = rules.gear;
   const selected = data.gear;
   const remaining = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
 
   const [search, setSearch] = useState("");
+  const [addFree, setAddFree] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customQty, setCustomQty] = useState(1);
   const [customCost, setCustomCost] = useState(0);
@@ -55,16 +65,17 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
     onChange({ ...data, gear: next });
   }
 
-  function canAdd(entry: GearCatalogEntry) {
+  function canAdd(entry: GearCatalogEntry, free: boolean) {
     const rating = entry.levels?.min;
-    if (gearUnitCost(entry, rating) > remaining) return false;
+    if (!free && gearUnitCost(entry, rating) > remaining) return false;
     const bondingKarma = gearUnitBondingKarma(entry, rating);
     if (bondingKarma !== undefined && bondingKarma > karmaBudget) return false;
     return true;
   }
 
   function addFromCatalog(entry: GearCatalogEntry) {
-    if (!canAdd(entry)) return;
+    const free = allowFree && addFree;
+    if (!canAdd(entry, free)) return;
     const rating = entry.levels?.min;
     applyGear([
       ...selected,
@@ -77,6 +88,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
         essenceCost: gearUnitEssenceCost(entry, rating),
         bondingKarma: gearUnitBondingKarma(entry, rating),
         modifiers: resolveGearModifiers(entry, rating),
+        free: free || undefined,
       },
     ]);
   }
@@ -99,8 +111,13 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
     return data.karma - (gearBondingKarmaTotal(selected) - (line.bondingKarma ?? 0) * line.qty);
   }
 
-  function maxAffordableQty(index: number, unitCost: number, bondingKarma: number | undefined): number {
-    let maxQty = unitCost > 0 ? Math.floor(budgetFor(index) / unitCost) : Infinity;
+  function maxAffordableQty(
+    index: number,
+    unitCost: number,
+    bondingKarma: number | undefined,
+    free: boolean
+  ): number {
+    let maxQty = !free && unitCost > 0 ? Math.floor(budgetFor(index) / unitCost) : Infinity;
     if (bondingKarma) {
       maxQty = Math.min(maxQty, Math.floor(karmaBudgetFor(index) / bondingKarma));
     }
@@ -109,7 +126,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
 
   function updateQty(index: number, qty: number) {
     const line = selected[index];
-    const maxQty = maxAffordableQty(index, line.unitCost, line.bondingKarma);
+    const maxQty = maxAffordableQty(index, line.unitCost, line.bondingKarma, !!line.free);
     const clamped = Math.max(1, Math.min(qty, Math.max(1, maxQty)));
     const next = [...selected];
     next[index] = { ...line, qty: clamped };
@@ -125,7 +142,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
     const essenceCost = gearUnitEssenceCost(entry, clampedRating);
     const bondingKarma = gearUnitBondingKarma(entry, clampedRating);
     const modifiers = resolveGearModifiers(entry, clampedRating);
-    const maxQty = maxAffordableQty(index, unitCost, bondingKarma);
+    const maxQty = maxAffordableQty(index, unitCost, bondingKarma, !!line.free);
     const qty = Math.max(1, Math.min(line.qty, Math.max(1, maxQty)));
     const next = [...selected];
     next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, bondingKarma, modifiers, qty };
@@ -133,9 +150,10 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
   }
 
   function addCustom() {
+    const free = allowFree && addFree;
     const name = customName.trim();
     if (!name || customQty < 1 || customCost < 0 || customEssenceCost < 0 || customBondingKarma < 0) return;
-    if (customCost * customQty > remaining) return;
+    if (!free && customCost * customQty > remaining) return;
     if (customBondingKarma * customQty > karmaBudget) return;
     applyGear([
       ...selected,
@@ -145,6 +163,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
         unitCost: customCost,
         essenceCost: customEssenceCost > 0 ? customEssenceCost : undefined,
         bondingKarma: customBondingKarma > 0 ? customBondingKarma : undefined,
+        free: free || undefined,
       },
     ]);
     setCustomName("");
@@ -175,7 +194,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
                 <div className="module-instance">
                   <div className="module-instance-header">
                     <strong>
-                      {line.name} ({(line.qty * line.unitCost).toLocaleString()}¥
+                      {line.name} ({line.free ? "Free" : `${(line.qty * line.unitCost).toLocaleString()}¥`}
                       {line.bondingKarma ? `, ${(line.qty * line.bondingKarma).toLocaleString()} Karma` : ""})
                     </strong>
                     <button className="danger" onClick={() => removeAt(i)}>
@@ -217,6 +236,13 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
         </ul>
       )}
 
+      {allowFree && (
+        <label className="inline-field">
+          <input type="checkbox" checked={addFree} onChange={(e) => setAddFree(e.target.checked)} />
+          Free (loot from a run - doesn't spend nuyen)
+        </label>
+      )}
+
       <input
         type="text"
         className="picker-search"
@@ -234,12 +260,12 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
               <button
                 key={entry.id}
                 className="chip"
-                disabled={!canAdd(entry)}
+                disabled={!canAdd(entry, allowFree && addFree)}
                 onClick={() => addFromCatalog(entry)}
                 title={entry.summary}
               >
                 {entry.name} ({entry.cost.toLocaleString()}
-                {entry.levels ? "/level" : ""}¥)
+                {entry.levels ? "/level" : ""}¥{allowFree && addFree ? ", free" : ""})
               </button>
             ))}
           </div>
@@ -296,7 +322,9 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
           <button
             onClick={addCustom}
             disabled={
-              !customName.trim() || customCost * customQty > remaining || customBondingKarma * customQty > karmaBudget
+              !customName.trim() ||
+              (!(allowFree && addFree) && customCost * customQty > remaining) ||
+              customBondingKarma * customQty > karmaBudget
             }
           >
             Add
