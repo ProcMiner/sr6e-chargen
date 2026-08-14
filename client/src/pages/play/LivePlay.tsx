@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes, emptyCharacterData, type CharacterData } from "../../character";
-import type { GearRulesResponse, PriorityRulesResponse } from "../../rules";
+import type { GearRulesResponse, PriorityRulesResponse, SpiritRulesResponse } from "../../rules";
 import { deriveStats } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
@@ -13,6 +13,7 @@ import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
+import { Spirits } from "./Spirits";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 
 const COMMON_STATUS_EFFECTS = [
@@ -34,6 +35,7 @@ export function LivePlay() {
   const [characterData, setCharacterData] = useState<CharacterData | null>(null);
   const [gearRules, setGearRules] = useState<GearRulesResponse | null>(null);
   const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
+  const [spiritRules, setSpiritRules] = useState<SpiritRulesResponse | null>(null);
   const [playState, setPlayState] = useState<PlayState | null>(null);
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [joinCode, setJoinCode] = useState("");
@@ -66,6 +68,7 @@ export function LivePlay() {
     api.getPlayState(Number(id)).then(setPlayState);
     api.gear().then(setGearRules);
     api.priorityTables().then(setPriorityRules);
+    api.spirits().then(setSpiritRules);
     refreshSessions();
   }, [id]);
 
@@ -370,6 +373,12 @@ export function LivePlay() {
       {priorityRules && (
         <section>
           <Advancement data={characterData} onChange={scheduleDataSave} priorityRules={priorityRules} />
+        </section>
+      )}
+
+      {spiritRules && (
+        <section>
+          <Spirits data={characterData} playState={playState} onChange={scheduleSave} spiritRules={spiritRules} />
         </section>
       )}
 

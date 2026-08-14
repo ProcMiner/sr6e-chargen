@@ -318,6 +318,57 @@ export interface NpcTemplateRulesResponse {
   npcTemplates: NpcTemplateEntry[];
 }
 
+/** Mirrors server/src/rules/spiritPowers.ts's SpiritPowerEntry. */
+export interface SpiritPowerEntry {
+  id: string;
+  name: string;
+  type: "M" | "P";
+  action: "Minor" | "Major" | "Auto";
+  range: "LOS" | "Touch" | "Self" | "Special" | "Varies" | "As spell";
+  duration: "Instant" | "Sustained" | "Always" | "Special";
+  summary: string;
+}
+
+/** Mirrors server/src/rules/spirits.ts's SpiritCatalogEntry. */
+export interface SpiritAttributeMods {
+  body: number;
+  agility: number;
+  reaction: number;
+  strength: number;
+  willpower: number;
+  logic: number;
+  intuition: number;
+  charisma: number;
+}
+
+export interface SpiritPowerRef {
+  powerId: string;
+  note?: string;
+}
+
+export interface SpiritCatalogEntry {
+  id: string;
+  name: string;
+  book: string;
+  summary: string;
+  attributeMods: SpiritAttributeMods;
+  defenseRatingMod: number;
+  initiative: string;
+  astralInitiative: string;
+  actionsNote: string;
+  movement: string;
+  skills: string[];
+  fixedPowers: SpiritPowerRef[];
+  optionalPowers: SpiritPowerRef[];
+  weaknesses: string[];
+  attacks: string[];
+}
+
+export interface SpiritRulesResponse {
+  spirits: SpiritCatalogEntry[];
+  spiritPowers: SpiritPowerEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

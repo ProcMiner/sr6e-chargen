@@ -82,6 +82,7 @@ export const api = {
   lifestyles: () => request<import("./rules").LifestyleRulesResponse>("/rules/lifestyles"),
   complexForms: () => request<import("./rules").ComplexFormRulesResponse>("/rules/complex-forms"),
   npcTemplates: () => request<import("./rules").NpcTemplateRulesResponse>("/rules/npc-templates"),
+  spirits: () => request<import("./rules").SpiritRulesResponse>("/rules/spirits"),
 
   createSession: (name: string) =>
     request<PlaySessionSummary>("/play/sessions", { method: "POST", body: JSON.stringify({ name }) }),

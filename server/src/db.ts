@@ -64,9 +64,21 @@ db.exec(`
     stun_damage INTEGER NOT NULL DEFAULT 0,
     edge_available INTEGER NOT NULL DEFAULT 0,
     status_effects TEXT NOT NULL DEFAULT '[]',
+    bound_spirits TEXT NOT NULL DEFAULT '[]',
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE INDEX IF NOT EXISTS idx_play_sessions_gm_user_id ON play_sessions(gm_user_id);
   CREATE INDEX IF NOT EXISTS idx_session_characters_character_id ON session_characters(character_id);
 `);
+
+// Existing databases (local dev + the deployed instance) already have
+// character_play_state without bound_spirits - CREATE TABLE IF NOT EXISTS
+// above is a no-op for them, so add the column here too. Safe to run on
+// every startup: SQLite has no "ADD COLUMN IF NOT EXISTS", so the duplicate-
+// column error on later runs is caught and ignored.
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN bound_spirits TEXT NOT NULL DEFAULT '[]'`);
+} catch {
+  // column already exists
+}

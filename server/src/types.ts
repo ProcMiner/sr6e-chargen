@@ -64,12 +64,24 @@ export interface StatusEffect {
   notes?: string;
 }
 
+export interface BoundSpirit {
+  id: string;
+  spiritTypeId: string;
+  name: string;
+  force: number;
+  servicesRemaining: number;
+  conditionDamage: number;
+  optionalPowersChosen: string[];
+  summonedAt: string;
+}
+
 export interface CharacterPlayStateRow {
   character_id: number;
   physical_damage: number;
   stun_damage: number;
   edge_available: number;
   status_effects: string;
+  bound_spirits: string;
   updated_at: string;
 }
 
