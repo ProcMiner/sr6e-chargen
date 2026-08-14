@@ -28,6 +28,7 @@ import type {
 import { deriveStats, astralInitiative, composure, defenseTestPool, judgeIntentions, liftCarry, memory, minorActions } from "./derive";
 import { currentEssence, effectiveMagic, effectiveResonance } from "./deriveEssence";
 import { nuyenRemaining, karmaRemaining } from "./deriveGear";
+import { modifierBonuses } from "./deriveModifiers";
 import { lifestyleCostTotal } from "./deriveLifestyle";
 import { metavariantKarmaCost, combinedRacialQualities, findMetavariant } from "./deriveMetavariant";
 import { combineQualityCatalog, qualityDisplayName } from "./deriveQualities";
@@ -112,7 +113,7 @@ function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]) {
 
 function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   const { data, priorityRules, metatypeAttributes, qualityRules } = inputs;
-  const derived = deriveStats(data.attributes);
+  const derived = deriveStats(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
   const essence = currentEssence(data);
   const magicEffective = effectiveMagic(data);
   const resonanceEffective = effectiveResonance(data);

@@ -2,6 +2,7 @@ import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
+import { modifierBonuses } from "../../deriveModifiers";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type {
   AdeptPowerRulesResponse,
@@ -67,7 +68,7 @@ export function SummarySheet({
   const lifestyleSpend = lifestyleCostTotal(data.lifestyles);
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
-  const derived = deriveStats(data.attributes);
+  const derived = deriveStats(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
   const resonanceRaw = data.attributes.resonance;
@@ -142,6 +143,12 @@ export function SummarySheet({
               {derived.initiative} + {derived.initiativeDice}d6
             </dd>
           </div>
+          {derived.armor > 0 && (
+            <div>
+              <dt>Armor (bioware/adept)</dt>
+              <dd>+{derived.armor}</dd>
+            </div>
+          )}
         </dl>
       </section>
 

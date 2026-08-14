@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes } from "../../character";
 import { deriveStats } from "../../derive";
+import { modifierBonuses } from "../../deriveModifiers";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 
 const COMMON_STATUS_EFFECTS = [
@@ -106,7 +107,7 @@ export function LivePlay() {
   }
 
   const attributes = { ...emptyAttributes, ...(character.data.attributes ?? {}) };
-  const derived = deriveStats(attributes);
+  const derived = deriveStats(attributes, modifierBonuses(character.data.gear ?? [], character.data.adeptPowers ?? []));
   const physicalOverflow = playState.physicalDamage - derived.physicalMonitor;
   const stunOverflow = playState.stunDamage - derived.stunMonitor;
 

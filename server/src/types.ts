@@ -36,6 +36,8 @@ export interface DerivedStats {
   stunMonitor: number;
   initiative: number;
   initiativeDice: number;
+  /** Bonus Defense Rating from bioware/cyberware/adept powers - see rules/deriveModifiers.ts. Does NOT include worn armor gear, which keeps displaying per-item as it always has. */
+  armor: number;
 }
 
 export interface SelectedQuality {

@@ -11,6 +11,7 @@ import {
   ratingFor,
 } from "../../../deriveAdeptPowers";
 import { effectiveMagic } from "../../../deriveEssence";
+import { resolveAdeptPowerModifiers } from "../../../deriveModifiers";
 
 interface Props {
   rules: AdeptPowerRulesResponse;
@@ -55,7 +56,8 @@ export function AdeptPowerPicker({ rules, data, onChange }: Props) {
 
   function addPower(entry: AdeptPowerCatalogEntry) {
     if (!canAdd(entry)) return;
-    applyPowers([...known, { powerId: entry.id, level: entry.levels?.min }]);
+    const level = entry.levels?.min;
+    applyPowers([...known, { powerId: entry.id, level, modifiers: resolveAdeptPowerModifiers(entry, level) }]);
   }
 
   function removeAt(index: number) {
@@ -79,7 +81,7 @@ export function AdeptPowerPicker({ rules, data, onChange }: Props) {
     const clamped = ratingFor(entry, level);
     if (adeptPowerUnitCost(entry, clamped) > remainingFor(index)) return;
     const next = [...known];
-    next[index] = { ...line, level: clamped };
+    next[index] = { ...line, level: clamped, modifiers: resolveAdeptPowerModifiers(entry, clamped) };
     applyPowers(next);
   }
 

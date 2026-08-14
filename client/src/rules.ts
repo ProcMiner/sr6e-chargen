@@ -135,6 +135,32 @@ export interface QualityRulesResponse {
   negativeQualities: QualityCatalogEntry[];
 }
 
+/**
+ * What a StatModifier changes. Mirrors server/src/rules/modifiers.ts -
+ * deliberately narrow, see that file's comment for what's out of scope.
+ */
+export type ModifierTarget =
+  | "body"
+  | "agility"
+  | "reaction"
+  | "strength"
+  | "willpower"
+  | "logic"
+  | "intuition"
+  | "charisma"
+  | "initiativeDice"
+  | "armor"
+  /** Player picks the actual target at purchase time - see the owning line's `notes` field. */
+  | "choice";
+
+export interface StatModifier {
+  target: ModifierTarget;
+  /** Fixed flat amount; "rating" if it scales with the purchased level/rating; "netHits" for spell magnitude set at cast time. Negative = penalty. */
+  amount: number | "rating" | "netHits";
+  /** Mutually-exclusive group key (SR6's "incompatible with other X" augmentations/powers) - only the highest amount in a group applies. */
+  stackingGroup?: string;
+}
+
 export interface GearCatalogEntry {
   id: string;
   name: string;
@@ -155,6 +181,8 @@ export interface GearCatalogEntry {
   essenceCost?: number;
   /** Karma cost to bond this item (magical foci); PER LEVEL if `levels` is set, same convention as `cost`. Undefined for everything else. */
   bondingKarma?: number;
+  /** Structured attribute/derived-stat bonuses this item grants; undefined for everything else. */
+  modifiers?: StatModifier[];
 }
 
 export interface GearRulesResponse {
@@ -198,6 +226,8 @@ export interface SpellCatalogEntry {
   summary: string;
   /** Sourcebook this entry is transcribed from. */
   book: string;
+  /** Structured attribute/derived-stat bonuses this spell grants while sustained; undefined for everything else. */
+  modifiers?: StatModifier[];
 }
 
 export interface SpellRulesResponse {
@@ -220,6 +250,8 @@ export interface AdeptPowerCatalogEntry {
   summary: string;
   /** Sourcebook this entry is transcribed from. */
   book: string;
+  /** Structured attribute/derived-stat bonuses this power grants; undefined for everything else. */
+  modifiers?: StatModifier[];
 }
 
 export interface AdeptPowerRulesResponse {

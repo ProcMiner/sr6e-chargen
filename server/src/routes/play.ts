@@ -4,6 +4,7 @@ import { db } from "../db.js";
 import { requireAuth } from "../auth.js";
 import { maxEdgeFor, playStateFromRow } from "./characters.js";
 import { deriveStats } from "../rules/derive.js";
+import { modifierBonuses, type ResolvedModifier } from "../rules/deriveModifiers.js";
 import type { Attributes, CharacterPlayStateRow, CharacterRow, PlaySessionRow } from "../types.js";
 
 export const playRouter = Router();
@@ -76,20 +77,27 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
     .all(session.id) as { id: number; name: string; system: string; data: string; owner_username: string }[];
 
   const characters = joined.map((c) => {
-    const parsedData = JSON.parse(c.data) as { attributes?: Partial<Attributes> };
+    const parsedData = JSON.parse(c.data) as {
+      attributes?: Partial<Attributes>;
+      gear?: { modifiers?: ResolvedModifier[]; qty: number }[];
+      adeptPowers?: { modifiers?: ResolvedModifier[] }[];
+    };
     const maxEdge = maxEdgeFor(c);
-    const derived = deriveStats({
-      body: 1,
-      agility: 1,
-      reaction: 1,
-      strength: 1,
-      willpower: 1,
-      logic: 1,
-      intuition: 1,
-      charisma: 1,
-      edge: 1,
-      ...parsedData.attributes,
-    });
+    const derived = deriveStats(
+      {
+        body: 1,
+        agility: 1,
+        reaction: 1,
+        strength: 1,
+        willpower: 1,
+        logic: 1,
+        intuition: 1,
+        charisma: 1,
+        edge: 1,
+        ...parsedData.attributes,
+      },
+      modifierBonuses(parsedData.gear ?? [], parsedData.adeptPowers ?? [])
+    );
 
     const playRow = db.prepare("SELECT * FROM character_play_state WHERE character_id = ?").get(c.id) as
       | CharacterPlayStateRow

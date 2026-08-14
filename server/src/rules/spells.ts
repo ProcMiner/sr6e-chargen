@@ -25,6 +25,8 @@
 //   that's applied. Every spell beyond that allotment costs 5 Karma
 //   ("New Spells", p. 69-70), flat regardless of category.
 
+import type { StatModifier } from "./modifiers.js";
+
 export interface SpellCatalogEntry {
   id: string;
   name: string;
@@ -44,6 +46,14 @@ export interface SpellCatalogEntry {
   summary: string;
   /** Sourcebook this entry is transcribed from. */
   book: string;
+  /**
+   * Structured attribute/derived-stat bonuses this spell grants while
+   * sustained; amount is always "netHits" since a spell's magnitude comes
+   * from the casting roll, not fixed chargen data. Data only for now - not
+   * consumed by deriveStats, since applying it needs a LivePlay "this spell
+   * is currently active" concept that doesn't exist yet (see StatusEffect).
+   */
+  modifiers?: StatModifier[];
 }
 
 const CORE = "Core Rulebook";
@@ -424,6 +434,10 @@ export const coreSpells: SpellCatalogEntry[] = [
     type: "P",
     duration: "S",
     drainValue: 3,
+    // amount is "netHits" like Increase Attribute below, but this is a
+    // PENALTY - a future consumer needs to apply it as negative net hits,
+    // not add it like every other modifier in this catalog.
+    modifiers: [{ target: "choice", amount: "netHits" }],
     summary: "Temporarily lowers a chosen physical or mental attribute (never Edge, Essence, Magic, or Resonance) by net hits, at the cost of +1 Drain per hit applied beyond the first.",
     book: CORE,
   },
@@ -446,6 +460,7 @@ export const coreSpells: SpellCatalogEntry[] = [
     type: "P",
     duration: "S",
     drainValue: 3,
+    modifiers: [{ target: "choice", amount: "netHits" }],
     summary: "Temporarily raises a chosen physical or mental attribute (never Edge, Essence, Magic, or Resonance) by net hits (max +4), at the cost of +1 Drain per hit applied beyond the first.",
     book: CORE,
   },
@@ -457,6 +472,10 @@ export const coreSpells: SpellCatalogEntry[] = [
     type: "P",
     duration: "S",
     drainValue: 5,
+    modifiers: [
+      { target: "reaction", amount: "netHits" },
+      { target: "initiativeDice", amount: "netHits" },
+    ],
     summary: "Temporarily boosts the target's Reaction and Initiative Dice by net hits.",
     book: CORE,
   },
@@ -693,6 +712,7 @@ export const coreSpells: SpellCatalogEntry[] = [
     type: "P",
     duration: "S",
     drainValue: 4,
+    modifiers: [{ target: "armor", amount: "netHits" }],
     summary: "Hardens the target's body with mana, adding net hits to their Defense Rating.",
     book: CORE,
   },

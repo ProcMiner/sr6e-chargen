@@ -12,6 +12,7 @@ import {
   nuyenRemaining,
   ratingFor,
 } from "../../../deriveGear";
+import { resolveGearModifiers } from "../../../deriveModifiers";
 
 interface Props {
   rules: GearRulesResponse;
@@ -75,6 +76,7 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
         rating,
         essenceCost: gearUnitEssenceCost(entry, rating),
         bondingKarma: gearUnitBondingKarma(entry, rating),
+        modifiers: resolveGearModifiers(entry, rating),
       },
     ]);
   }
@@ -122,10 +124,11 @@ export function GearPicker({ rules, data, onChange, extraKarmaSpent = 0, extraNu
     const unitCost = gearUnitCost(entry, clampedRating);
     const essenceCost = gearUnitEssenceCost(entry, clampedRating);
     const bondingKarma = gearUnitBondingKarma(entry, clampedRating);
+    const modifiers = resolveGearModifiers(entry, clampedRating);
     const maxQty = maxAffordableQty(index, unitCost, bondingKarma);
     const qty = Math.max(1, Math.min(line.qty, Math.max(1, maxQty)));
     const next = [...selected];
-    next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, bondingKarma, qty };
+    next[index] = { ...line, rating: clampedRating, unitCost, essenceCost, bondingKarma, modifiers, qty };
     applyGear(next);
   }
 

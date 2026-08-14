@@ -1,20 +1,36 @@
 // Mirrors server/src/rules/derive.ts - see that file for the sourcebook
 // citation. SR6 has no Limit attributes (that's SR5); don't add them here.
-import type { Attributes } from "./rules";
+import type { Attributes, ModifierTarget } from "./rules";
 
 export interface DerivedStats {
   physicalMonitor: number;
   stunMonitor: number;
   initiative: number;
   initiativeDice: number;
+  /** Bonus Defense Rating from bioware/cyberware/adept powers (e.g. Orthoskin) - see deriveModifiers.ts. Does NOT include worn armor gear, which keeps displaying per-item as it always has (see armor.ts's free-text stats.defenseRating). */
+  armor: number;
 }
 
-export function deriveStats(attributes: Attributes): DerivedStats {
+/**
+ * `bonuses` is a summed per-target modifier map from deriveModifiers.ts's
+ * modifierBonuses (installed cyberware/bioware/adept powers) - omit it for
+ * an unmodified read of the raw attributes. Only feeds the fields above;
+ * the "Attribute-Only Test" helpers below (composure, defenseTestPool, etc.)
+ * intentionally keep using raw `attributes` - see this file's header in the
+ * project plan for why that's a deliberate scope boundary, not an oversight.
+ */
+export function deriveStats(attributes: Attributes, bonuses: Partial<Record<ModifierTarget, number>> = {}): DerivedStats {
+  const body = attributes.body + (bonuses.body ?? 0);
+  const willpower = attributes.willpower + (bonuses.willpower ?? 0);
+  const reaction = attributes.reaction + (bonuses.reaction ?? 0);
+  const intuition = attributes.intuition + (bonuses.intuition ?? 0);
+
   return {
-    physicalMonitor: Math.ceil(attributes.body / 2) + 8,
-    stunMonitor: Math.ceil(attributes.willpower / 2) + 8,
-    initiative: attributes.reaction + attributes.intuition,
-    initiativeDice: 1,
+    physicalMonitor: Math.ceil(body / 2) + 8,
+    stunMonitor: Math.ceil(willpower / 2) + 8,
+    initiative: reaction + intuition,
+    initiativeDice: 1 + (bonuses.initiativeDice ?? 0),
+    armor: bonuses.armor ?? 0,
   };
 }
 

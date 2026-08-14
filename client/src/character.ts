@@ -1,4 +1,11 @@
-import type { Attributes, Metatype } from "./rules";
+import type { Attributes, Metatype, ModifierTarget } from "./rules";
+
+/** A resolved (not symbolic) stat bonus snapshotted onto a purchased line - mirrors StatModifier from ./rules but with `amount`/`target` already resolved (no "rating"/"netHits"/"choice"), same snapshot convention as GearLine.essenceCost. */
+export interface ResolvedModifier {
+  target: Exclude<ModifierTarget, "choice">;
+  amount: number;
+  stackingGroup?: string;
+}
 
 export interface Contact {
   name: string;
@@ -19,6 +26,8 @@ export interface GearLine {
   essenceCost?: number;
   /** Karma cost to bond this item, snapshotted at purchase time like `unitCost`. Undefined for non-magical gear. */
   bondingKarma?: number;
+  /** Resolved attribute/derived-stat bonuses, snapshotted at purchase time like `essenceCost`. Undefined for non-augmentation gear. */
+  modifiers?: ResolvedModifier[];
   notes?: string;
 }
 
@@ -88,6 +97,8 @@ export interface AdeptPowerLine {
   level?: number;
   /** Free-text sub-choice for powers that need one (an element, attribute, or skill) - see AdeptPowerCatalogEntry's header comment. */
   notes?: string;
+  /** Resolved attribute/derived-stat bonuses, snapshotted at purchase time - see GearLine.modifiers. Undefined for powers with no numeric effect. */
+  modifiers?: ResolvedModifier[];
 }
 
 export interface ComplexFormLine {

@@ -30,6 +30,8 @@
 //   armor accessories, general gear, and everything from p. 265 on is out
 //   of scope for this chunk - see README's Armor/General Gear chunks.
 
+import type { StatModifier } from "./modifiers.js";
+
 export interface GearCatalogEntry {
   id: string;
   name: string;
@@ -50,6 +52,8 @@ export interface GearCatalogEntry {
   bondingKarma?: number;
   /** Free-form display-only stat fields (Damage, Modes, Attack Ratings, Ammo, Mount, Blast...); not strongly typed since each weapon subtype uses a different subset. */
   stats?: Record<string, string>;
+  /** Structured attribute/derived-stat bonuses this item grants (cyberware/bioware); undefined for everything else. */
+  modifiers?: StatModifier[];
 }
 
 export const weaponGear: GearCatalogEntry[] = [

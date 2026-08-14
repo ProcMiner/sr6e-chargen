@@ -60,6 +60,7 @@
 //   linked.
 
 import type { GearCatalogEntry } from "./gear.js";
+import type { StatModifier } from "./modifiers.js";
 
 export const augmentationsGear: GearCatalogEntry[] = [
   // --- Headware (book p. 283-284) ---
@@ -582,6 +583,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 1,
     stats: { "Body Bonus": "+2", "Defense Bonus": "+1", "Unarmed DV": "4P", "Unarmed AR": "+2" },
+    modifiers: [
+      { target: "body", amount: 2, stackingGroup: "bone-lacing" },
+      { target: "armor", amount: 1, stackingGroup: "bone-lacing" },
+    ],
     summary:
       "Reinforcing lattice chains through your bones. Changes unarmed combat damage to Physical. Incompatible with other bone-altering augmentations (only one lacing type at a time).",
   },
@@ -594,6 +599,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "6L",
     essenceCost: 1.5,
     stats: { "Body Bonus": "+2", "Defense Bonus": "+2", "Unarmed DV": "4P", "Unarmed AR": "+3" },
+    modifiers: [
+      { target: "body", amount: 2, stackingGroup: "bone-lacing" },
+      { target: "armor", amount: 2, stackingGroup: "bone-lacing" },
+    ],
     summary:
       "Reinforcing lattice chains through your bones. Changes unarmed combat damage to Physical. Incompatible with other bone-altering augmentations (only one lacing type at a time).",
   },
@@ -606,6 +615,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 0.3,
     levels: { min: 1, max: 4 },
+    modifiers: [{ target: "armor", amount: "rating", stackingGroup: "skin-armor" }],
     summary:
       "Hard plastic/ceramic-fiber plates bonded to your skin, visibly and tactilely obvious. Grants a Defense Rating bonus equal to its rating. Incompatible with other skin augmentations, including orthoskin.",
   },
@@ -650,6 +660,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "3L",
     essenceCost: 0.7,
     levels: { min: 1, max: 4 },
+    modifiers: [
+      { target: "strength", amount: "rating", stackingGroup: "strength-boost" },
+      { target: "agility", amount: "rating", stackingGroup: "agility-boost" },
+    ],
     summary:
       "Vat-grown synthetic muscle plus skeletal reinforcement. Increases Strength and Agility by its rating. Incompatible with other muscle augmentations (muscle augmentation/toner bioware).",
   },
@@ -662,6 +676,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 0.3,
     levels: { min: 1, max: 4 },
+    modifiers: [{ target: "reaction", amount: "rating", stackingGroup: "reflex-boost" }],
     summary:
       "Superconducting spinal segments quicken your reactions. Adds its rating to Reaction (adjust Initiative Score accordingly). Incompatible with all other Reaction enhancements, including wired reflexes.",
   },
@@ -697,6 +712,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "3L",
     essenceCost: 1,
     stats: { Reaction: "+1", "Initiative Dice": "+1" },
+    modifiers: [
+      { target: "reaction", amount: 1, stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: 1, stackingGroup: "reflex-boost" },
+    ],
     summary:
       "Invasive neural boosters and adrenaline stimulators. Each rating gives +1 Reaction and +1 Initiative Die when active. Incompatible with augmentations affecting Reaction or Initiative.",
   },
@@ -709,6 +728,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "3L",
     essenceCost: 2,
     stats: { Reaction: "+2", "Initiative Dice": "+2" },
+    modifiers: [
+      { target: "reaction", amount: 2, stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: 2, stackingGroup: "reflex-boost" },
+    ],
     summary:
       "Invasive neural boosters and adrenaline stimulators. Each rating gives +1 Reaction and +1 Initiative Die when active. Incompatible with augmentations affecting Reaction or Initiative.",
   },
@@ -721,6 +744,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4I",
     essenceCost: 3,
     stats: { Reaction: "+3", "Initiative Dice": "+3" },
+    modifiers: [
+      { target: "reaction", amount: 3, stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: 3, stackingGroup: "reflex-boost" },
+    ],
     summary:
       "Invasive neural boosters and adrenaline stimulators. Each rating gives +1 Reaction and +1 Initiative Die when active. Incompatible with augmentations affecting Reaction or Initiative.",
   },
@@ -733,6 +760,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "6I",
     essenceCost: 4,
     stats: { Reaction: "+4", "Initiative Dice": "+4" },
+    modifiers: [
+      { target: "reaction", amount: 4, stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: 4, stackingGroup: "reflex-boost" },
+    ],
     summary:
       "Invasive neural boosters and adrenaline stimulators. Each rating gives +1 Reaction and +1 Initiative Die when active. Incompatible with augmentations affecting Reaction or Initiative.",
   },
@@ -1231,6 +1262,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 30000,
     availability: "4",
     essenceCost: 0.2,
+    modifiers: [{ target: "agility", amount: 1, stackingGroup: "agility-boost" }],
     summary: "Joint-surface coating, re-lubrication, and tendon/ligament work for fluid movement. +1 Agility and a bonus Edge moving through cramped spaces.",
   },
   {
@@ -1242,6 +1274,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 0.2,
     levels: { min: 1, max: 4 },
+    modifiers: [{ target: "strength", amount: "rating", stackingGroup: "strength-boost" }],
     summary:
       "Woven muscle cables enhance mass and brute strength. Adds its rating to Strength. Incompatible with other Strength-increasing augmentations, including muscle replacement cyberware.",
   },
@@ -1254,6 +1287,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 0.2,
     levels: { min: 1, max: 4 },
+    modifiers: [{ target: "agility", amount: "rating", stackingGroup: "agility-boost" }],
     summary:
       "Increases muscle-fiber elasticity for a smooth, ropy physique. Adds its rating to Agility. Incompatible with other Agility-increasing augmentations, including muscle replacement cyberware and enhanced articulation.",
   },
@@ -1266,6 +1300,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "4L",
     essenceCost: 0.25,
     levels: { min: 1, max: 4 },
+    modifiers: [{ target: "armor", amount: "rating", stackingGroup: "skin-armor" }],
     summary:
       "A web of biofibers in the skin, virtually indistinguishable from natural skin. Grants a Defense Rating bonus equal to its rating. Incompatible with skin augmentations, including dermal plating.",
   },
@@ -1297,6 +1332,12 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 140000,
     availability: "5L",
     essenceCost: 0.7,
+    modifiers: [
+      { target: "agility", amount: 1 },
+      { target: "body", amount: 1 },
+      { target: "reaction", amount: 1 },
+      { target: "strength", amount: 1 },
+    ],
     summary: "Supercharges your metabolism: +1 Agility, Body, Reaction, and Strength, plus a 25% Lifestyle cost increase to fuel the extra energy needs.",
   },
   {
@@ -1367,6 +1408,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "5",
     essenceCost: 0.2,
     levels: { min: 1, max: 3 },
+    modifiers: [{ target: "logic", amount: "rating" }],
     summary: "Augments the cerebrum's convolutions and gyri, improving overall brain function. Increases Logic by its rating.",
   },
   {
@@ -1399,6 +1441,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 48000,
     availability: "5I",
     essenceCost: 0.3,
+    modifiers: [
+      { target: "willpower", amount: 1 },
+      { target: "intuition", amount: -1 },
+    ],
     summary:
       "Filters sensory stimuli to ignore all injury modifiers and stay conscious with a full Stun Monitor. While active: +1 Willpower, -1 Intuition, and tactile Perception test thresholds +1.",
   },
@@ -1432,6 +1478,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "5L",
     essenceCost: 0.5,
     levels: { min: 1, max: 3 },
+    modifiers: [
+      { target: "reaction", amount: 1, stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: 1, stackingGroup: "reflex-boost" },
+    ],
     summary:
       "Broadened, replicated spinal nerve cells for faster reaction time: +1 Reaction and +1 Initiative Die, always on (can't be turned off). Cannot combine with any other Reaction/Initiative enhancement.",
   },

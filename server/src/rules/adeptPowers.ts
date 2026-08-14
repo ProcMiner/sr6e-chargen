@@ -28,6 +28,8 @@
 //   Initiation, which this app doesn't track (see deriveEssence.ts's
 //   header) - out of scope here regardless of source book.
 
+import type { StatModifier } from "./modifiers.js";
+
 export interface AdeptPowerCatalogEntry {
   id: string;
   name: string;
@@ -44,6 +46,8 @@ export interface AdeptPowerCatalogEntry {
   summary: string;
   /** Sourcebook this entry is transcribed from. */
   book: string;
+  /** Structured attribute/derived-stat bonuses this power grants; undefined for everything else. */
+  modifiers?: StatModifier[];
 }
 
 const CORE = "Core Rulebook";
@@ -152,6 +156,7 @@ export const coreAdeptPowers: AdeptPowerCatalogEntry[] = [
     cost: 1,
     levels: { min: 1, max: 6 },
     activation: "Passive",
+    modifiers: [{ target: "choice", amount: "rating" }],
     summary:
       "Choose Body, Agility, Reaction, or Strength at purchase (use notes) - repeatable for another attribute. Ongoing boost equal to the power's level, capped at 1.5x the current rating or the augmented maximum, whichever is lower.",
     book: CORE,
@@ -162,6 +167,10 @@ export const coreAdeptPowers: AdeptPowerCatalogEntry[] = [
     cost: 1,
     levels: { min: 1, max: 4 },
     activation: "Passive",
+    modifiers: [
+      { target: "reaction", amount: "rating", stackingGroup: "reflex-boost" },
+      { target: "initiativeDice", amount: "rating", stackingGroup: "reflex-boost" },
+    ],
     summary: "Adds an Initiative Die and +1 Reaction per level (max 4 levels). Cannot combine with any other Initiative or Reaction boost.",
     book: CORE,
   },
