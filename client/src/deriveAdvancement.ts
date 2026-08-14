@@ -8,10 +8,11 @@
 // Core rulebook "Improvement Cost" table (p. 71):
 //   Attribute: new rating x 5 Karma
 //   Skill: new rating x 2 Karma
-// Magic/Resonance are deliberately excluded - raising them normally requires
-// Initiation/Submersion (p. 71-72), which this app hasn't built yet (see
-// deriveEssence.ts's header comment), so they're left out of this feature
-// rather than modeled incorrectly.
+// CORE_ATTRIBUTE_KEYS/attributeMax below cover the 9 metatype-capped
+// attributes only. Magic/Resonance use the same x5 cost but a different,
+// Grade-aware ceiling (deriveEssence.ts's magicMax/resonanceMax) - see
+// pages/play/Advancement.tsx, which calls attributeAdvanceCost directly for
+// those two rather than going through attributeMax.
 import type { AdvancementEntry, CharacterData } from "./character";
 import type { MetatypeAttributes, MetavariantCatalogEntry } from "./rules";
 import { effectiveMetatypeInfo } from "./deriveMetavariant";

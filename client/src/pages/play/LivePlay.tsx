@@ -10,6 +10,7 @@ import { spellKarmaCost } from "../../deriveSpells";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { advancementKarmaTotal } from "../../deriveAdvancement";
+import { initiationKarmaTotal } from "../../deriveInitiation";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
@@ -169,7 +170,8 @@ export function LivePlay() {
     spellKarmaCost(characterData, priorityRules ?? undefined) +
     complexFormKarmaCost(characterData, priorityRules ?? undefined) +
     metavariantKarmaCost(characterData, priorityRules?.metavariants ?? []) +
-    advancementKarmaTotal(characterData.advancement);
+    advancementKarmaTotal(characterData.advancement) +
+    initiationKarmaTotal(characterData.initiations);
   const extraNuyenSpent = lifestyleCostTotal(characterData.lifestyles);
 
   function adjustDamage(field: "physicalDamage" | "stunDamage", delta: number) {

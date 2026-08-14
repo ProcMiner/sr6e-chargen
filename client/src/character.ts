@@ -136,6 +136,23 @@ export interface AdvancementEntry {
   date: string;
 }
 
+/**
+ * One Initiation (Magic) or Submersion (Resonance) grade purchase - see
+ * deriveInitiation.ts. `metamagicName`/`echoName` is freeform (this app
+ * doesn't have a mechanical Metamagic/Echo catalog yet, same "pick via
+ * notes, effect text points to the book" precedent as Mentor Spirits and
+ * Adept Ways in qualities.ts).
+ */
+export interface InitiationEntry {
+  id: string;
+  type: "initiation" | "submersion";
+  grade: number;
+  /** Metamagic name (initiation) or Echo name (submersion) chosen for this grade. */
+  metamagicName: string;
+  karmaCost: number;
+  date: string;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
@@ -169,6 +186,12 @@ export interface CharacterData {
   karma: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
+  /** Initiate Grade (Magic side) - 0/undefined until first initiation. Raises Magic's natural maximum; see deriveEssence.ts. */
+  initiateGrade?: number;
+  /** Submersion Grade (Resonance side), same shape as initiateGrade. */
+  submersionGrade?: number;
+  /** Itemized Initiation/Submersion purchase log - see InitiationEntry and deriveInitiation.ts. */
+  initiations?: InitiationEntry[];
   notes?: string;
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }
@@ -200,6 +223,7 @@ export function emptyCharacterData(): CharacterData {
     nuyen: 0,
     karma: 0,
     advancement: [],
+    initiations: [],
     systemState: {},
   };
 }

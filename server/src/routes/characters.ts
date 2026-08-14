@@ -40,15 +40,35 @@ function isValidCharacterData(data: unknown): boolean {
       if (key in attrs && !isFiniteInRange(attrs[key], 1, 10)) return false;
     }
     if ("edge" in attrs && !isFiniteInRange(attrs.edge, 1, 8)) return false;
-    if ("magic" in attrs && attrs.magic !== undefined && !isFiniteInRange(attrs.magic, 0, 8)) return false;
-    if ("resonance" in attrs && attrs.resonance !== undefined && !isFiniteInRange(attrs.resonance, 0, 8)) {
+    // Magic/Resonance's natural max grows with Initiate/Submersion Grade
+    // (6 + Grade - see deriveEssence.ts) - not bounded tightly to a
+    // metatype/priority table here, same "coarse sanity, not per-metatype
+    // precision" philosophy as CORE_ATTR_KEYS's (1, 10) above.
+    if ("magic" in attrs && attrs.magic !== undefined && !isFiniteInRange(attrs.magic, 0, 20)) return false;
+    if ("resonance" in attrs && attrs.resonance !== undefined && !isFiniteInRange(attrs.resonance, 0, 20)) {
       return false;
     }
   }
 
   if (d.skills && typeof d.skills === "object") {
+    // Natural post-chargen max is 9 (10 with the Aptitude quality) via
+    // pages/play/Advancement.tsx, above chargen's own 6/7 cap.
     for (const value of Object.values(d.skills as Record<string, unknown>)) {
-      if (!isFiniteInRange(value, 0, 6)) return false;
+      if (!isFiniteInRange(value, 0, 10)) return false;
+    }
+  }
+
+  if (d.initiateGrade !== undefined && !isFiniteInRange(d.initiateGrade, 0, 50)) return false;
+  if (d.submersionGrade !== undefined && !isFiniteInRange(d.submersionGrade, 0, 50)) return false;
+
+  if (Array.isArray(d.initiations)) {
+    for (const line of d.initiations as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const i = line as Record<string, unknown>;
+      if (i.type !== "initiation" && i.type !== "submersion") return false;
+      if (!isFiniteInRange(i.grade, 1, 50)) return false;
+      if (typeof i.metamagicName !== "string" || !i.metamagicName) return false;
+      if (!isFiniteInRange(i.karmaCost, 0, Infinity)) return false;
     }
   }
 

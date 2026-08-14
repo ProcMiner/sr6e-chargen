@@ -7,10 +7,13 @@
 // "Your maximum Magic rank is 6 + Initiate Grade (reduced by one for every
 // full point of Essence lost)." / "The natural maximum for your Resonance
 // attribute is 6 + your Submersion grade (reduced by one for every full
-// point of Essence lost)." Initiate/Submersion Grade aren't tracked yet
-// (post-creation Karma advancement, not built) - `essenceMax` below is the
-// Grade-0 case of that same formula, not a different one; a future
-// Grade-tracking feature just adds `+ grade` here with no call-site changes.
+// point of Essence lost)." Grade is tracked in data.initiateGrade/
+// submersionGrade (see character.ts's InitiationEntry and
+// deriveInitiation.ts) - `essenceMax` below is the Grade-0 case of that
+// formula; `magicMax`/`resonanceMax` add the Grade on *before* the
+// Essence-loss floor is applied, matching the book's "(6 + Grade) reduced by
+// Essence loss" phrasing exactly (adding Grade after clamping essenceMax at
+// 0 would under-count once Essence loss alone would have floored it).
 import type { CharacterData, GearLine } from "./character";
 
 const STARTING_ESSENCE = 6;
@@ -27,15 +30,27 @@ export function currentEssence(data: CharacterData): number {
   return Math.max(0, round2(STARTING_ESSENCE - essenceUsed(data.gear)));
 }
 
-export function essenceMax(data: CharacterData): number {
+function naturalMax(data: CharacterData, grade: number): number {
   const pointsLost = STARTING_ESSENCE - currentEssence(data);
-  return Math.max(0, STARTING_ESSENCE - Math.floor(pointsLost));
+  return Math.max(0, STARTING_ESSENCE + grade - Math.floor(pointsLost));
+}
+
+export function essenceMax(data: CharacterData): number {
+  return naturalMax(data, 0);
+}
+
+export function magicMax(data: CharacterData): number {
+  return naturalMax(data, data.initiateGrade ?? 0);
+}
+
+export function resonanceMax(data: CharacterData): number {
+  return naturalMax(data, data.submersionGrade ?? 0);
 }
 
 export function effectiveMagic(data: CharacterData): number {
-  return Math.min(data.attributes.magic ?? 0, essenceMax(data));
+  return Math.min(data.attributes.magic ?? 0, magicMax(data));
 }
 
 export function effectiveResonance(data: CharacterData): number {
-  return Math.min(data.attributes.resonance ?? 0, essenceMax(data));
+  return Math.min(data.attributes.resonance ?? 0, resonanceMax(data));
 }
