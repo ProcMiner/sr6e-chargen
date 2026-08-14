@@ -293,12 +293,12 @@ export interface ComplexFormRulesResponse {
   complexForms: ComplexFormCatalogEntry[];
 }
 
-/** Pre-built NPC stat block a GM can drop straight into the NPC roster - mirrors server/src/rules/npcTemplates.ts. */
+/** Pre-built NPC stat block a GM can drop straight into the NPC roster - mirrors server/src/rules/npcTemplates.ts and critters.ts. */
 export interface NpcTemplateEntry {
   id: string;
   name: string;
-  professionalRating: number;
-  category: string;
+  /** Pre-formatted display label for the "Import from book" UI's grouping headers, e.g. "Professional Rating 0 - Thugs and Mobs" or "Mundane Critters". */
+  group: string;
   summary: string;
   book: string;
   data: {

@@ -46,14 +46,17 @@ export function NpcRoster() {
     api.npcTemplates().then((res) => setTemplates(res.npcTemplates));
   }, []);
 
-  const templatesByRating = new Map<number, NpcTemplateEntry[]>();
+  // Groups in catalog declaration order (a Map preserves insertion order) -
+  // each source file already lists its entries in a sensible sequence, so
+  // no extra sort key is needed here.
+  const templatesByGroup = new Map<string, NpcTemplateEntry[]>();
   for (const template of templates ?? []) {
-    if (!templatesByRating.has(template.professionalRating)) {
-      templatesByRating.set(template.professionalRating, []);
+    if (!templatesByGroup.has(template.group)) {
+      templatesByGroup.set(template.group, []);
     }
-    templatesByRating.get(template.professionalRating)!.push(template);
+    templatesByGroup.get(template.group)!.push(template);
   }
-  const ratings = [...templatesByRating.keys()].sort((a, b) => a - b);
+  const groups = [...templatesByGroup.keys()];
 
   async function handleImport(template: NpcTemplateEntry) {
     setImportingId(template.id);
@@ -158,16 +161,16 @@ export function NpcRoster() {
       <details className="quality-section">
         <summary>Import from book ({templates?.length ?? 0})</summary>
         <p className="hint">
-          Core Rulebook Grunts (Professional Rating 0-10) and Prime Runners, p. 203-211. Adding one creates a new
-          NPC pre-filled from the printed stat block, ready to tweak.
+          Core Rulebook Grunts/Prime Runners (p. 203-211) and Critters (p. 215-220). Adding one creates a new NPC
+          pre-filled from the printed stat block, ready to tweak.
         </p>
-        {ratings.map((rating) => (
-          <div key={rating}>
+        {groups.map((groupName) => (
+          <div key={groupName}>
             <h4>
-              Professional Rating {rating} - {templatesByRating.get(rating)![0].category}
+              {groupName} ({templatesByGroup.get(groupName)![0].book})
             </h4>
             <ul className="module-slots">
-              {templatesByRating.get(rating)!.map((template) => (
+              {templatesByGroup.get(groupName)!.map((template) => (
                 <li key={template.id}>
                   <div className="module-instance">
                     <div className="module-instance-header">

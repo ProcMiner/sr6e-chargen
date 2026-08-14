@@ -22,6 +22,7 @@ import { lifestyles } from "../rules/lifestyles.js";
 import { coreComplexForms } from "../rules/complexForms.js";
 import { hackAndSlashComplexForms } from "../rules/complexFormsHackAndSlash.js";
 import { coreNpcTemplates } from "../rules/npcTemplates.js";
+import { coreCritterTemplates } from "../rules/critters.js";
 
 export const rulesRouter = Router();
 
@@ -74,5 +75,5 @@ rulesRouter.get("/complex-forms", (_req, res) => {
 });
 
 rulesRouter.get("/npc-templates", (_req, res) => {
-  res.json({ npcTemplates: coreNpcTemplates });
+  res.json({ npcTemplates: [...coreNpcTemplates, ...coreCritterTemplates] });
 });

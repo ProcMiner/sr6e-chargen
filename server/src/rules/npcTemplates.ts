@@ -2,7 +2,8 @@
 // client/src/npc.ts's NpcData, client/src/pages/play/NpcRoster.tsx). Unlike
 // every other catalog in this project, these don't feed the character
 // builder - they're pre-built stat blocks a GM can drop straight into their
-// own NPC library.
+// own NPC library. This file covers the Grunts/Prime Runners chunk; see
+// critters.ts for the Critters chapter (same NpcTemplateEntry shape).
 //
 // Transcribed from SR6_Core_RuleBook_noimg.pdf, "Non-Player Characters
 // (NPCs)" section, book pp. 203-211: the Grunts framework, organized by
@@ -27,7 +28,8 @@
 //   CM value, with a note in each entry's `notes` field explaining the two
 //   trackers should be treated as one shared pool - not a data-model change,
 //   just a documented mapping limitation, consistent with npc.ts's existing
-//   "lightweight, mostly free-text" design.
+//   "lightweight, mostly free-text" design. (Some Critters instead print a
+//   genuine Physical/Stun split - see critters.ts.)
 // - The book's separate "Sample Contacts" section (p. 211+: Bartender,
 //   Fixer, Mr. Johnson, etc.) has no Defense Rating/Condition
 //   Monitor/weapons at all ("no gear or gear stats are included," per the
@@ -35,16 +37,16 @@
 //   don't fit this roster's shape. Not transcribed here; belongs with a
 //   future Contacts feature instead (see README's "Contact purchasing UI"
 //   gap).
-// - Other sourcebooks with NPC content (Firing Squad, Collapsing Now, Power
-//   Plays) haven't been surveyed yet - a future chunk.
+// - Other sourcebooks with NPC content (Firing Squad, Collapsing Now) were
+//   surveyed (each has ~40+ more NPC-shaped stat blocks) but not
+//   transcribed - future chunks. Power Plays (Corp Info) has no
+//   stat-block-formatted NPCs at all.
 
 export interface NpcTemplateEntry {
   id: string;
   name: string;
-  /** 0-10, core rulebook's grunt framework (p. 203-211). */
-  professionalRating: number;
-  /** Printed category name for the Professional Rating, e.g. "Thugs and Mobs". */
-  category: string;
+  /** Pre-formatted display label for the "Import from book" UI's grouping headers, e.g. "Professional Rating 0 - Thugs and Mobs" or "Mundane Critters". Deliberately a single free-text field (not a separate rating+category pair) so entries from different book sections/sourcebooks with no shared taxonomy can still group sensibly. */
+  group: string;
   summary: string;
   book: string;
   data: {
@@ -74,6 +76,10 @@ function cmNote(pr: number): string {
   return `Condition Monitor is ONE combined Physical+Stun track per SR6's grunt rules (core rulebook p. 204) - treat the Physical and Stun trackers below as a single shared pool, not two separate ones. Professional Rating ${pr}: ${bailNote(pr)}`;
 }
 
+function group(professionalRating: number, category: string): string {
+  return `Professional Rating ${professionalRating} - ${category}`;
+}
+
 /** "X/Y" printed Initiative rank/Initiative Dice -> "X + Yd6". */
 function initiative(rank: number, dice: number): string {
   return `${rank} + ${dice}d6`;
@@ -84,8 +90,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-humanis-goon",
     name: "Humanis Goon",
-    professionalRating: 0,
-    category: "Thugs and Mobs",
+    group: group(0, "Thugs and Mobs"),
     summary: "Untrained street muscle who intimidate for money or a cause - real combatants break them fast.",
     book: CORE,
     data: {
@@ -109,8 +114,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-terrafirst-shaman",
     name: "TerraFirst! Shaman (Magic)",
-    professionalRating: 0,
-    category: "Thugs and Mobs",
+    group: group(0, "Thugs and Mobs"),
     summary: "The lieutenant tier of the angry-mob archetype - a mob with a magically active member backing it up.",
     book: CORE,
     data: {
@@ -136,8 +140,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-eye-fiver-go-ganger",
     name: "Eye-Fiver Go-ganger",
-    professionalRating: 1,
-    category: "Gangers and Mob Muscle",
+    group: group(1, "Gangers and Mob Muscle"),
     summary: "Street gangers and go-gangers - a step above an angry mob, with a rep and a little more discipline.",
     book: CORE,
     data: {
@@ -161,8 +164,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-mafia-debt-collector",
     name: "Mafia Debt Collector (Augmented)",
-    professionalRating: 1,
-    category: "Gangers and Mob Muscle",
+    group: group(1, "Gangers and Mob Muscle"),
     summary: "Knee-breakers and debt collectors for crime syndicates - a little cyber-augmented weight behind the threats.",
     book: CORE,
     data: {
@@ -189,8 +191,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-sons-of-sauron-brute",
     name: "Sons of Sauron Brute (Ork Adjustments Applied)",
-    professionalRating: 2,
-    category: "Militant Gangs",
+    group: group(2, "Militant Gangs"),
     summary: "Professional gangs and militant policlub muscle - more time under fire, but still not pros.",
     book: CORE,
     data: {
@@ -214,8 +215,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-cutters-data-harvester",
     name: "Cutters Data Harvester (Decker)",
-    professionalRating: 2,
-    category: "Militant Gangs",
+    group: group(2, "Militant Gangs"),
     summary: "A gang's own decker, running just enough Matrix support to back up the muscle.",
     book: CORE,
     data: {
@@ -242,8 +242,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-lone-star-patrolman",
     name: "Lone Star Patrolman",
-    professionalRating: 3,
-    category: "Beat Cops and Corporate Security",
+    group: group(3, "Beat Cops and Corporate Security"),
     summary: "Trained but green - one of the most frequently encountered opponents for a shadowrunner.",
     book: CORE,
     data: {
@@ -267,8 +266,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-minuteman-security-rigger",
     name: "Minuteman Security Rigger",
-    professionalRating: 3,
-    category: "Beat Cops and Corporate Security",
+    group: group(3, "Beat Cops and Corporate Security"),
     summary: "Basic corporate security's drone/vehicle support - a step above a beat cop's own gear.",
     book: CORE,
     data: {
@@ -295,8 +293,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-mafia-soldato",
     name: "Mafia Soldato",
-    professionalRating: 4,
-    category: "Organized Crime Gang",
+    group: group(4, "Organized Crime Gang"),
     summary: "Syndicate soldiers who fight dirty and hard - honor, face, and rep on the line.",
     book: CORE,
     data: {
@@ -320,8 +317,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-yakuza-blademaster",
     name: "Yakuza Blademaster (Adept)",
-    professionalRating: 4,
-    category: "Organized Crime Gang",
+    group: group(4, "Organized Crime Gang"),
     summary: "An adept enforcer bringing real martial skill to back a crime syndicate's soldiers.",
     book: CORE,
     data: {
@@ -348,8 +344,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-lone-star-combat-mage",
     name: "Lone Star Combat Mage",
-    professionalRating: 5,
-    category: "Police/Corporate SWAT",
+    group: group(5, "Police/Corporate SWAT"),
     summary: "Trained, tactical, and magically active - SWAT-tier teams that make order from a runner's chaos.",
     book: CORE,
     data: {
@@ -374,8 +369,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-docwagon-htr-support-engineer",
     name: "DocWagon HTR Support Engineer (Technomancer)",
-    professionalRating: 5,
-    category: "Police/Corporate SWAT",
+    group: group(5, "Police/Corporate SWAT"),
     summary: "Technomancer Matrix support riding along with a High Threat Response team.",
     book: CORE,
     data: {
@@ -402,8 +396,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-docwagon-htr-officer",
     name: "DocWagon HTR Officer",
-    professionalRating: 6,
-    category: "DocWagon HTR-Tier Response",
+    group: group(6, "DocWagon HTR-Tier Response"),
     summary: "Trained and exposed to live fire almost daily - driven to complete the assignment, not just survive.",
     book: CORE,
     data: {
@@ -428,8 +421,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-seraphim-avenging-angel",
     name: "Seraphim Avenging Angel (Adept)",
-    professionalRating: 6,
-    category: "DocWagon HTR-Tier Response",
+    group: group(6, "DocWagon HTR-Tier Response"),
     summary: "An initiated adept enforcer, kinesics and vocal control layered onto serious combat ability.",
     book: CORE,
     data: {
@@ -457,8 +449,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-renraku-red-samurai",
     name: "Renraku Red Samurai",
-    professionalRating: 7,
-    category: "Elite Corporate Security",
+    group: group(7, "Elite Corporate Security"),
     summary: "Trained, disciplined, and loyal to the corp above everything else - the book prints only this one example at this tier, no lieutenant.",
     book: CORE,
     data: {
@@ -485,8 +476,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-marine-corps-special-operations-forces",
     name: "Marine Corps Special Operations Forces",
-    professionalRating: 8,
-    category: "Special Forces",
+    group: group(8, "Special Forces"),
     summary: "World-class infiltrators and assassins - the definition of a surgical strike.",
     book: CORE,
     data: {
@@ -511,8 +501,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-seal-team-6-counter-electronics-commando",
     name: "SEAL Team 6 Counter-Electronics Commando (Decker)",
-    professionalRating: 8,
-    category: "Special Forces",
+    group: group(8, "Special Forces"),
     summary: "Elite military decking support, running a top-tier cyberdeck alongside special-ops firepower.",
     book: CORE,
     data: {
@@ -539,8 +528,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-tir-ghost",
     name: "Tír Ghost (Elf Adjustments Applied)",
-    professionalRating: 9,
-    category: "Top-Tier Special Forces",
+    group: group(9, "Top-Tier Special Forces"),
     summary: "Fanatical, near-unkillable operatives - replacements aren't found easily, so they don't quit.",
     book: CORE,
     data: {
@@ -565,8 +553,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-delta-force-logistics-support-rigger",
     name: "Delta Force Logistics and Support Rigger (Delta \"Loser\")",
-    professionalRating: 9,
-    category: "Top-Tier Special Forces",
+    group: group(9, "Top-Tier Special Forces"),
     summary: "Rigger support fielding an entire vehicle/drone fleet behind a top-tier special forces unit.",
     book: CORE,
     data: {
@@ -594,8 +581,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-sioux-wildcat-combat-specialist",
     name: "Sioux Wildcat Combat Specialist",
-    professionalRating: 10,
-    category: "Elite Special Forces",
+    group: group(10, "Elite Special Forces"),
     summary: "Considered the best in the world - intense training, fierce loyalty, and precision discipline.",
     book: CORE,
     data: {
@@ -621,8 +607,7 @@ export const coreNpcTemplates: NpcTemplateEntry[] = [
   {
     id: "npc-sioux-wildcat-shamanic-support",
     name: "Sioux Wildcat Shamanic Support",
-    professionalRating: 10,
-    category: "Elite Special Forces",
+    group: group(10, "Elite Special Forces"),
     summary: "The magical half of the world's best fighting force - a full combat-spell arsenal backing elite training.",
     book: CORE,
     data: {
