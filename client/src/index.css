@@ -65,6 +65,53 @@ a {
   color: var(--accent-hover);
 }
 
+.top-nav {
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.top-nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.top-nav-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.top-nav-tab:hover {
+  color: var(--text);
+}
+
+.top-nav-tab.active {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--accent);
+}
+
+.top-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-dim);
+}
+
 .page {
   max-width: 1100px;
   margin: 0 auto;

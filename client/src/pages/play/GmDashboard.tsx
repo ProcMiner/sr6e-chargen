@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { useAuth } from "../../AuthContext";
 import type { PlaySessionSummary, SessionDetail } from "../../playState";
@@ -7,7 +6,7 @@ import type { PlaySessionSummary, SessionDetail } from "../../playState";
 const POLL_INTERVAL_MS = 5000;
 
 export function GmDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<SessionDetail | null>(null);
@@ -60,12 +59,7 @@ export function GmDashboard() {
   return (
     <div className="page">
       <header className="page-header">
-        <Link to="/characters">&larr; Characters</Link>
-        <h1>GM Dashboard</h1>
-        <div className="header-actions">
-          <span>{user?.username}</span>
-          <button onClick={() => logout()}>Log out</button>
-        </div>
+        <h1>GM's Bar</h1>
       </header>
 
       {sessions !== null && sessions.length === 0 && (

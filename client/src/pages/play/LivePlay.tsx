@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes } from "../../character";
 import { deriveStats } from "../../derive";
@@ -152,7 +152,6 @@ export function LivePlay() {
   return (
     <div className="page live-play-page">
       <header className="page-header">
-        <Link to="/characters">&larr; Characters</Link>
         <h1>{character.name} - Live Play</h1>
         <div className="header-actions">{saving && <span className="saved-at">Saving...</span>}</div>
       </header>

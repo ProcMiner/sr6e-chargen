@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import type { CharacterData } from "../../character";
 import { emptyCharacterData } from "../../character";
@@ -128,7 +128,6 @@ export function BuilderRoot() {
   return (
     <div className="page builder-page">
       <header className="page-header">
-        <Link to="/characters">&larr; Characters</Link>
         <h1>{character.name}</h1>
         <div className="header-actions">
           <button onClick={handleSave} disabled={saving}>

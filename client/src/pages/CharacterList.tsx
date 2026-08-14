@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type CharacterSummary } from "../api";
-import { useAuth } from "../AuthContext";
 
 export function CharacterList() {
   const [characters, setCharacters] = useState<CharacterSummary[] | null>(null);
   const [name, setName] = useState("");
   const [system, setSystem] = useState<"priority" | "lifepath">("priority");
   const [creating, setCreating] = useState(false);
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   function refresh() {
@@ -38,12 +36,7 @@ export function CharacterList() {
   return (
     <div className="page">
       <header className="page-header">
-        <h1>Your Characters</h1>
-        <div className="header-actions">
-          <Link to="/play">GM Dashboard</Link>
-          <span>{user?.username}</span>
-          <button onClick={() => logout()}>Log out</button>
-        </div>
+        <h1>Character Vault</h1>
       </header>
 
       <form onSubmit={handleCreate} className="new-character-form">
