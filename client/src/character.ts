@@ -153,12 +153,50 @@ export interface InitiationEntry {
   date: string;
 }
 
+/**
+ * A skill specialization or expertise (core rulebook p. 92, "Specializations
+ * and Expertise"). One entry per {skill, focus} pair - a skill can carry at
+ * most two entries (one "expertise" + one "specialization"), never two of
+ * the same tier, per the book's hard cap. `tier` is mutated in place when a
+ * specialization is upgraded to an expertise (see deriveSpecializations.ts),
+ * rather than replaced with a new entry, so its `id` is stable across that
+ * upgrade for undo purposes.
+ */
+export interface SkillSpecialization {
+  id: string;
+  skill: string;
+  /** The narrow area, e.g. "Light Pistols" for Firearms - freeform text (the book's own per-skill lists are explicitly "not exhaustive... if their gamemaster approves it, they can have it"), not a fixed enum. */
+  focus: string;
+  tier: "specialization" | "expertise";
+}
+
+/**
+ * One post-chargen ("career mode") Karma purchase in the Specializations/
+ * Expertise chain - see deriveSpecializations.ts for the cost/prerequisite
+ * rules. Kept separate from AdvancementEntry since specializations aren't a
+ * numeric rating (no fromRating/toRating), and from SkillSpecialization
+ * since this is the itemized log, not the resolved current state.
+ */
+export interface SpecializationEntry {
+  id: string;
+  skill: string;
+  focus: string;
+  /** "new" = bought a fresh specialization; "expertise" = upgraded an existing specialization; "second" = added the post-expertise second specialization. */
+  action: "new" | "expertise" | "second";
+  karmaCost: number;
+  date: string;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
   metavariant?: string;
   attributes: Attributes;
   skills: Record<string, number>;
+  /** Skill specializations/expertise - see SkillSpecialization. One skill-point-worth each at chargen (Priority: one per skill; Life Path: one total for the whole character - the two systems genuinely differ here, confirmed from both books), or 5 Karma each post-creation. */
+  specializations?: SkillSpecialization[];
+  /** Itemized post-creation Specialization/Expertise purchase log - see SpecializationEntry. Empty/undefined for a character still in chargen. */
+  specializationLog?: SpecializationEntry[];
   knowledgeSkills: string[];
   qualities: SelectedQuality[];
   contacts: Contact[];
@@ -212,6 +250,8 @@ export function emptyCharacterData(): CharacterData {
   return {
     attributes: { ...emptyAttributes },
     skills: {},
+    specializations: [],
+    specializationLog: [],
     knowledgeSkills: [],
     qualities: [],
     contacts: [],

@@ -310,7 +310,7 @@
     <div class="eyebrow">SR6e CharGen — internal reference</div>
     <h1 class="title">Rules Coverage</h1>
     <p class="dek">Every character-generator-relevant section of the SR6E core rulebook, in the book's own table-of-contents order, with sourcebook additions folded into the matching heading. Scoped to what a <em>character generator</em> needs to build and manage a PC — not combat/Matrix/rigging action resolution, GM advice, or setting lore, which this app was never meant to simulate.</p>
-    <p class="caveat"><strong>How to read this:</strong> statuses reflect the codebase as of today, checked directly against the source files and, in a few spots, freshly verified rather than assumed from older project notes — two real gaps (Priority-system Knowledge Skills, and Specializations entirely) turned up during this pass that weren't previously documented anywhere.</p>
+    <p class="caveat"><strong>How to read this:</strong> statuses reflect the codebase as of today, checked directly against the source files and, in a few spots, freshly verified rather than assumed from older project notes. This page is kept current — updated in the same pass as any rules feature that ships or gap that closes, not as a one-time snapshot.</p>
   </header>
 
   <nav class="toc">
@@ -427,11 +427,11 @@
       <ul class="items">
         <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">Post-creation Karma spend</span><span class="item-cite">p. 68, "Improvement Cost" table p. 71</span>
-          <div class="item-note">Built as an <em>in-play</em> feature, not chargen-time: attributes and skills raised via an itemized, undoable log. <strong>Known bug, fix pending:</strong> the book prices skill increases the same as attributes (new-rating×5 Karma); this app currently charges new-rating×2 for skills, an error from before this app had direct rulebook-PDF access. See Post-Creation Advancement below for the full picture, including Initiation/Submersion.</div></div>
+          <div class="item-note">Built as an <em>in-play</em> feature, not chargen-time: attributes and skills raised via an itemized, undoable log, both at new-rating×5 Karma (skills previously charged new-rating×2, an unverified guess from before this app had direct rulebook-PDF access - corrected once the actual table confirmed both rows use the same formula). See Post-Creation Advancement below for the full picture, including Initiation/Submersion.</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
-          <div><span class="item-name">Specializations</span><span class="item-cite">p. 71, 7 Karma flat</span>
-          <div class="item-note">No specialization mechanic anywhere in the data model, at chargen or in the Advancement feature — not even tracked as free text. A skill can never carry a "+2 to a narrow subset" bonus in this app today.</div></div>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Specializations &amp; Expertise</span><span class="item-cite">p. 92, 68-69</span>
+          <div class="item-note">One specialization per skill point at chargen (Priority: one per skill; Life Path has no equivalent skill-point pool of its own to spend this way, see Skills below), 5 Karma each in play. Expertise (upgrades +2 to +3) needs an existing specialization and skill rank 5+, post-creation only; a skill can then take a second specialization, capped at 1 expertise + 1 specialization per skill forever, matching the book exactly.</div></div>
         </li>
         <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
           <div><span class="item-name">Priority System power-level variants</span><span class="item-cite">p. 63 sidebar</span>
@@ -471,9 +471,9 @@
           <div><span class="item-name">Skill list &amp; Primary Linked Attribute</span><span class="item-cite">pp. 92–99</span>
           <div class="item-note">All 19 SR6e skills (the edition consolidated SR5's long list down to broad skills, run 1–6, one at 7 with Aptitude).</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
-          <div><span class="item-name">Specializations</span>
-          <div class="item-note">See Character Advancement above — this is the same gap, at both chargen and in-play.</div></div>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Specializations &amp; Expertise</span>
+          <div class="item-note">See Character Advancement above for the full chargen/in-play picture. Exotic Weapons' special rule (a specialization is mandatory just to use the skill at all, and it can never take an expertise) is documented in code but not yet enforced by the picker UI — a player can still raise Exotic Weapons without one today.</div></div>
         </li>
         <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
           <div><span class="item-name">Knowledge and Language Skills</span><span class="item-cite">pp. 97–99</span>
@@ -696,9 +696,13 @@
           <div><span class="item-name">Initiation / Submersion Grade</span>
           <div class="item-note">See Magic and Matrix chapters above.</div></div>
         </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Specializations &amp; Expertise</span>
+          <div class="item-note">See Character Advancement above.</div></div>
+        </li>
         <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
-          <div><span class="item-name">Specializations, new Qualities, new Contacts during play</span>
-          <div class="item-note">The Improvement Cost table also covers buying a specialization (7 Karma) and picking up qualities/contacts post-creation — none of that exists yet, consistent with those gaps at chargen too.</div></div>
+          <div><span class="item-name">New Qualities, new Contacts during play</span>
+          <div class="item-note">The Improvement Cost table also covers buying qualities and contacts post-creation — neither exists yet, consistent with Contacts' gap at chargen too.</div></div>
         </li>
       </ul>
     </section>
@@ -728,7 +732,7 @@
     </section>
 
     <footer>
-      Built from the SR6e core rulebook's own table of contents, cross-checked against the live codebase (rules files, data model, builder components) rather than project notes alone — a couple of gaps here (Priority-system Knowledge Skills, Specializations) weren't previously written down anywhere before this pass.
+      Built from the SR6e core rulebook's own table of contents, cross-checked against the live codebase (rules files, data model, builder components) rather than project notes alone. Updated whenever a rules feature ships or a gap closes — last touched when Specializations &amp; Expertise shipped and the skill Karma-cost formula was corrected.
     </footer>
   </main>
 </div>

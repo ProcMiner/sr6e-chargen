@@ -111,6 +111,27 @@ function isValidCharacterData(data: unknown): boolean {
     }
   }
 
+  if (Array.isArray(d.specializations)) {
+    for (const line of d.specializations as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const s = line as Record<string, unknown>;
+      if (typeof s.skill !== "string" || !s.skill) return false;
+      if (typeof s.focus !== "string" || !s.focus) return false;
+      if (s.tier !== "specialization" && s.tier !== "expertise") return false;
+    }
+  }
+
+  if (Array.isArray(d.specializationLog)) {
+    for (const line of d.specializationLog as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const s = line as Record<string, unknown>;
+      if (typeof s.skill !== "string" || !s.skill) return false;
+      if (typeof s.focus !== "string" || !s.focus) return false;
+      if (s.action !== "new" && s.action !== "expertise" && s.action !== "second") return false;
+      if (!isFiniteInRange(s.karmaCost, 0, Infinity)) return false;
+    }
+  }
+
   return true;
 }
 

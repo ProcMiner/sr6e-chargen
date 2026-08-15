@@ -4,7 +4,7 @@
 // Karma earned from a run. See deriveAdvancement.ts and deriveInitiation.ts
 // for the cost formulas and the itemized-log rationale.
 import { useState } from "react";
-import type { AdvancementEntry, CharacterData, InitiationEntry } from "../../character";
+import type { AdvancementEntry, CharacterData, InitiationEntry, SpecializationEntry } from "../../character";
 import type { PriorityRulesResponse } from "../../rules";
 import { karmaRemaining } from "../../deriveGear";
 import { spellKarmaCost } from "../../deriveSpells";
@@ -21,6 +21,15 @@ import {
   type CoreAttributeKey,
 } from "../../deriveAdvancement";
 import { canInitiate, canSubmerge, initiationCost, initiationKarmaTotal } from "../../deriveInitiation";
+import {
+  EXPERTISE_KARMA_COST,
+  SKILL_SPECIALIZATION_SUGGESTIONS,
+  SPECIALIZATION_KARMA_COST,
+  canAddSecondSpecialization,
+  canAddSpecialization,
+  canUpgradeToExpertise,
+  specializationKarmaTotal,
+} from "../../deriveSpecializations";
 
 interface Props {
   data: CharacterData;
@@ -32,19 +41,24 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
   const [karmaAward, setKarmaAward] = useState("");
   const [metamagicName, setMetamagicName] = useState("");
   const [echoName, setEchoName] = useState("");
+  const [specSkill, setSpecSkill] = useState(priorityRules.skillList[0] ?? "");
+  const [specFocus, setSpecFocus] = useState("");
 
   const spellKarma = spellKarmaCost(data, priorityRules);
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const metavariantKarma = metavariantKarmaCost(data, priorityRules.metavariants);
   const advancementKarma = advancementKarmaTotal(data.advancement);
   const initiationKarma = initiationKarmaTotal(data.initiations);
+  const specializationKarma = specializationKarmaTotal(data.specializationLog);
   const available = karmaRemaining(
     data,
-    spellKarma + complexFormKarma + metavariantKarma + advancementKarma + initiationKarma
+    spellKarma + complexFormKarma + metavariantKarma + advancementKarma + initiationKarma + specializationKarma
   );
 
   const log = [...(data.advancement ?? [])].reverse();
   const initiationLog = [...(data.initiations ?? [])].reverse();
+  const specializations = data.specializations ?? [];
+  const specializationLog = [...(data.specializationLog ?? [])].reverse();
 
   const isAwakened = data.attributes.magic !== undefined;
   const isTechnomancer = data.attributes.resonance !== undefined;
@@ -161,6 +175,81 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       nextData.submersionGrade = entry.grade - 1;
     }
     onChange(nextData);
+  }
+
+  function buySpecialization(skill: string, focus: string) {
+    if (!focus.trim() || !canAddSpecialization(data, skill) || SPECIALIZATION_KARMA_COST > available) return;
+    const specEntry = { id: crypto.randomUUID(), skill, focus: focus.trim(), tier: "specialization" as const };
+    const logEntry: SpecializationEntry = {
+      id: crypto.randomUUID(),
+      skill,
+      focus: focus.trim(),
+      action: "new",
+      karmaCost: SPECIALIZATION_KARMA_COST,
+      date: new Date().toISOString(),
+    };
+    onChange({
+      ...data,
+      specializations: [...specializations, specEntry],
+      specializationLog: [...(data.specializationLog ?? []), logEntry],
+    });
+  }
+
+  function upgradeToExpertise(skill: string) {
+    if (!canUpgradeToExpertise(data, skill) || EXPERTISE_KARMA_COST > available) return;
+    const existing = specializations.find((s) => s.skill === skill && s.tier === "specialization");
+    if (!existing) return;
+    const logEntry: SpecializationEntry = {
+      id: crypto.randomUUID(),
+      skill,
+      focus: existing.focus,
+      action: "expertise",
+      karmaCost: EXPERTISE_KARMA_COST,
+      date: new Date().toISOString(),
+    };
+    onChange({
+      ...data,
+      specializations: specializations.map((s) => (s.id === existing.id ? { ...s, tier: "expertise" } : s)),
+      specializationLog: [...(data.specializationLog ?? []), logEntry],
+    });
+  }
+
+  function buySecondSpecialization(skill: string, focus: string) {
+    if (!focus.trim() || !canAddSecondSpecialization(data, skill) || SPECIALIZATION_KARMA_COST > available) return;
+    const specEntry = { id: crypto.randomUUID(), skill, focus: focus.trim(), tier: "specialization" as const };
+    const logEntry: SpecializationEntry = {
+      id: crypto.randomUUID(),
+      skill,
+      focus: focus.trim(),
+      action: "second",
+      karmaCost: SPECIALIZATION_KARMA_COST,
+      date: new Date().toISOString(),
+    };
+    onChange({
+      ...data,
+      specializations: [...specializations, specEntry],
+      specializationLog: [...(data.specializationLog ?? []), logEntry],
+    });
+  }
+
+  /** Only the most recent specialization action can be undone. */
+  function canUndoSpecialization(entry: SpecializationEntry): boolean {
+    const entries = specializationLog;
+    return entries[0]?.id === entry.id;
+  }
+
+  function undoSpecialization(entry: SpecializationEntry) {
+    if (!canUndoSpecialization(entry)) return;
+    const nextLog = (data.specializationLog ?? []).filter((e) => e.id !== entry.id);
+    let nextSpecs = specializations;
+    if (entry.action === "new" || entry.action === "second") {
+      nextSpecs = specializations.filter((s) => !(s.skill === entry.skill && s.focus === entry.focus));
+    } else if (entry.action === "expertise") {
+      nextSpecs = specializations.map((s) =>
+        s.skill === entry.skill && s.focus === entry.focus ? { ...s, tier: "specialization" } : s
+      );
+    }
+    onChange({ ...data, specializations: nextSpecs, specializationLog: nextLog });
   }
 
   const magicCeiling = magicMax(data);
@@ -293,6 +382,80 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
         })}
       </div>
 
+      <h3>Specializations &amp; Expertise</h3>
+      <p className="hint">
+        A specialization is +2 dice on tests in that narrow area; an expertise upgrades it to +3, but needs the
+        skill already specialized and at rank 5+. Once a skill has an expertise, it can take one more
+        specialization (which can never itself become an expertise). {SPECIALIZATION_KARMA_COST} Karma each.
+      </p>
+      {specializations.length > 0 && (
+        <ul className="module-slots">
+          {specializations.map((s) => (
+            <li key={s.id}>
+              <div className="module-instance">
+                <div className="module-instance-header">
+                  <strong>
+                    {s.skill}: {s.focus} ({s.tier})
+                  </strong>
+                  {s.tier === "specialization" && canUpgradeToExpertise(data, s.skill) && (
+                    <button
+                      className="chip"
+                      disabled={EXPERTISE_KARMA_COST > available}
+                      onClick={() => upgradeToExpertise(s.skill)}
+                    >
+                      Upgrade to Expertise ({EXPERTISE_KARMA_COST})
+                    </button>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="inline-field">
+        <select value={specSkill} onChange={(e) => setSpecSkill(e.target.value)}>
+          {priorityRules.skillList.map((skill) => (
+            <option key={skill} value={skill}>
+              {skill}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          list="advancement-specialization-suggestions"
+          placeholder="Focus (e.g. Light Pistols)"
+          value={specFocus}
+          onChange={(e) => setSpecFocus(e.target.value)}
+        />
+        <datalist id="advancement-specialization-suggestions">
+          {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+        {canAddSecondSpecialization(data, specSkill) ? (
+          <button
+            onClick={() => {
+              buySecondSpecialization(specSkill, specFocus);
+              setSpecFocus("");
+            }}
+            disabled={!specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
+          >
+            Add second specialization ({SPECIALIZATION_KARMA_COST})
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              buySpecialization(specSkill, specFocus);
+              setSpecFocus("");
+            }}
+            disabled={!canAddSpecialization(data, specSkill) || !specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
+            title={!canAddSpecialization(data, specSkill) ? "This skill already has a specialization" : undefined}
+          >
+            Add specialization ({SPECIALIZATION_KARMA_COST})
+          </button>
+        )}
+      </div>
+
       {isAwakened && (
         <>
           <h3>Initiation</h3>
@@ -359,10 +522,31 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
         </>
       )}
 
-      {(log.length > 0 || initiationLog.length > 0) && (
+      {(log.length > 0 || initiationLog.length > 0 || specializationLog.length > 0) && (
         <>
           <h3>Advancement Log</h3>
           <ul className="module-slots">
+            {specializationLog.map((entry) => (
+              <li key={entry.id}>
+                <div className="module-instance">
+                  <div className="module-instance-header">
+                    <strong>
+                      {entry.skill}: {entry.focus} (
+                      {entry.action === "expertise" ? "upgraded to Expertise" : "Specialization"}, {entry.karmaCost}{" "}
+                      Karma)
+                    </strong>
+                    <button
+                      className="danger"
+                      disabled={!canUndoSpecialization(entry)}
+                      onClick={() => undoSpecialization(entry)}
+                    >
+                      Undo
+                    </button>
+                  </div>
+                  <p className="hint">{new Date(entry.date).toLocaleString()}</p>
+                </div>
+              </li>
+            ))}
             {log.map((entry) => (
               <li key={entry.id}>
                 <div className="module-instance">

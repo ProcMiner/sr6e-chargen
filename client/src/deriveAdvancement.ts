@@ -5,9 +5,13 @@
 // itemized purchase log, the same way gear's bondingKarma total is derived
 // from itemized gear lines.
 //
-// Core rulebook "Improvement Cost" table (p. 71):
+// Core rulebook "Improvement Cost" table (p. 68-69):
 //   Attribute: new rating x 5 Karma
-//   Skill: new rating x 2 Karma
+//   Active skill: new rating x 5 Karma (same formula as Attribute - a
+//   prior pass here had this at x2, an unverified guess made before this
+//   app had direct rulebook-PDF access; corrected once the actual table
+//   text confirmed both rows use the identical x5 formula, cross-checked
+//   against the table's own cumulative rank-lookup grid on the facing page).
 // CORE_ATTRIBUTE_KEYS/attributeMax below cover the 9 metatype-capped
 // attributes only. Magic/Resonance use the same x5 cost but a different,
 // Grade-aware ceiling (deriveEssence.ts's magicMax/resonanceMax) - see
@@ -36,7 +40,7 @@ export function attributeAdvanceCost(newRating: number): number {
 }
 
 export function skillAdvanceCost(newRating: number): number {
-  return newRating * 2;
+  return newRating * 5;
 }
 
 export function advancementKarmaTotal(entries: AdvancementEntry[] | undefined): number {

@@ -11,6 +11,7 @@ import { complexFormKarmaCost } from "../../deriveComplexForms";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
+import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Spirits } from "./Spirits";
@@ -174,7 +175,8 @@ export function LivePlay() {
     complexFormKarmaCost(characterData, priorityRules ?? undefined) +
     metavariantKarmaCost(characterData, priorityRules?.metavariants ?? []) +
     advancementKarmaTotal(characterData.advancement) +
-    initiationKarmaTotal(characterData.initiations);
+    initiationKarmaTotal(characterData.initiations) +
+    specializationKarmaTotal(characterData.specializationLog);
   const extraNuyenSpent = lifestyleCostTotal(characterData.lifestyles);
 
   function adjustDamage(field: "physicalDamage" | "stunDamage", delta: number) {
