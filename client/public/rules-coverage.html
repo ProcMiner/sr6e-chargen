@@ -21,8 +21,8 @@
     --partial-bg: #f7ecd8;
     --missing: #ab3f3f;
     --missing-bg: #f6e7e7;
-    --scope: #6b6f76;
-    --scope-bg: #e9e9e6;
+    --roadmap: #2f5f9e;
+    --roadmap-bg: #e3ebf8;
     --rule: #cfced6;
 
     --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
@@ -47,8 +47,8 @@
       --partial-bg: #332a12;
       --missing: #d9827f;
       --missing-bg: #331b1a;
-      --scope: #8c8f97;
-      --scope-bg: #23262c;
+      --roadmap: #7fa8e0;
+      --roadmap-bg: #1b2740;
       --rule: #33363e;
     }
   }
@@ -59,7 +59,7 @@
     --done: #6fbf94; --done-bg: #17301f;
     --partial: #dab35b; --partial-bg: #332a12;
     --missing: #d9827f; --missing-bg: #331b1a;
-    --scope: #8c8f97; --scope-bg: #23262c; --rule: #33363e;
+    --roadmap: #7fa8e0; --roadmap-bg: #1b2740; --rule: #33363e;
   }
   :root[data-theme="light"] {
     --bg: #f1f1ee; --surface: #ffffff; --surface-2: #e7e7e3; --border: #d4d3cc;
@@ -68,7 +68,7 @@
     --done: #2f7a52; --done-bg: #e3f1e8;
     --partial: #a5730a; --partial-bg: #f7ecd8;
     --missing: #ab3f3f; --missing-bg: #f6e7e7;
-    --scope: #6b6f76; --scope-bg: #e9e9e6; --rule: #cfced6;
+    --roadmap: #2f5f9e; --roadmap-bg: #e3ebf8; --rule: #cfced6;
   }
 
   * { box-sizing: border-box; }
@@ -205,7 +205,7 @@
   .status-done { color: var(--done); background: var(--done-bg); }
   .status-partial { color: var(--partial); background: var(--partial-bg); }
   .status-missing { color: var(--missing); background: var(--missing-bg); }
-  .status-scope { color: var(--scope); background: var(--scope-bg); }
+  .status-roadmap { color: var(--roadmap); background: var(--roadmap-bg); }
 
   section.chapter {
     margin-bottom: 3.4rem;
@@ -280,7 +280,7 @@
   .out-of-scope-block {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--scope);
+    border-left: 3px solid var(--roadmap);
     border-radius: 0 3px 3px 0;
     padding: 1rem 1.2rem;
     font-size: 0.88rem;
@@ -323,7 +323,7 @@
       <span class="legend-item"><span class="status status-done">Done</span> fully implemented</span>
       <span class="legend-item"><span class="status status-partial">Partial</span> implemented with real gaps</span>
       <span class="legend-item"><span class="status status-missing">Missing</span> not implemented</span>
-      <span class="legend-item"><span class="status status-scope">Out of scope</span> not a chargen concern</span>
+      <span class="legend-item"><span class="status status-roadmap">Roadmap Item</span> not a chargen concern</span>
     </div>
 
     <section class="chapter" id="metatypes">
@@ -340,7 +340,7 @@
           <div><span class="item-name">Metavariants</span><span class="item-cite">Companion pp. 91–93</span>
           <div class="item-note">20 entries across the 5 base metatypes (e.g. Dwarf's Duende/Gnome/Hanuman/Koborokuru/Menehune) — attribute ranges, per-Priority Adjustment Points, Customization Karma cost. Optional override in both builders.</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+        <li class="item"><span class="item-status"><span class="status status-roadmap">Roadmap Item</span></span>
           <div><span class="item-name">Metasapients</span><span class="item-cite">Companion pp. 91–93</span>
           <div class="item-note">Centaur, Merrow, Naga, Pixie, Sasquatch — explicitly GM-discretion per the book and need mechanics this app models nowhere (innate Magic, natural weapons, Dual Natured). Confirmed excluded, not overlooked.</div></div>
         </li>
@@ -454,7 +454,7 @@
           <div><span class="item-name">Astral Beacon, Scorched</span>
           <div class="item-note">Two core-rulebook entries skipped — their Karma cost/effect text isn't present in the PDF's extractable text layer anywhere, flagged rather than guessed at.</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+        <li class="item"><span class="item-status"><span class="status status-roadmap">Roadmap Item</span></span>
           <div><span class="item-name">Quality Paths</span><span class="item-cite">Companion pp. 138–143</span>
           <div class="item-note">A narrative advancement system layered on qualities, structurally different from a flat purchasable catalog — same treatment as the curated Life Modules subset.</div></div>
         </li>
@@ -716,7 +716,7 @@
           <div><span class="item-name">Character sheet export</span>
           <div class="item-note">Fills the official Genesis sheet template, pages 1–2, via coordinate overlay. Pages 3–6 (Spells/Adept Powers/Foci/Rituals/Astral Combat) deferred.</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+        <li class="item"><span class="item-status"><span class="status status-roadmap">Roadmap Item</span></span>
           <div><span class="item-name">NPC roster (Grunts, Critters, Matrix life, Matrix security)</span><span class="item-cite">core rulebook pp. 203–220; Body Shop pp. 156–165; Hack &amp; Slash pp. 104–114, 166–168</span>
           <div class="item-note">A GM-facing bonus feature (100 importable stat blocks across 3 sourcebooks: Core Rulebook, Body Shop, Hack &amp; Slash), not player character generation — noted here for completeness, not tracked against this audit's pass/fail.</div></div>
         </li>
