@@ -7,6 +7,7 @@ import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavaria
 import { SKILL_SPECIALIZATION_SUGGESTIONS } from "../../../deriveSpecializations";
 import { contactsCostTotal, priorityContactPointPool, withRating } from "../../../deriveContacts";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL, knowledgeSlotsSpent, priorityKnowledgeSlotPool } from "../../../deriveKnowledge";
+import { effectivePriorityLetter, startingKarma } from "../../../derivePriorityVariant";
 
 const PURCHASABLE_LANGUAGE_LEVELS: LanguageLevel[] = Array.from(
   { length: MAX_PURCHASABLE_LANGUAGE_LEVEL },
@@ -57,6 +58,18 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
     onChange({ ...data, systemState: { ...state, priorities: next } });
   }
 
+  // "Different Levels of Play" (core rulebook p.63 sidebar). Street-level
+  // reads every priority row's table values one row worse than the letter
+  // actually assigned; Prime Runner doubles the customization Karma pool.
+  // Toggling recovers the qualities' net Karma from the old total (rather
+  // than requiring the qualities catalog here too) and re-adds it to the
+  // new base, mirroring QualityPicker.tsx's own applySelection().
+  function setPowerLevel(next: PrioritySystemState["powerLevel"]) {
+    const nextData = { ...data, systemState: { ...state, powerLevel: next } };
+    const netQualityKarma = data.karma - startingKarma(data);
+    onChange({ ...nextData, karma: startingKarma(nextData) + netQualityKarma });
+  }
+
   function usedLetters(exceptCategory?: string) {
     return new Set(
       Object.entries(state.priorities)
@@ -66,19 +79,34 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
     );
   }
 
-  const metatypeRow = rules.priorityTable.find((r) => r.priority === state.priorities.metatype);
-  const attributeRow = rules.priorityTable.find((r) => r.priority === state.priorities.attributes);
-  const skillRow = rules.priorityTable.find((r) => r.priority === state.priorities.skills);
-  const magicRow = rules.priorityTable.find((r) => r.priority === state.priorities.magic);
-  const resourcesRow = rules.priorityTable.find((r) => r.priority === state.priorities.resources);
+  const metatypeRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.metatype, state.powerLevel)
+  );
+  const attributeRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.attributes, state.powerLevel)
+  );
+  const skillRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.skills, state.powerLevel)
+  );
+  const magicRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.magic, state.powerLevel)
+  );
+  const resourcesRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.resources, state.powerLevel)
+  );
 
   const metatypeInfo = effectiveMetatypeInfo(data, rules.metatypeAttributes, rules.metavariants);
   const selectedMetavariant = findMetavariant(data, rules.metavariants);
+  // The raw assigned letter (for the priority-assignment table's own
+  // uniqueness bookkeeping) vs. the row actually used for metavariant
+  // adjustment-point lookups, which follows the same Street-level shift as
+  // metatypeRow above.
   const metatypePriorityLetter = state.priorities.metatype;
+  const effectiveMetatypeLetter = effectivePriorityLetter(metatypePriorityLetter, state.powerLevel);
   const availableMetavariants = rules.metavariants.filter(
     (m) =>
       m.parentMetatype === data.metatype &&
-      (!metatypePriorityLetter || m.adjustmentPoints[metatypePriorityLetter] !== undefined)
+      (!effectiveMetatypeLetter || m.adjustmentPoints[effectiveMetatypeLetter] !== undefined)
   );
 
   // Normal attribute points can only raise a core attribute up to 6, even
@@ -150,7 +178,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   // (Plus, under the house rule above, the full cost of any special
   // attribute toggled to Adjustment-funding.)
   const adjustmentPointsTotal = selectedMetavariant
-    ? (metatypePriorityLetter && selectedMetavariant.adjustmentPoints[metatypePriorityLetter]) || 0
+    ? (effectiveMetatypeLetter && selectedMetavariant.adjustmentPoints[effectiveMetatypeLetter]) || 0
     : (metatypeRow?.metatype.find((m) => m.metatype === data.metatype)?.adjustmentPoints ?? 0);
 
   const edgeSpent = (data.attributes.edge ?? 1) - 1;
@@ -243,12 +271,38 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
 
   return (
     <div className="priority-builder">
+      <h2>Power Level</h2>
+      <p className="hint">
+        Optional variants (core rulebook p.63). Street-level: assign priorities as normal, but every
+        category's table values are read one row worse than the letter you picked (Priority B reads as
+        C, and so on - can't go lower than E). Prime Runner: keep standard priorities, but double your
+        customization Karma from 50 to 100.
+      </p>
+      <div className="chip-row">
+        <button className={!state.powerLevel ? "chip selected" : "chip"} onClick={() => setPowerLevel(undefined)}>
+          Standard
+        </button>
+        <button
+          className={state.powerLevel === "street" ? "chip selected" : "chip"}
+          onClick={() => setPowerLevel("street")}
+        >
+          Street-level
+        </button>
+        <button
+          className={state.powerLevel === "prime" ? "chip selected" : "chip"}
+          onClick={() => setPowerLevel("prime")}
+        >
+          Prime Runner
+        </button>
+      </div>
+
       <h2>Priority Assignment</h2>
       <table className="priority-assign-table">
         <thead>
           <tr>
             <th>Category</th>
             <th>Priority</th>
+            {state.powerLevel === "street" && <th>Values read from</th>}
           </tr>
         </thead>
         <tbody>
@@ -273,6 +327,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                     ))}
                   </select>
                 </td>
+                {state.powerLevel === "street" && <td>{effectivePriorityLetter(current, state.powerLevel) ?? "-"}</td>}
               </tr>
             );
           })}
@@ -315,7 +370,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
                     title={m.racialTraits.join(", ")}
                   >
                     {m.name} ({m.karma} Karma
-                    {metatypePriorityLetter ? `, ${m.adjustmentPoints[metatypePriorityLetter]} adj. pts` : ""})
+                    {effectiveMetatypeLetter ? `, ${m.adjustmentPoints[effectiveMetatypeLetter]} adj. pts` : ""})
                   </button>
                 ))}
               </div>

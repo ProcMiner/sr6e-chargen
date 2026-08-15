@@ -71,6 +71,16 @@ export interface PrioritySystemState {
    * chosen metatype's max exceeds 6.
    */
   adjustmentFundedAttributes?: string[];
+  /**
+   * "Different Levels of Play" (core rulebook p.63 sidebar). "street"
+   * reads every priority row's table values (metatype options, attribute
+   * points, skill points, magic options, resources) one row worse than the
+   * letter actually assigned - the assignment itself and its A-E
+   * uniqueness are unaffected, only the lookup. "prime" doubles
+   * customization Karma from 50 to 100. undefined = standard play. See
+   * derivePriorityVariant.ts.
+   */
+  powerLevel?: "street" | "prime";
 }
 
 export interface LifepathSystemState {

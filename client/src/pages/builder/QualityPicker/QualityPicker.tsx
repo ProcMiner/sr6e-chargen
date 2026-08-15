@@ -9,10 +9,10 @@ import {
   qualityKarmaTotal,
 } from "../../../deriveQualities";
 import { combinedRacialQualities } from "../../../deriveMetavariant";
+import { startingKarma } from "../../../derivePriorityVariant";
 
 const MAX_QUALITIES = 6;
 const NET_KARMA_CAP = 20;
-const STARTING_KARMA = 50;
 
 // SR6e's "Exceptional (Attribute)" applies to any Physical or Mental
 // attribute; Edge is included here too since the picker doesn't otherwise
@@ -54,7 +54,7 @@ export function QualityPicker({ rules, metatypeAttributes, metavariants, skillLi
   const racialQualities = combinedRacialQualities(data, metatypeAttributes, metavariants);
 
   function applySelection(next: SelectedQuality[]) {
-    onChange({ ...data, qualities: next, karma: STARTING_KARMA + qualityKarmaTotal(next, catalog) });
+    onChange({ ...data, qualities: next, karma: startingKarma(data) + qualityKarmaTotal(next, catalog) });
   }
 
   function canAdd(entry: QualityCatalogEntry) {
