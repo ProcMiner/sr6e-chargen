@@ -1,5 +1,6 @@
 import type { CharacterData } from "../../character";
-import { deriveStats } from "../../derive";
+import { astralInitiative, deriveStats } from "../../derive";
+import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
 import { contactsKarmaSpent } from "../../deriveContacts";
@@ -291,6 +292,30 @@ export function SummarySheet({
               </div>
             ))}
           </dl>
+        </section>
+      )}
+
+      {data.attributes.magic !== undefined && (
+        <section>
+          <h3>Astral Combat</h3>
+          {data.traditionAttribute ? (
+            <dl className="attribute-grid">
+              <div>
+                <dt>Attack Rating</dt>
+                <dd>{astralAttackRating(data.attributes, data.traditionAttribute)}</dd>
+              </div>
+              <div>
+                <dt>Defense Rating</dt>
+                <dd>{astralDefenseRating(data.attributes)}</dd>
+              </div>
+              <div>
+                <dt>Initiative</dt>
+                <dd>{astralInitiative(data.attributes)} + 2D6</dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="hint">Choose a Tradition Attribute (Magic or Resonance section) to see this.</p>
+          )}
         </section>
       )}
 

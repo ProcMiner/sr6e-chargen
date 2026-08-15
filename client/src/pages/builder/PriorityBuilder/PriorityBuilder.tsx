@@ -531,6 +531,27 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
               </button>
             ))}
           </div>
+          {data.attributes.magic !== undefined && (
+            <>
+              <h4>Tradition Attribute</h4>
+              <p className="hint">
+                Pairs with Magic for Astral Combat's Attack Rating and Drain resistance (core rulebook p.160-161) -
+                Logic for a hermetic-style tradition, Charisma for a shamanic-style one. Mystic Adepts can never
+                astrally project (p.158), even with this chosen.
+              </p>
+              <div className="chip-row">
+                {(["logic", "charisma"] as const).map((attr) => (
+                  <button
+                    key={attr}
+                    className={data.traditionAttribute === attr ? "chip selected" : "chip"}
+                    onClick={() => onChange({ ...data, traditionAttribute: attr })}
+                  >
+                    {attr === "logic" ? "Logic" : "Charisma"}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       )}
 

@@ -256,6 +256,25 @@ a {
   text-align: left;
 }
 
+.rules-table {
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.rules-table td,
+.rules-table th {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rules-table ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;

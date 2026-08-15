@@ -278,6 +278,18 @@ export interface CharacterData {
   /** Living Persona Matrix-attribute bonus distribution (see deriveLivingPersona.ts). Meaningful only for Technomancer characters. */
   livingPersonaAllocation?: LivingPersonaAllocation;
   /**
+   * The attribute that pairs with Magic for a magically active character's
+   * tradition - "Logic for hermetic mages, Charisma for shamans" (core
+   * rulebook p.160-161, Astral Combat's Attack Rating). The book doesn't
+   * force a specific named tradition beyond that attribute pairing (other
+   * traditions may differ), so this is a direct attribute choice rather
+   * than a tradition catalog. Also the attribute Drain resistance tests
+   * use (Willpower + this), though this app doesn't model Drain testing
+   * itself beyond Karma-cost bookkeeping. Undefined until chosen; only
+   * meaningful for a magically active character (Magic, not Resonance).
+   */
+  traditionAttribute?: "logic" | "charisma";
+  /**
    * Mystic Adepts split their Magic between Power Points and spells at
    * chargen (core rulebook p. 158-159): this many points of Magic are
    * dedicated to the adept side (1 Power Point each), and the remainder is

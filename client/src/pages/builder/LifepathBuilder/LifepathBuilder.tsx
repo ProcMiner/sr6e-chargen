@@ -411,9 +411,30 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
           </div>
           <p className="hint">
             Attributes with a racial max above 6 start at 2; everything else starts at 1. Choose 1-2
-            inborn qualities in the Qualities section below, and a native language on the summary
-            sheet manually for now.
+            inborn qualities in the Qualities section below, and your Native Language in the Contacts
+            section further down.
           </p>
+          {hasMagic && (
+            <>
+              <h4>Tradition Attribute</h4>
+              <p className="hint">
+                Pairs with Magic for Astral Combat's Attack Rating and Drain resistance (core rulebook
+                p.160-161) - Logic for a hermetic-style tradition, Charisma for a shamanic-style one.
+                Mystic Adepts can never astrally project (p.158), even with this chosen.
+              </p>
+              <div className="chip-row">
+                {(["logic", "charisma"] as const).map((attr) => (
+                  <button
+                    key={attr}
+                    className={data.traditionAttribute === attr ? "chip selected" : "chip"}
+                    onClick={() => onChange({ ...data, traditionAttribute: attr })}
+                  >
+                    {attr === "logic" ? "Logic" : "Charisma"}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
 
