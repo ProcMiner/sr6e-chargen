@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { emptyAttributes } from "../../../character";
-import type { CharacterData, Contact, LifepathSystemState } from "../../../character";
+import type { CharacterData, Contact, KnowledgeSkillLine, LifepathSystemState } from "../../../character";
 import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes, MetavariantCatalogEntry } from "../../../rules";
 import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavariant";
 import { NumberStepper } from "../../../components/NumberStepper";
@@ -13,6 +13,7 @@ import {
   withKarmaFundedPoint,
   withRating,
 } from "../../../deriveContacts";
+import { MAX_PURCHASABLE_LANGUAGE_LEVEL } from "../../../deriveKnowledge";
 
 const BASE_ATTR_KEYS = [
   "body",
@@ -186,6 +187,15 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
     recompute({ ...state, choices: { ...state.choices, [key]: value } });
   }
 
+  function setKnowledgeChoice(key: string, type: "knowledge" | "language", name: string) {
+    recompute({ ...state, knowledgeChoices: { ...state.knowledgeChoices, [key]: { type, name } } });
+  }
+
+  // Every language already picked in an earlier knowledgeChoice slot,
+  // offered as suggestions so choosing the same name again reads as "level
+  // this up" rather than the player having to remember it by heart.
+  const existingLanguages = data.knowledgeSkills.filter((k) => k.type === "language");
+
   // Derives the pre-adult-module baseline (metatype attributes, awakened
   // type's magic/resonance/edge, Growing Up skills, Coming of Age skill)
   // from scratch every time, so recompute() never has to treat already-
@@ -247,7 +257,35 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
     // Coming of Age grants +25,000 nuyen; gated on the skill pick since
     // that's this module's primary "have I done this yet" signal.
     let nuyen = nextState.comingOfAgeSkill ? 25_000 : 0;
-    const knowledge: string[] = [];
+    const knowledge: KnowledgeSkillLine[] = [];
+
+    // Companion p.31: choosing "language" for a knowledgeChoice slot either
+    // starts a new language at Basic or raises one you already picked
+    // (via an earlier slot) by one level, capped at Expert - repeating the
+    // same name is how a level-up is expressed, not a duplicate entry.
+    function addKnowledgeChoice(type: "knowledge" | "language", name: string) {
+      if (type === "knowledge") {
+        knowledge.push({ id: crypto.randomUUID(), name, type: "knowledge" });
+        return;
+      }
+      const existing = knowledge.find((k) => k.type === "language" && k.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.level = Math.min(MAX_PURCHASABLE_LANGUAGE_LEVEL, (existing.level ?? 1) + 1) as 1 | 2 | 3;
+      } else {
+        knowledge.push({ id: crypto.randomUUID(), name, type: "language", level: 1 });
+      }
+    }
+
+    // Legacy saves stored knowledge slot picks as plain strings in
+    // `choices` (pre-dating the knowledge/language split) - fall back to
+    // reading those as knowledge topics, the only type they could have
+    // meant, so older characters don't silently lose their picks.
+    function resolveKnowledgeChoice(choiceKey: string): { type: "knowledge" | "language"; name: string } | undefined {
+      const structured = nextState.knowledgeChoices?.[choiceKey];
+      if (structured) return structured;
+      const legacy = nextState.choices[choiceKey];
+      return legacy ? { type: "knowledge", name: legacy } : undefined;
+    }
 
     const occurrences: Record<string, number> = {};
     for (const id of nextState.selectedModuleIds) {
@@ -279,8 +317,8 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
       if (mod.knowledgeChoice) {
         for (let k = 0; k < mod.knowledgeChoice.count; k++) {
           const choiceKey = `${key}:knowledge:${k}`;
-          const chosen = nextState.choices[choiceKey];
-          if (chosen) knowledge.push(chosen);
+          const chosen = resolveKnowledgeChoice(choiceKey);
+          if (chosen?.name.trim()) addKnowledgeChoice(chosen.type, chosen.name.trim());
         }
       }
     }
@@ -453,10 +491,13 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
                 module={mod}
                 instanceKey={instanceKey(id, selected.slice(0, i + 1).filter((s) => s === id).length)}
                 choices={state.choices}
+                knowledgeChoices={state.knowledgeChoices ?? {}}
+                existingLanguages={existingLanguages}
                 skillList={skillList}
                 hasMagic={hasMagic}
                 hasResonance={hasResonance}
                 onChoice={setChoice}
+                onKnowledgeChoice={setKnowledgeChoice}
                 onRemove={() => removeModuleAt(i)}
               />
             </li>
@@ -602,6 +643,18 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
           Add (2 points)
         </button>
       </div>
+
+      <h2>Native Language</h2>
+      <p className="hint">
+        Every character starts with one free Native language (Companion p.31) - it isn't drawn from any
+        life module's knowledge/language grants above.
+      </p>
+      <input
+        type="text"
+        placeholder="Native language (e.g. English, Sperethiel, Cityspeak)"
+        value={data.nativeLanguage ?? ""}
+        onChange={(e) => onChange({ ...data, nativeLanguage: e.target.value })}
+      />
     </div>
   );
 }
@@ -610,19 +663,25 @@ function ModuleInstance({
   module,
   instanceKey,
   choices,
+  knowledgeChoices,
+  existingLanguages,
   skillList,
   hasMagic,
   hasResonance,
   onChoice,
+  onKnowledgeChoice,
   onRemove,
 }: {
   module: LifeModule;
   instanceKey: string;
   choices: Record<string, string>;
+  knowledgeChoices: Record<string, { type: "knowledge" | "language"; name: string }>;
+  existingLanguages: KnowledgeSkillLine[];
   skillList: string[];
   hasMagic: boolean;
   hasResonance: boolean;
   onChoice: (key: string, value: string) => void;
+  onKnowledgeChoice: (key: string, type: "knowledge" | "language", name: string) => void;
   onRemove: () => void;
 }) {
   return (
@@ -650,21 +709,44 @@ function ModuleInstance({
       {module.knowledgeChoice &&
         Array.from({ length: module.knowledgeChoice.count }).map((_, k) => {
           const key = `${instanceKey}:knowledge:${k}`;
+          // Legacy fallback mirrors recompute()'s resolveKnowledgeChoice -
+          // an older save's plain-string pick still shows up here as a
+          // knowledge topic instead of appearing blank.
+          const chosen = knowledgeChoices[key] ?? (choices[key] ? { type: "knowledge" as const, name: choices[key] } : undefined);
+          const type = chosen?.type ?? "knowledge";
+          const name = chosen?.name ?? "";
+          const allowsLanguage = module.knowledgeChoice!.allowsLanguage;
+          const matchedLanguage =
+            type === "language" ? existingLanguages.find((l) => l.name.toLowerCase() === name.toLowerCase()) : undefined;
           return (
-            <label key={key} className="inline-field">
-              Knowledge/Language skill
+            <div key={key} className="inline-field">
+              {allowsLanguage && (
+                <select value={type} onChange={(e) => onKnowledgeChoice(key, e.target.value as "knowledge" | "language", name)}>
+                  <option value="knowledge">Knowledge</option>
+                  <option value="language">Language</option>
+                </select>
+              )}
               <input
-                list={`${instanceKey}-knowledge-suggestions`}
-                value={choices[key] ?? ""}
-                onChange={(e) => onChoice(key, e.target.value)}
-                placeholder={module.knowledgeChoice!.suggestions[0] ?? "custom"}
+                list={`${instanceKey}-knowledge-suggestions-${k}`}
+                value={name}
+                onChange={(e) => onKnowledgeChoice(key, type, e.target.value)}
+                placeholder={
+                  type === "language" ? "Language name" : (module.knowledgeChoice!.suggestions[0] ?? "custom")
+                }
               />
-              <datalist id={`${instanceKey}-knowledge-suggestions`}>
-                {module.knowledgeChoice!.suggestions.map((s) => (
-                  <option key={s} value={s} />
-                ))}
+              <datalist id={`${instanceKey}-knowledge-suggestions-${k}`}>
+                {(type === "language" ? existingLanguages.map((l) => l.name) : module.knowledgeChoice!.suggestions).map(
+                  (s) => (
+                    <option key={s} value={s} />
+                  )
+                )}
               </datalist>
-            </label>
+              {matchedLanguage && (
+                <span className="hint">
+                  levels up an existing language (currently {matchedLanguage.level ?? 1}/{MAX_PURCHASABLE_LANGUAGE_LEVEL})
+                </span>
+              )}
+            </div>
           );
         })}
       {module.resources ? <p className="hint">+{module.resources.toLocaleString()}¥</p> : null}

@@ -3,6 +3,7 @@ import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
 import { contactsKarmaSpent } from "../../deriveContacts";
+import { LANGUAGE_LEVEL_NAMES } from "../../character";
 import { modifierBonuses } from "../../deriveModifiers";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type {
@@ -162,6 +163,21 @@ export function SummarySheet({
               <li key={skill}>
                 <span>{skill}</span>
                 <span>{rank}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {(data.nativeLanguage || data.knowledgeSkills.length > 0) && (
+        <section>
+          <h3>Knowledge &amp; Language Skills</h3>
+          <ul>
+            {data.nativeLanguage && <li>{data.nativeLanguage} (Native)</li>}
+            {data.knowledgeSkills.map((k) => (
+              <li key={k.id}>
+                {k.name}
+                {k.type === "language" ? ` (${LANGUAGE_LEVEL_NAMES[k.level ?? 1]})` : ""}
               </li>
             ))}
           </ul>

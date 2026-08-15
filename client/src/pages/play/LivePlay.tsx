@@ -12,6 +12,7 @@ import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { specializationKarmaTotal } from "../../deriveSpecializations";
+import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Spirits } from "./Spirits";
@@ -64,7 +65,8 @@ export function LivePlay() {
     if (!id) return;
     api.getCharacter(Number(id)).then((c) => {
       setCharacter(c);
-      setCharacterData({ ...emptyCharacterData(), ...(c.data as Partial<CharacterData>) });
+      const raw = c.data as Partial<CharacterData>;
+      setCharacterData({ ...emptyCharacterData(), ...raw, knowledgeSkills: normalizeKnowledgeSkills(raw.knowledgeSkills) });
     });
     api.getPlayState(Number(id)).then(setPlayState);
     api.gear().then(setGearRules);

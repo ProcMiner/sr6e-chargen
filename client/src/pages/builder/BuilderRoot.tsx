@@ -28,6 +28,7 @@ import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { contactsKarmaSpent } from "../../deriveContacts";
+import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
 import { downloadCharacterSheetPdf, generateCharacterSheetPdf } from "../../pdfSheet";
@@ -56,7 +57,7 @@ export function BuilderRoot() {
     api.getCharacter(Number(id)).then((c) => {
       setCharacter(c);
       const raw = c.data as Partial<CharacterData>;
-      setData({ ...emptyCharacterData(), ...raw });
+      setData({ ...emptyCharacterData(), ...raw, knowledgeSkills: normalizeKnowledgeSkills(raw.knowledgeSkills) });
     });
     api.priorityTables().then(setPriorityRules);
     api.lifepathModules().then(setLifepathRules);

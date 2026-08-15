@@ -76,8 +76,19 @@ export interface PrioritySystemState {
 export interface LifepathSystemState {
   /** Module ids chosen for the 8 adult slots, in order (one id may repeat once). */
   selectedModuleIds: string[];
-  /** Record of which option was picked for each boost/knowledge slot, keyed by an instance-specific id. */
+  /** Record of which option was picked for each boost slot, keyed by an instance-specific id. */
   choices: Record<string, string>;
+  /**
+   * Record of what was picked for each module's knowledgeChoice slot, keyed
+   * the same way as `choices` (`${instanceKey}:knowledge:${k}`) but carrying
+   * a type + name instead of a bare string, since a slot can be spent on
+   * either a knowledge topic or a language (Companion p.31: "If you choose a
+   * language skill, you may select a new language at rank 1 or increase the
+   * rank of a language you already know, up to a maximum of rank 3") - see
+   * recompute() in LifepathBuilder.tsx for how repeated language names
+   * become a level-up instead of a duplicate entry.
+   */
+  knowledgeChoices?: Record<string, { type: "knowledge" | "language"; name: string }>;
   /** Mundane / Full Magician / Aspected Magician / Mystic Adept / Adept / Emerged, from Born This Way. */
   awakenedType?: string;
   /** The 4 skills chosen (at rank 2) from Growing Up. */
@@ -93,6 +104,30 @@ export interface LifepathSystemState {
    * leftover +1 to a different attribute of their choice.
    */
   comingOfAgeRedirectAttribute?: string;
+}
+
+export type LanguageLevel = 1 | 2 | 3 | 4;
+
+export const LANGUAGE_LEVEL_NAMES: Record<LanguageLevel, string> = {
+  1: "Basic",
+  2: "Specialist",
+  3: "Expert",
+  4: "Native",
+};
+
+/**
+ * One Knowledge or Language skill (core rulebook p.97-99). Knowledge topics
+ * don't have ranks - they're just known or not ("Knowledge skills do not
+ * have ranks, because they are not used directly in skill tests", p.98).
+ * Language skills are "Knowledge skills with specialization ranks": four
+ * levels (Basic/Specialist/Expert/Native, p.99). `level` is only meaningful
+ * for `type: "language"`.
+ */
+export interface KnowledgeSkillLine {
+  id: string;
+  name: string;
+  type: "knowledge" | "language";
+  level?: LanguageLevel;
 }
 
 export interface SelectedQuality {
@@ -208,7 +243,17 @@ export interface CharacterData {
   specializations?: SkillSpecialization[];
   /** Itemized post-creation Specialization/Expertise purchase log - see SpecializationEntry. Empty/undefined for a character still in chargen. */
   specializationLog?: SpecializationEntry[];
-  knowledgeSkills: string[];
+  knowledgeSkills: KnowledgeSkillLine[];
+  /**
+   * The single free Native-level language every character begins with
+   * (core rulebook p.67; Companion p.31 confirms this is universal
+   * regardless of build system: "All characters, regardless of what
+   * character creation system is used, begin with a single language at
+   * level 4 (Native)"). Kept separate from `knowledgeSkills` since it's
+   * guaranteed free and singular, not drawn from either system's
+   * knowledge/language budget - see deriveKnowledge.ts.
+   */
+  nativeLanguage?: string;
   qualities: SelectedQuality[];
   contacts: Contact[];
   gear: GearLine[];

@@ -18,6 +18,7 @@
 // (Spells/Adept Powers/Foci/Rituals/Astral Combat) is deliberately deferred.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { CharacterData, GearLine } from "./character";
+import { LANGUAGE_LEVEL_NAMES } from "./character";
 import type {
   GearCatalogEntry,
   GearRulesResponse,
@@ -47,6 +48,10 @@ function y(fromTop: number): number {
 
 function truncate(text: string, maxChars: number): string {
   return text.length > maxChars ? text.slice(0, maxChars - 1) + "…" : text;
+}
+
+function knowledgeLineLabel(line: CharacterData["knowledgeSkills"][number]): string {
+  return line.type === "language" ? `${line.name} (${LANGUAGE_LEVEL_NAMES[line.level ?? 1]})` : line.name;
 }
 
 interface DrawCtx {
@@ -204,8 +209,11 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
     draw(page, ctx, rank, col[0] + 122, rowY, 6.5);
     if (attrValue !== undefined) draw(page, ctx, rank + attrValue, col[0] + 151, rowY, 6.5);
   });
-  data.knowledgeSkills.slice(0, 18).forEach((name, i) => {
-    draw(page, ctx, truncate(name, 32), 449.77, 443 + i * 12, 6.5);
+  const knowledgeLines = data.nativeLanguage
+    ? [`${data.nativeLanguage} (Native)`, ...data.knowledgeSkills.map(knowledgeLineLabel)]
+    : data.knowledgeSkills.map(knowledgeLineLabel);
+  knowledgeLines.slice(0, 18).forEach((label, i) => {
+    draw(page, ctx, truncate(label, 32), 449.77, 443 + i * 12, 6.5);
   });
 
   // --- Weapons & Armor ---
