@@ -1,8 +1,18 @@
 import { useState } from "react";
 import { emptyAttributes } from "../../../character";
-import type { CharacterData, LifepathSystemState } from "../../../character";
+import type { CharacterData, Contact, LifepathSystemState } from "../../../character";
 import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes, MetavariantCatalogEntry } from "../../../rules";
 import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavariant";
+import { NumberStepper } from "../../../components/NumberStepper";
+import { karmaRemaining } from "../../../deriveGear";
+import {
+  contactsCpSpent,
+  contactsKarmaSpent,
+  lifepathAvailableContactTypes,
+  lifepathContactPointPool,
+  withKarmaFundedPoint,
+  withRating,
+} from "../../../deriveContacts";
 
 const BASE_ATTR_KEYS = [
   "body",
@@ -100,6 +110,9 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
   const selected = state.selectedModuleIds;
   const canAddMore = selected.length < ADULT_SLOTS;
 
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactType, setNewContactType] = useState("");
+
   const [moduleSearch, setModuleSearch] = useState("");
   const moduleSearchTerm = moduleSearch.trim().toLowerCase();
   function matchesModuleSearch(mod: LifeModule) {
@@ -126,6 +139,41 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
   const allAdult = rules.adultModules;
   const choiceModules = allAdult.filter((m) => m.category === "choice").filter(matchesModuleSearch);
   const eventModules = allAdult.filter((m) => m.category === "event").filter(matchesModuleSearch);
+
+  // Contacts (Sixth World Companion p.31): points come entirely from
+  // selected life modules (+ Coming of Age's fixed 4), never from Charisma -
+  // see deriveContacts.ts. Customization Karma can optionally push a rating
+  // further, 1 Karma per point, but never above Charisma.
+  const contacts = data.contacts;
+  const charisma = data.attributes.charisma;
+  const comingOfAgeDone = !!state.comingOfAgeSkill;
+  const contactTypes = lifepathAvailableContactTypes(selected, allAdult, comingOfAgeDone);
+  const contactPool = lifepathContactPointPool(selected, allAdult, comingOfAgeDone);
+  const contactCpSpent = contactsCpSpent(contacts);
+  const contactCpRemaining = contactPool - contactCpSpent;
+  const contactKarmaBudget = karmaRemaining(data, contactsKarmaSpent(contacts));
+
+  function updateContact(id: string, next: Contact) {
+    onChange({ ...data, contacts: contacts.map((c) => (c.id === id ? next : c)) });
+  }
+
+  function removeContact(id: string) {
+    onChange({ ...data, contacts: contacts.filter((c) => c.id !== id) });
+  }
+
+  function addContact() {
+    const name = newContactName.trim();
+    if (!name || !newContactType || contactCpRemaining < 2) return;
+    const contact: Contact = { id: crypto.randomUUID(), name, type: newContactType, connection: 1, loyalty: 1 };
+    onChange({ ...data, contacts: [...contacts, contact] });
+    setNewContactName("");
+  }
+
+  function spendKarmaOnRating(id: string, field: "connection" | "loyalty") {
+    const contact = contacts.find((c) => c.id === id);
+    if (!contact || contact[field] >= charisma || contactKarmaBudget < 1) return;
+    updateContact(id, withKarmaFundedPoint(contact, field));
+  }
 
   // Recompute skills/resources/contactPoints from scratch whenever module
   // selections or their choices change, so it's always consistent instead
@@ -389,9 +437,8 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
       )}
       <p className="hint">
         Also grants 1-2 qualities (pick them in the Qualities section below), +25,000 nuyen (added once
-        you pick a skill above), and one contact of any type with 4 points split between Connection and
-        Loyalty - contact purchasing isn't built yet, so track that contact manually on the summary sheet
-        for now.
+        you pick a skill above), and 4 contact points toward a contact of any type - spend them in the
+        Contacts section below.
       </p>
 
       <h2>
@@ -472,6 +519,89 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
           </details>
         </>
       )}
+
+      <h2>
+        Contacts ({contactCpSpent} / {contactPool} contact points spent)
+      </h2>
+      <p className="hint">
+        Contact points come from your life modules above and Coming of Age, not from Charisma (Companion
+        p.31). A new contact costs 2 points (Connection 1 / Loyalty 1); each additional point of
+        Connection or Loyalty costs 1 more, up to a hard cap of 8. You can also spend customization Karma
+        (1 per point, "+1 (Karma)" below) to push a rating up to your Charisma ({charisma}). The book
+        restricts each module's points to contacts matching that module's own type list - this tool
+        doesn't enforce that narrower per-module match, so self-adjudicate against the modules you picked
+        above.
+      </p>
+      {contactTypes.length === 0 && (
+        <p className="hint">Finish Coming of Age or pick a life module that grants contact points to unlock contact types.</p>
+      )}
+      {contacts.length > 0 && (
+        <ul className="module-slots">
+          {contacts.map((c) => (
+            <li key={c.id}>
+              <div className="module-instance">
+                <div className="module-instance-header">
+                  <strong>{c.name}</strong>
+                  <button className="danger" onClick={() => removeContact(c.id)}>
+                    Remove
+                  </button>
+                </div>
+                <label className="inline-field">
+                  Type
+                  <select value={c.type ?? ""} onChange={(e) => updateContact(c.id, { ...c, type: e.target.value })}>
+                    {contactTypes.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="attribute-editor">
+                  {(["connection", "loyalty"] as const).map((field) => (
+                    <label key={field} className="inline-field">
+                      {field === "connection" ? "Connection" : "Loyalty"}
+                      <NumberStepper
+                        label={`${c.name} ${field}`}
+                        min={1}
+                        max={Math.min(8, c[field] + contactCpRemaining)}
+                        value={c[field]}
+                        onChange={(next) => updateContact(c.id, withRating(c, field, next))}
+                      />
+                      {c[field] < charisma && contactKarmaBudget >= 1 && (
+                        <button type="button" className="chip" onClick={() => spendKarmaOnRating(c.id, field)}>
+                          +1 (Karma)
+                        </button>
+                      )}
+                      {c.karmaFunded && c.karmaFunded[field] > 0 && (
+                        <span className="hint">{c.karmaFunded[field]} Karma-funded</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="inline-field">
+        <input
+          type="text"
+          placeholder="Contact name"
+          value={newContactName}
+          onChange={(e) => setNewContactName(e.target.value)}
+        />
+        <select value={newContactType} onChange={(e) => setNewContactType(e.target.value)}>
+          <option value="">choose type...</option>
+          {contactTypes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <button onClick={addContact} disabled={!newContactName.trim() || !newContactType || contactCpRemaining < 2}>
+          Add (2 points)
+        </button>
+      </div>
     </div>
   );
 }

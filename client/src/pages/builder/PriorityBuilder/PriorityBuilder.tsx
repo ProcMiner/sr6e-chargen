@@ -1,9 +1,10 @@
 import { useState } from "react";
-import type { CharacterData, PrioritySystemState, SkillSpecialization } from "../../../character";
+import type { CharacterData, Contact, PrioritySystemState, SkillSpecialization } from "../../../character";
 import type { PriorityLetter, PriorityRulesResponse } from "../../../rules";
 import { NumberStepper } from "../../../components/NumberStepper";
 import { effectiveMetatypeInfo, findMetavariant } from "../../../deriveMetavariant";
 import { SKILL_SPECIALIZATION_SUGGESTIONS } from "../../../deriveSpecializations";
+import { contactsCostTotal, priorityContactPointPool, withRating } from "../../../deriveContacts";
 
 const LETTERS: PriorityLetter[] = ["A", "B", "C", "D", "E"];
 const CATEGORIES = [
@@ -37,6 +38,7 @@ interface Props {
 export function PriorityBuilder({ rules, data, onChange }: Props) {
   const [specSkill, setSpecSkill] = useState(rules.skillList[0] ?? "");
   const [specFocus, setSpecFocus] = useState("");
+  const [newContactName, setNewContactName] = useState("");
 
   const state = (data.systemState as PrioritySystemState)?.priorities
     ? (data.systemState as PrioritySystemState)
@@ -167,6 +169,32 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
 
   const adjustmentPointsSpent = edgeSpent + racialAdjustmentSpent + magicBoostSpent;
   const adjustmentPointsRemaining = adjustmentPointsTotal - adjustmentPointsSpent;
+
+  // Contacts (core rulebook p.66-67): Charisma x 6 points shared across
+  // every contact's Connection + Loyalty, no individual rating above
+  // Charisma. See deriveContacts.ts for why there's no separate "number of
+  // contacts" cap - it's just a consequence of the pool size.
+  const contacts = data.contacts;
+  const charisma = data.attributes.charisma;
+  const contactPool = priorityContactPointPool(charisma);
+  const contactPointsSpent = contactsCostTotal(contacts);
+  const contactPointsRemaining = contactPool - contactPointsSpent;
+
+  function updateContact(id: string, next: Contact) {
+    onChange({ ...data, contacts: contacts.map((c) => (c.id === id ? next : c)) });
+  }
+
+  function removeContact(id: string) {
+    onChange({ ...data, contacts: contacts.filter((c) => c.id !== id) });
+  }
+
+  function addContact() {
+    const name = newContactName.trim();
+    if (!name || contactPointsRemaining < 2) return;
+    const contact: Contact = { id: crypto.randomUUID(), name, connection: 1, loyalty: 1 };
+    onChange({ ...data, contacts: [...contacts, contact] });
+    setNewContactName("");
+  }
 
   return (
     <div className="priority-builder">
@@ -466,6 +494,65 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
           )}
         </section>
       )}
+
+      <section>
+        <h3>
+          Contacts ({contactPointsSpent} / {contactPool} points spent)
+        </h3>
+        <p className="hint">
+          Charisma x 6 points to spend on Connection + Loyalty across all your contacts (core rulebook
+          p.66-67). No single rating may exceed your Charisma ({charisma}).
+        </p>
+        {contacts.length > 0 && (
+          <ul className="module-slots">
+            {contacts.map((c) => (
+              <li key={c.id}>
+                <div className="module-instance">
+                  <div className="module-instance-header">
+                    <strong>{c.name}</strong>
+                    <button className="danger" onClick={() => removeContact(c.id)}>
+                      Remove
+                    </button>
+                  </div>
+                  <div className="attribute-editor">
+                    <label>
+                      Connection
+                      <NumberStepper
+                        label={`${c.name} Connection`}
+                        min={1}
+                        max={Math.min(charisma, c.connection + contactPointsRemaining)}
+                        value={c.connection}
+                        onChange={(next) => updateContact(c.id, withRating(c, "connection", next))}
+                      />
+                    </label>
+                    <label>
+                      Loyalty
+                      <NumberStepper
+                        label={`${c.name} Loyalty`}
+                        min={1}
+                        max={Math.min(charisma, c.loyalty + contactPointsRemaining)}
+                        value={c.loyalty}
+                        onChange={(next) => updateContact(c.id, withRating(c, "loyalty", next))}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="inline-field">
+          <input
+            type="text"
+            placeholder="Contact name (e.g. Johnny Two-Fingers, Fixer)"
+            value={newContactName}
+            onChange={(e) => setNewContactName(e.target.value)}
+          />
+          <button onClick={addContact} disabled={!newContactName.trim() || contactPointsRemaining < 2}>
+            Add (2 points)
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

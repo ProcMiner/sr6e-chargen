@@ -27,6 +27,7 @@ import { LivingPersonaPanel } from "./LivingPersonaPanel/LivingPersonaPanel";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
+import { contactsKarmaSpent } from "../../deriveContacts";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
 import { downloadCharacterSheetPdf, generateCharacterSheetPdf } from "../../pdfSheet";
@@ -185,7 +186,8 @@ export function BuilderRoot() {
             extraKarmaSpent={
               spellKarmaCost(data, priorityRules) +
               complexFormKarmaCost(data, priorityRules) +
-              metavariantKarmaCost(data, priorityRules.metavariants)
+              metavariantKarmaCost(data, priorityRules.metavariants) +
+              contactsKarmaSpent(data.contacts)
             }
             extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
           />

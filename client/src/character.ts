@@ -8,9 +8,20 @@ export interface ResolvedModifier {
 }
 
 export interface Contact {
+  id: string;
   name: string;
+  /** Contact archetype from the book's fixed list (Academic, Corporate, Criminal, Engineering, Government, Magic, Matrix, Media, Medical, Street) - only meaningful for Life Path contacts, whose points are granted per-type by life modules. Priority contacts have no type restriction (core rulebook p.66-67 doesn't mention types), so this is left blank there. */
+  type?: string;
   connection: number;
   loyalty: number;
+  /**
+   * Life Path only: how many of connection/loyalty's points were bought with
+   * customization Karma (1 Karma each) instead of a life module's contact
+   * points - see deriveContacts.ts. A Karma-funded point may never push a
+   * rating above Charisma (Sixth World Companion p.31), unlike module-funded
+   * points, which may reach the hard cap of 8.
+   */
+  karmaFunded?: { connection: number; loyalty: number };
 }
 
 export interface GearLine {

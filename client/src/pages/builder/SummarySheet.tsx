@@ -2,6 +2,7 @@ import type { CharacterData } from "../../character";
 import { deriveStats } from "../../derive";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
+import { contactsKarmaSpent } from "../../deriveContacts";
 import { modifierBonuses } from "../../deriveModifiers";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type {
@@ -68,6 +69,7 @@ export function SummarySheet({
   const lifestyleSpend = lifestyleCostTotal(data.lifestyles);
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
+  const contactsKarma = contactsKarmaSpent(data.contacts);
   const derived = deriveStats(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
@@ -192,9 +194,10 @@ export function SummarySheet({
         <section>
           <h3>Contacts</h3>
           <ul>
-            {data.contacts.map((c, i) => (
-              <li key={i}>
-                {c.name} (Connection {c.connection} / Loyalty {c.loyalty})
+            {data.contacts.map((c) => (
+              <li key={c.id}>
+                {c.name}
+                {c.type ? ` (${c.type})` : ""} - Connection {c.connection} / Loyalty {c.loyalty}
               </li>
             ))}
           </ul>
@@ -314,8 +317,13 @@ export function SummarySheet({
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
         {complexFormKarma > 0 && <p>{complexFormKarma.toLocaleString()} Karma spent on complex forms</p>}
         {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}
+        {contactsKarma > 0 && <p>{contactsKarma.toLocaleString()} Karma spent on contacts</p>}
         <p>
-          {karmaRemaining(data, spellKarma + complexFormKarma + metavariantKarma).toLocaleString()} Karma remaining
+          {karmaRemaining(
+            data,
+            spellKarma + complexFormKarma + metavariantKarma + contactsKarma
+          ).toLocaleString()}{" "}
+          Karma remaining
         </p>
       </section>
     </div>
