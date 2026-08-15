@@ -47,9 +47,7 @@ export function TopNav() {
           <a href="/release-notes.html" target="_blank" rel="noopener noreferrer">
             Release Notes
           </a>
-          <a href="https://github.com/ProcMiner/sr6e-chargen/issues/new" target="_blank" rel="noopener noreferrer">
-            Feature Request
-          </a>
+          <a href="mailto:dungeonmanager@gmail.com?subject=SR6e%20CharGen%20feature%20request">Feature Request</a>
         </div>
         <div className="top-nav-user">
           <span>{user?.username}</span>
