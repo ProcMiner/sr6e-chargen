@@ -296,6 +296,15 @@ export interface CharacterData {
   submersionGrade?: number;
   /** Itemized Initiation/Submersion purchase log - see InitiationEntry and deriveInitiation.ts. */
   initiations?: InitiationEntry[];
+  /**
+   * Astral Reputation (Street Wyrd "A Congress of Spirits," p.63-65) - how
+   * spirits as a community regard this conjurer, -10 to 10. Undefined/0 is
+   * neutral. Player/GM-tracked by roleplay (there's a reference table of
+   * suggested adjustments, not an automated one - see Spirits.tsx); only
+   * the mechanical thresholds at the extremes are derived, in
+   * deriveSpirits.ts's astralReputationEffect().
+   */
+  astralReputation?: number;
   notes?: string;
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }

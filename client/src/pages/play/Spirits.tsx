@@ -10,7 +10,10 @@ import { useState } from "react";
 import type { CharacterData } from "../../character";
 import type { BoundSpirit, PlayState } from "../../playState";
 import type { SpiritRulesResponse } from "../../rules";
+import { NumberStepper } from "../../components/NumberStepper";
 import {
+  ASTRAL_REPUTATION_ADJUSTMENTS,
+  astralReputationEffect,
   maxBoundForce,
   optionalPowerCount,
   resolveForceTemplate,
@@ -21,6 +24,7 @@ import {
 
 interface Props {
   data: CharacterData;
+  onDataChange: (next: CharacterData) => void;
   playState: PlayState;
   onChange: (next: PlayState) => void;
   spiritRules: SpiritRulesResponse;
@@ -37,7 +41,7 @@ const ATTRIBUTE_LABELS: [key: "body" | "agility" | "reaction" | "strength" | "wi
   ["charisma", "C"],
 ];
 
-export function Spirits({ data, playState, onChange, spiritRules }: Props) {
+export function Spirits({ data, onDataChange, playState, onChange, spiritRules }: Props) {
   const [spiritTypeId, setSpiritTypeId] = useState(spiritRules.spirits[0]?.id ?? "");
   const [forceInput, setForceInput] = useState("3");
   const [nameInput, setNameInput] = useState("");
@@ -48,6 +52,8 @@ export function Spirits({ data, playState, onChange, spiritRules }: Props) {
   const boundSpirits = playState.boundSpirits ?? [];
   const activeForce = boundSpirits.reduce((sum, s) => sum + s.force, 0);
   const forceCap = maxBoundForce(magic);
+  const astralReputation = data.astralReputation ?? 0;
+  const asRepEffect = astralReputationEffect(astralReputation);
 
   const selectedType = spiritRules.spirits.find((s) => s.id === spiritTypeId);
   const force = Math.max(1, Number(forceInput) || 1);
@@ -111,6 +117,32 @@ export function Spirits({ data, playState, onChange, spiritRules }: Props) {
       <p className={activeForce > forceCap ? "danger-text" : "hint"}>
         Active Force: {activeForce} / {forceCap} (Magic {magic} x 3) max
       </p>
+
+      <label className="inline-field">
+        Astral Reputation
+        <NumberStepper
+          label="Astral Reputation"
+          min={-10}
+          max={10}
+          value={astralReputation}
+          onChange={(next) => onDataChange({ ...data, astralReputation: next })}
+        />
+      </label>
+      <p className="hint">
+        How spirits as a community regard you (Street Wyrd p.64-65), -10 to 10 - tracked by roleplay, not rolled.
+        {asRepEffect ? ` Current effect: ${asRepEffect}` : " -5 to 5 is narrative flavor only, no mechanical effect."}
+      </p>
+      <details className="quality-section">
+        <summary>Astral Reputation adjustments (reference)</summary>
+        <ul className="skill-list">
+          {ASTRAL_REPUTATION_ADJUSTMENTS.map(({ event, delta }) => (
+            <li key={event}>
+              <span>{event}</span>
+              <span>{delta}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
 
       <details className="quality-section">
         <summary>Summon a spirit</summary>
@@ -196,7 +228,7 @@ export function Spirits({ data, playState, onChange, spiritRules }: Props) {
             const type = spiritRules.spirits.find((s) => s.id === spirit.spiritTypeId);
             if (!type) return null;
             const attrs = spiritAttributes(type, spirit.force);
-            const cm = spiritConditionMonitor(spirit.force);
+            const cm = spiritConditionMonitor(type, spirit.force);
             const defense = spiritDefenseRating(type, spirit.force);
             return (
               <li key={spirit.id}>

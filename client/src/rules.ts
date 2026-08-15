@@ -323,7 +323,7 @@ export interface SpiritPowerEntry {
   id: string;
   name: string;
   type: "M" | "P";
-  action: "Minor" | "Major" | "Auto";
+  action: "Minor" | "Major" | "Auto" | "Special";
   range: "LOS" | "Touch" | "Self" | "Special" | "Varies" | "As spell";
   duration: "Instant" | "Sustained" | "Always" | "Special";
   summary: string;
@@ -346,6 +346,14 @@ export interface SpiritPowerRef {
   note?: string;
 }
 
+/** Mirrors server/src/rules/spirits.ts's ConditionMonitorOverride. */
+export interface ConditionMonitorOverride {
+  base: "force" | keyof SpiritAttributeMods;
+  preOffset?: number;
+  operation: "half" | "double";
+  offset: number;
+}
+
 export interface SpiritCatalogEntry {
   id: string;
   name: string;
@@ -353,6 +361,8 @@ export interface SpiritCatalogEntry {
   summary: string;
   attributeMods: SpiritAttributeMods;
   defenseRatingMod: number;
+  defenseRatingMultiplier?: number;
+  conditionMonitorOverride?: ConditionMonitorOverride;
   initiative: string;
   astralInitiative: string;
   actionsNote: string;

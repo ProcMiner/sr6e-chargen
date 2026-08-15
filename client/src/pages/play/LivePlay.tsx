@@ -382,7 +382,13 @@ export function LivePlay() {
 
       {spiritRules && (
         <section>
-          <Spirits data={characterData} playState={playState} onChange={scheduleSave} spiritRules={spiritRules} />
+          <Spirits
+            data={characterData}
+            onDataChange={scheduleDataSave}
+            playState={playState}
+            onChange={scheduleSave}
+            spiritRules={spiritRules}
+          />
         </section>
       )}
 

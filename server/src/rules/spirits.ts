@@ -1,7 +1,28 @@
 // Spirit catalog - core rulebook "Conjuring" chapter, "Types of Spirits"
 // section, book pp. 147-149 (SR6_Core_RuleBook_noimg.pdf). The six spirits
 // printed there: Air, Beasts, Earth, Fire, Kin (Kindred Spirits), Water.
-// Powers referenced below are defined in spiritPowers.ts.
+// Plus Street Wyrd's "A Congress of Spirits" chapter, "Spirit Catalog"
+// section, book pp. 55-56 (Street_Wyrd__Magic_Sourebook__noimg.pdf): Plant,
+// Guardian, Guidance, and Task Spirits. Powers referenced below are defined
+// in spiritPowers.ts.
+//
+// Deliberately not covered here (Street Wyrd pp. 56-71) - each is a
+// genuinely different kind of feature, not a catalog entry:
+// - Free Spirits: almost entirely GM-facing narrative rules (learning a
+//   true name via a metaplanar quest, opposed tests to bind/banish them,
+//   Karma-feeding rituals) with no catalog stat block to summon from a
+//   list - doesn't fit this file's "pick a type, choose Force" shape.
+// - Ally Spirits: a genuine build-your-own-spirit system with its own
+//   5-step Karma-cost formula (Force x 8 base, then Karma for extra
+//   powers/skills/spells) - a new subsystem, not a catalog addition.
+// - Bound Tasks / Task Points: an expanded binding mechanic (spend Task
+//   Points on Alternate Control, Autonomy, Edge Access, etc.) that would
+//   apply to every spirit type, old and new alike - a separate enhancement
+//   to the bind/track UI, not part of the catalog itself.
+// - Great Form Spirits: one paragraph pointing at the Invocation
+//   metamagic, which isn't implemented (metamagics are an existing,
+//   separately-tracked gap - see initiation_submersion memory).
+// All confirmed candidates for a future pass, not overlooked.
 //
 // "Spirits' stats are based on their Force... A spirit's attribute cannot
 // be lower than one, even if the adjustment listed would make it so. Any
@@ -9,11 +30,14 @@
 // `attributeMods` below are printed as F+/-N, resolved at a chosen Force by
 // deriveSpirits.ts (floor of 1 applied there, not baked in here).
 //
-// Condition Monitor is printed identically for all six types as "(F/2)+8"
-// - not stored per-entry since it's a shared formula, computed in
-// deriveSpirits.ts. Astral Initiative is likewise identical for all six
-// ("(F x 2) + 3D6") but is still stored per-entry for literal-transcription
-// clarity rather than assumed.
+// Condition Monitor is printed identically for the core six as "(F/2)+8" -
+// not stored per-entry since it's a shared default formula, computed in
+// deriveSpirits.ts. A few Street Wyrd types print a different CM formula
+// entirely (see ConditionMonitorOverride below) - Guidance Spirits happen
+// to match the shared default, so it needs no override. Astral Initiative
+// is likewise identical across every type so far ("(F x 2) + 3D6") but is
+// still stored per-entry for literal-transcription clarity rather than
+// assumed.
 //
 // "AC: A#, I#" (the book's per-type action-count shorthand) is kept as
 // literal reference text rather than mechanically interpreted, same
@@ -61,14 +85,35 @@ export interface SpiritPowerRef {
   note?: string;
 }
 
+/**
+ * Overrides the default Condition Monitor formula, "(Force/2, rounded up) +
+ * 8" - present only for the handful of Street Wyrd spirit types whose
+ * printed CM doesn't fit that shape (e.g. Plant Spirits' "(Body/2, rounded
+ * up) + 8", Guardian Spirits' "([Force+1]/2, rounded up) + 8", Task
+ * Spirits' unusually generous "(Force x 2) + 8"). `base` is the resolved
+ * attribute the formula operates on; `preOffset` is added to it first;
+ * `operation` is "half" (ceil, matching the core six's rounding) or
+ * "double". Transcribed as printed, not "corrected" to match the core
+ * six's shared formula - see deriveSpirits.ts's spiritConditionMonitor().
+ */
+export interface ConditionMonitorOverride {
+  base: "force" | keyof SpiritAttributeMods;
+  preOffset?: number;
+  operation: "half" | "double";
+  offset: number;
+}
+
 export interface SpiritCatalogEntry {
   id: string;
   name: string;
   book: string;
   summary: string;
   attributeMods: SpiritAttributeMods;
-  /** Defense Rating = Force + this modifier. */
+  /** Defense Rating = (Force x defenseRatingMultiplier) + defenseRatingMod. */
   defenseRatingMod: number;
+  /** Defaults to 1 (a flat Force+mod formula, true of every core-rulebook spirit) - only set above 1 for the rare Street Wyrd type that doesn't fit that shape (Guardian Spirits' "(F x 2) + 1", p. 55). */
+  defenseRatingMultiplier?: number;
+  conditionMonitorOverride?: ConditionMonitorOverride;
   /** Initiative formula with "F" as a literal Force placeholder, e.g. "[(F x 2) + 4] + 2D6". */
   initiative: string;
   astralInitiative: string;
@@ -88,6 +133,7 @@ export interface SpiritCatalogEntry {
 }
 
 const CORE = "Core Rulebook";
+const STREET_WYRD = "Street Wyrd";
 
 export const spirits: SpiritCatalogEntry[] = [
   {
@@ -293,5 +339,143 @@ export const spirits: SpiritCatalogEntry[] = [
       "Elemental Attack [DV (F)P, Attack Ratings (F x 2)/(F x 2)-2/(F x 2)-8/(F x 2)-10/-]",
       "Engulf [DV (F+2)S + Fatigue I, Attack Ratings (F x 2)+1/-/-/-/-]",
     ],
+  },
+
+  // --- Street Wyrd, "A Congress of Spirits" (book pp. 55-56) ---
+  {
+    id: "spirit-plant",
+    name: "Spirit of Plants",
+    book: STREET_WYRD,
+    summary: "A flora spirit - from thorn-covered humanoids to Venus-flytrap-headed vine creatures.",
+    attributeMods: { body: 2, agility: -1, reaction: 0, strength: 1, willpower: 0, logic: -1, intuition: 0, charisma: 0 },
+    defenseRatingMod: 2,
+    conditionMonitorOverride: { base: "body", operation: "half", offset: 8 },
+    initiative: "(F x 2) + 2D6",
+    astralInitiative: "(F x 2) + 3D6",
+    actionsNote: "A1, I3",
+    movement: "10/15/+1",
+    skills: ["Astral", "Close Combat", "Exotic Ranged Weapon", "Perception", "Spellcasting"],
+    fixedPowers: [
+      { powerId: "power-astral-form" },
+      { powerId: "power-concealment" },
+      { powerId: "power-engulf" },
+      { powerId: "power-fear" },
+      { powerId: "power-guard" },
+      { powerId: "power-magical-guard" },
+      { powerId: "power-materialization" },
+      { powerId: "power-sapience" },
+      { powerId: "power-silence" },
+    ],
+    optionalPowers: [
+      { powerId: "power-accident" },
+      { powerId: "power-confusion" },
+      { powerId: "power-movement" },
+      { powerId: "power-noxious-breath" },
+      { powerId: "power-search" },
+    ],
+    weaknesses: [],
+    attacks: ["Engulf [DV (F)P, Attack Ratings (F x 3)/-/-/-/-]"],
+  },
+  {
+    id: "spirit-guardian",
+    name: "Spirit of Guardians",
+    book: STREET_WYRD,
+    summary: "A protector spirit - avenging angels, Zulu warriors, and every shape between - bound by a warrior's code.",
+    attributeMods: { body: 1, agility: 2, reaction: 3, strength: 2, willpower: 0, logic: 0, intuition: 0, charisma: 0 },
+    defenseRatingMod: 1,
+    defenseRatingMultiplier: 2,
+    conditionMonitorOverride: { base: "force", preOffset: 1, operation: "half", offset: 8 },
+    initiative: "[(F x 2) + 3] + 2D6",
+    astralInitiative: "(F x 2) + 3D6",
+    actionsNote: "A1, I4",
+    movement: "10/15/+1",
+    skills: ["Astral", "Close Combat", "Exotic Ranged Weapon", "Perception"],
+    fixedPowers: [
+      { powerId: "power-astral-form" },
+      { powerId: "power-fear" },
+      { powerId: "power-guard" },
+      { powerId: "power-magical-guard" },
+      { powerId: "power-materialization" },
+      { powerId: "power-movement" },
+      { powerId: "power-sapience" },
+    ],
+    optionalPowers: [
+      { powerId: "power-animal-control" },
+      { powerId: "power-concealment" },
+      { powerId: "power-elemental-attack", note: "conjuror chooses element during summoning" },
+      { powerId: "power-natural-weapon" },
+      { powerId: "power-psychokinesis" },
+      { powerId: "power-skill-specialization", note: "choose any Close Combat skill specialization" },
+    ],
+    weaknesses: [],
+    attacks: ["Optional Natural Weapon [Close Combat, DV [(F/2)+1]P, Attack Ratings (F x 2)/-/-/-/-]"],
+  },
+  {
+    id: "spirit-guidance",
+    name: "Spirit of Guidance",
+    book: STREET_WYRD,
+    summary: "A wise-sage spirit summoned for advice rather than service - the quality of counsel scales with the conjurer's Astral Reputation.",
+    attributeMods: { body: 3, agility: -1, reaction: 2, strength: 1, willpower: 0, logic: 0, intuition: 0, charisma: 0 },
+    defenseRatingMod: 3,
+    initiative: "[(F x 2) + 2] + 2D6",
+    astralInitiative: "(F x 2) + 3D6",
+    actionsNote: "A1, I3",
+    movement: "10/15/+1",
+    skills: ["Astral", "Close Combat", "Perception", "Spellcasting"],
+    fixedPowers: [
+      { powerId: "power-astral-form" },
+      { powerId: "power-confusion" },
+      { powerId: "power-divining" },
+      { powerId: "power-guard" },
+      { powerId: "power-magical-guard" },
+      { powerId: "power-materialization" },
+      { powerId: "power-sapience" },
+      { powerId: "power-search" },
+      { powerId: "power-shadow-cloak" },
+    ],
+    optionalPowers: [
+      { powerId: "power-engulf" },
+      { powerId: "power-enhanced-senses", note: "Hearing, Low-Light Vision, Thermographic Vision, or Smell" },
+      { powerId: "power-fear" },
+      { powerId: "power-influence" },
+    ],
+    weaknesses: [],
+    attacks: [],
+  },
+  {
+    id: "spirit-task",
+    name: "Spirit of Task",
+    book: STREET_WYRD,
+    summary: "A willing-worker spirit skilled in a specific trade - summon the wrong specialist and they can't help with a job outside their craft.",
+    attributeMods: { body: 0, agility: 0, reaction: 2, strength: 2, willpower: 0, logic: 0, intuition: 0, charisma: 0 },
+    defenseRatingMod: 0,
+    conditionMonitorOverride: { base: "force", operation: "double", offset: 8 },
+    initiative: "[(F x 2) + 2] + 2D6",
+    astralInitiative: "(F x 2) + 3D6",
+    actionsNote: "A1, I3",
+    movement: "10/15/+1",
+    skills: ["Astral", "Close Combat", "Perception"],
+    fixedPowers: [
+      { powerId: "power-accident" },
+      { powerId: "power-astral-form" },
+      { powerId: "power-binding" },
+      { powerId: "power-materialization" },
+      { powerId: "power-movement" },
+      { powerId: "power-sapience" },
+      { powerId: "power-search" },
+      {
+        powerId: "power-skill",
+        note: "choose one from Biotech, Electronics, Engineering, Outdoors, or Piloting and a Specialization in the chosen skill as well as an appropriate Knowledge Skill",
+      },
+    ],
+    optionalPowers: [
+      { powerId: "power-concealment" },
+      { powerId: "power-enhanced-senses", note: "Hearing, Low-Light Vision, Thermographic Vision, or Smell" },
+      { powerId: "power-influence" },
+      { powerId: "power-psychokinesis" },
+      { powerId: "power-skill", note: "choose an additional skillset as above" },
+    ],
+    weaknesses: [],
+    attacks: [],
   },
 ];

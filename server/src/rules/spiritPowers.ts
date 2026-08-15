@@ -1,27 +1,37 @@
 // Critter/Spirit Powers glossary - core rulebook "Wild Life" chapter,
-// "Powers" section, book pp. 221-229 (SR6_Core_RuleBook_noimg.pdf). Every
-// spirit type in spirits.ts references these by name for its fixed and
-// optional powers; this file is what actually explains what each one does,
-// transcribed directly from the book (paraphrased into our own words for
-// flavor, mechanics/numbers transcribed as printed).
+// "Powers" section, book pp. 221-229 (SR6_Core_RuleBook_noimg.pdf), plus
+// Street Wyrd's "A Congress of Spirits" chapter, "Spirit Powers" section,
+// pp. 66-71 (Street_Wyrd__Magic_Sourebook__noimg.pdf). Every spirit type in
+// spirits.ts references these by name for its fixed and optional powers;
+// this file is what actually explains what each one does, transcribed
+// directly from the book (paraphrased into our own words for flavor,
+// mechanics/numbers transcribed as printed).
 //
-// Only the entries actually used by the six core-rulebook spirit types are
-// included here (spirits.ts's fixed/optional power lists) - the full
-// glossary also covers non-spirit critter powers (Armor, Dual Natured,
-// Regeneration, Mist Form, Petrification, etc.) not referenced by any
-// spirit, left out rather than padded in for completeness.
+// Only the entries actually used by a spirit type in spirits.ts are
+// included here - the full glossaries also cover non-spirit critter powers
+// (Armor, Dual Natured, Mist Form, Petrification, etc.) and powers Street
+// Wyrd tags "(Free)"/"(Great)" (only available to free spirits or Great
+// Form spirits - Astral Gateway, Astral Projection, Aura Masking,
+// Endowment, Energy Drain, Hidden Life, Mutable Form, Personal Domain,
+// Quake, Regeneration, Storm, Temporal Displacement, Vessel Trading,
+// Wealth, etc.), neither referenced by any spirit type this app's catalog
+// currently supports - left out rather than padded in for completeness.
+// One exception: Divining is tagged "(Free, Great)" in Street Wyrd's own
+// glossary header, yet Guidance Spirits' printed stat block lists it as a
+// plain fixed power anyway - transcribed as printed, not "corrected".
 //
 // Type/Action/Range/Duration follow the book's own legend (p. 221):
 // Type M (mana - no effect on nonliving targets) or P (physical - unusable
 // in astral space or against astral forms); Action is Minor/Major/Auto
-// (Auto = always on, no action needed); Range is LOS/Touch/Self; Duration
-// is Instant/Sustained/Always/Special.
+// (Auto = always on, no action needed) or, for a couple of Street Wyrd
+// powers, "Special" (the power's own text spells out what's needed); Range
+// is LOS/Touch/Self; Duration is Instant/Sustained/Always/Special.
 
 export interface SpiritPowerEntry {
   id: string;
   name: string;
   type: "M" | "P";
-  action: "Minor" | "Major" | "Auto";
+  action: "Minor" | "Major" | "Auto" | "Special";
   range: "LOS" | "Touch" | "Self" | "Special" | "Varies" | "As spell";
   duration: "Instant" | "Sustained" | "Always" | "Special";
   /** Mechanical effect text, paraphrased from the book with numbers transcribed as printed. "F"/"Force" refers to the spirit's Force. */
@@ -258,5 +268,65 @@ export const spiritPowers: SpiritPowerEntry[] = [
     duration: "Sustained",
     summary:
       "Manipulates local weather within reason (must be realistically possible for the environment), building up to full effect over a Magic + Willpower (10, 30 minutes) Extended Test. Summons/redirects existing conditions (e.g. can call up a thunderstorm) rather than creating precise effects (can't aim lightning bolts).",
+  },
+
+  // --- Street Wyrd, "A Congress of Spirits" (book pp. 66-71) ---
+  {
+    id: "power-divining",
+    name: "Divining",
+    type: "M",
+    action: "Special",
+    range: "Self",
+    duration: "Special",
+    summary: "Functions like the Divination metamagic (core rulebook p. 117), except the spirit uses Magic + Intuition.",
+  },
+  {
+    id: "power-magical-guard",
+    name: "Magical Guard",
+    type: "M",
+    action: "Special",
+    range: "LOS",
+    duration: "Instant",
+    summary: "Lets the spirit use the Boosted Defense aspect of Counterspelling (core rulebook p. 143) to provide spell defense.",
+  },
+  {
+    id: "power-shadow-cloak",
+    name: "Shadow Cloak",
+    type: "P",
+    action: "Minor",
+    range: "Special",
+    duration: "Sustained",
+    summary:
+      "Envelops the spirit in darkness. In any lighting except broad daylight, grants a point of Edge in combat, stealth, or social situations; in low-light conditions, also grants the Invisible (Force/2) status.",
+  },
+  {
+    id: "power-silence",
+    name: "Silence",
+    type: "P",
+    action: "Major",
+    range: "Special",
+    duration: "Sustained",
+    summary:
+      "Surrounds the spirit in a sphere of silence with a radius equal to its Magic in meters - sounds from within are muffled, and sounds entering the area are harder to hear. Creates the Silent (Force/2) status.",
+  },
+  {
+    id: "power-skill",
+    name: "Skill",
+    type: "P",
+    action: "Auto",
+    range: "Self",
+    duration: "Always",
+    summary:
+      "Grants a specific active skill (plus, per the spirit's own entry, sometimes a Specialization and/or a matching Knowledge skill) at a rank equal to the spirit's Force - the exact skill choices are spelled out on the spirit type that carries this power (e.g. Task Spirits choose one of Biotech, Electronics, Engineering, Outdoors, or Piloting).",
+  },
+  {
+    id: "power-skill-specialization",
+    name: "Skill Specialization",
+    type: "P",
+    action: "Auto",
+    range: "Self",
+    duration: "Always",
+    summary:
+      "Grants a specialization in a skill the spirit already has - the allowed choices are spelled out on the spirit type that carries this power (e.g. Guardian Spirits may choose any Close Combat skill specialization).",
   },
 ];
