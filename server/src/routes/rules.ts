@@ -25,6 +25,7 @@ import { coreNpcTemplates } from "../rules/npcTemplates.js";
 import { coreCritterTemplates } from "../rules/critters.js";
 import { bodyShopCritterTemplates } from "../rules/bodyShopCritters.js";
 import { hackAndSlashCritterTemplates } from "../rules/hackAndSlashCritters.js";
+import { hackAndSlashSecurityTemplates } from "../rules/hackAndSlashSecurity.js";
 import { spirits } from "../rules/spirits.js";
 import { spiritPowers } from "../rules/spiritPowers.js";
 
@@ -80,7 +81,13 @@ rulesRouter.get("/complex-forms", (_req, res) => {
 
 rulesRouter.get("/npc-templates", (_req, res) => {
   res.json({
-    npcTemplates: [...coreNpcTemplates, ...coreCritterTemplates, ...bodyShopCritterTemplates, ...hackAndSlashCritterTemplates],
+    npcTemplates: [
+      ...coreNpcTemplates,
+      ...coreCritterTemplates,
+      ...bodyShopCritterTemplates,
+      ...hackAndSlashCritterTemplates,
+      ...hackAndSlashSecurityTemplates,
+    ],
   });
 });
 
