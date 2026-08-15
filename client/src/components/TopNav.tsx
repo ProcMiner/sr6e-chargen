@@ -52,7 +52,7 @@ export function TopNav() {
               "SR6e CharGen Feature Request or Bug"
             )}&body=${encodeURIComponent("Please include a screenshot and a brief description of the problem or request.")}`}
           >
-            Feature Request
+            Feature Request/Bug
           </a>
         </div>
         <div className="top-nav-user">
