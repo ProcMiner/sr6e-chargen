@@ -24,6 +24,7 @@ import { AdeptPowerPicker } from "./AdeptPowerPicker/AdeptPowerPicker";
 import { LifestylePicker } from "./LifestylePicker/LifestylePicker";
 import { ComplexFormPicker } from "./ComplexFormPicker/ComplexFormPicker";
 import { LivingPersonaPanel } from "./LivingPersonaPanel/LivingPersonaPanel";
+import { DeckerPersonaPanel } from "./DeckerPersonaPanel/DeckerPersonaPanel";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
@@ -192,6 +193,7 @@ export function BuilderRoot() {
             }
             extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
           />
+          <DeckerPersonaPanel data={data} gearRules={gearRules} onChange={setData} />
         </div>
         <aside className="builder-sidebar">
           <SummarySheet
@@ -202,6 +204,7 @@ export function BuilderRoot() {
             priorityRules={priorityRules}
             adeptPowerRules={adeptPowerRules}
             complexFormRules={complexFormRules}
+            gearRules={gearRules}
           />
         </aside>
       </div>

@@ -10,6 +10,7 @@ import { currentEssence, effectiveMagic, effectiveResonance } from "../../derive
 import type {
   AdeptPowerRulesResponse,
   ComplexFormRulesResponse,
+  GearRulesResponse,
   MetatypeAttributes,
   PriorityRulesResponse,
   QualityRulesResponse,
@@ -25,6 +26,13 @@ import {
   MATRIX_ATTRIBUTE_LABELS,
   livingPersonaAttribute,
 } from "../../deriveLivingPersona";
+import {
+  deckerAllocation,
+  deckerAttackRating,
+  deckerAttribute,
+  deckerDefenseRating,
+  matrixDevices,
+} from "../../deriveDeckerPersona";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -51,6 +59,7 @@ interface Props {
   priorityRules: PriorityRulesResponse;
   adeptPowerRules: AdeptPowerRulesResponse;
   complexFormRules: ComplexFormRulesResponse;
+  gearRules: GearRulesResponse;
 }
 
 export function SummarySheet({
@@ -61,6 +70,7 @@ export function SummarySheet({
   priorityRules,
   adeptPowerRules,
   complexFormRules,
+  gearRules,
 }: Props) {
   const spellKarma = spellKarmaCost(data, priorityRules);
   const spellsFree = freeSpellAllotment(data, priorityRules);
@@ -291,6 +301,28 @@ export function SummarySheet({
                 <dd>{livingPersonaAttribute(data, key)}</dd>
               </div>
             ))}
+          </dl>
+        </section>
+      )}
+
+      {matrixDevices(data, gearRules).length > 0 && (
+        <section>
+          <h3>Decker Persona</h3>
+          <dl className="attribute-grid">
+            {MATRIX_ATTRIBUTE_KEYS.map((key) => (
+              <div key={key}>
+                <dt>{MATRIX_ATTRIBUTE_LABELS[key]}</dt>
+                <dd>{deckerAttribute(deckerAllocation(data), key)}</dd>
+              </div>
+            ))}
+            <div>
+              <dt>Attack Rating</dt>
+              <dd>{deckerAttackRating(deckerAllocation(data))}</dd>
+            </div>
+            <div>
+              <dt>Defense Rating</dt>
+              <dd>{deckerDefenseRating(deckerAllocation(data))}</dd>
+            </div>
           </dl>
         </section>
       )}

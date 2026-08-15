@@ -17,6 +17,7 @@ import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Spirits } from "./Spirits";
 import { Astral } from "./Astral";
+import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 
 const COMMON_STATUS_EFFECTS = [
@@ -396,6 +397,12 @@ export function LivePlay() {
       <section>
         <Astral data={characterData} />
       </section>
+
+      {gearRules && (
+        <section>
+          <Matrix data={characterData} gearRules={gearRules} />
+        </section>
+      )}
 
       {gearRules && (
         <section>

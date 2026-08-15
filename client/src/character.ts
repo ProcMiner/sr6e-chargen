@@ -175,6 +175,25 @@ export interface LivingPersonaAllocation {
 }
 
 /**
+ * A decker's assignment of their owned devices' printed Matrix-attribute
+ * numbers (cyberdeck Attack/Sleaze, commlink/cyberjack Data
+ * Processing/Firewall) across the four named slots - core rulebook p.174,
+ * 178: "You can rotate any non-zero attributes through your persona, even
+ * if they originated from different devices," confirmed by the
+ * Slamm-0!/Jack worked example reassigning a 4/3 cyberdeck's numbers from
+ * Attack/Sleaze to Sleaze/Attack. Each field holds the raw value assigned
+ * (not an index), validated against the available pool in
+ * deriveDeckerPersona.ts rather than here. Meaningless for technomancers,
+ * who use LivingPersonaAllocation instead.
+ */
+export interface DeckerPersonaAllocation {
+  attack?: number;
+  sleaze?: number;
+  dataProcessing?: number;
+  firewall?: number;
+}
+
+/**
  * One post-chargen ("career mode") Karma purchase raising an attribute or
  * skill by one rating - core rulebook "Improvement Cost" table, p. 71.
  * Itemized rather than a running total so the total Karma spent can always
@@ -277,6 +296,8 @@ export interface CharacterData {
   complexForms: ComplexFormLine[];
   /** Living Persona Matrix-attribute bonus distribution (see deriveLivingPersona.ts). Meaningful only for Technomancer characters. */
   livingPersonaAllocation?: LivingPersonaAllocation;
+  /** A decker's Matrix-attribute assignment from their owned devices (see deriveDeckerPersona.ts). Meaningless for Technomancers, who use livingPersonaAllocation instead. */
+  deckerPersonaAllocation?: DeckerPersonaAllocation;
   /**
    * The attribute that pairs with Magic for a magically active character's
    * tradition - "Logic for hermetic mages, Charisma for shamans" (core
