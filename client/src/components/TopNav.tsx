@@ -47,7 +47,13 @@ export function TopNav() {
           <a href="/release-notes.html" target="_blank" rel="noopener noreferrer">
             Release Notes
           </a>
-          <a href="mailto:dungeonmanager@gmail.com?subject=SR6e%20CharGen%20feature%20request">Feature Request</a>
+          <a
+            href={`mailto:dungeonmanager@gmail.com?subject=${encodeURIComponent(
+              "SR6e CharGen Feature Request or Bug"
+            )}&body=${encodeURIComponent("Please include a screenshot and a brief description of the problem or request.")}`}
+          >
+            Feature Request
+          </a>
         </div>
         <div className="top-nav-user">
           <span>{user?.username}</span>
