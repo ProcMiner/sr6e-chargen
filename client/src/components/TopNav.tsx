@@ -43,6 +43,14 @@ export function TopNav() {
             </Link>
           ))}
         </div>
+        <div className="top-nav-links">
+          <a href="/release-notes.html" target="_blank" rel="noopener noreferrer">
+            Release Notes
+          </a>
+          <a href="https://github.com/ProcMiner/sr6e-chargen/issues/new" target="_blank" rel="noopener noreferrer">
+            Feature Request
+          </a>
+        </div>
         <div className="top-nav-user">
           <span>{user?.username}</span>
           <button onClick={() => logout()}>Log out</button>

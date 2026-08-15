@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SR6e CharGen — Release Notes</title>
+<style>
+  :root {
+    --bg: #f1f1ee;
+    --surface: #ffffff;
+    --surface-2: #e7e7e3;
+    --border: #d4d3cc;
+    --text: #23262b;
+    --text-dim: #5b5f66;
+    --text-faint: #8a8d93;
+    --accent: #2f7488;
+    --accent-soft: #e4eef0;
+    --new: #2f7a52;
+    --new-bg: #e3f1e8;
+    --fix: #a5730a;
+    --fix-bg: #f7ecd8;
+    --rule: #cfced6;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b;
+      --surface: #1b1e23;
+      --surface-2: #22262c;
+      --border: #2c3038;
+      --text: #e7e5df;
+      --text-dim: #a3a29b;
+      --text-faint: #71747c;
+      --accent: #6fb3c9;
+      --accent-soft: #1c3339;
+      --new: #6fbf94;
+      --new-bg: #17301f;
+      --fix: #dab35b;
+      --fix-bg: #332a12;
+      --rule: #33363e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b; --surface: #1b1e23; --surface-2: #22262c; --border: #2c3038;
+    --text: #e7e5df; --text-dim: #a3a29b; --text-faint: #71747c;
+    --accent: #6fb3c9; --accent-soft: #1c3339;
+    --new: #6fbf94; --new-bg: #17301f;
+    --fix: #dab35b; --fix-bg: #332a12; --rule: #33363e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f1ee; --surface: #ffffff; --surface-2: #e7e7e3; --border: #d4d3cc;
+    --text: #23262b; --text-dim: #5b5f66; --text-faint: #8a8d93;
+    --accent: #2f7488; --accent-soft: #e4eef0;
+    --new: #2f7a52; --new-bg: #e3f1e8;
+    --fix: #a5730a; --fix-bg: #f7ecd8; --rule: #cfced6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 3rem) 4rem;
+  }
+
+  header.masthead {
+    padding: 3.5rem 0 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    margin: 0.4rem 0 0.6rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    color: var(--text-dim);
+    max-width: 62ch;
+    font-size: 1rem;
+    margin: 0;
+  }
+  .also {
+    margin-top: 1rem;
+    font-size: 0.86rem;
+    color: var(--text-faint);
+  }
+  .also a { color: var(--accent); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    padding: 0.8rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin: 1.6rem 0 0;
+    font-size: 0.82rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.45rem; color: var(--text-dim); }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.14rem 0.45rem;
+    border-radius: 2px;
+    flex: none;
+    white-space: nowrap;
+  }
+  .tag-new { color: var(--new); background: var(--new-bg); }
+  .tag-fix { color: var(--fix); background: var(--fix-bg); }
+
+  .release {
+    margin: 2.6rem 0;
+  }
+  .release-date {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .release-date h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.35rem;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .release-date .rel {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--text-faint);
+  }
+
+  ul.entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+  li.entry {
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 0.9rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+  }
+  .entry-tag { padding-top: 0.15rem; }
+  .entry-title { font-weight: 600; }
+  .entry-body { color: var(--text-dim); font-size: 0.88rem; margin-top: 0.15rem; }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 1.6rem 0 3rem;
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 560px) {
+    li.entry { grid-template-columns: 1fr; }
+    .entry-tag { padding-top: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">SR6e CharGen</div>
+    <h1 class="title">Release Notes</h1>
+    <p class="dek">What's shipped, in the order it shipped — newest first. This is a hobby project built for a small group of friends, so "releases" just means "pushed to the live site," not a formal version scheme.</p>
+    <p class="also">Curious what's implemented from the rulebook vs. not yet? See <a href="/rules-coverage.html">Rules Coverage</a>.</p>
+    <div class="legend">
+      <span class="legend-item"><span class="tag tag-new">New</span> a feature or content addition</span>
+      <span class="legend-item"><span class="tag tag-fix">Fix</span> a bug fix or correction</span>
+    </div>
+  </header>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 14, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Skill Specializations &amp; Expertise</div>
+        <div class="entry-body">Buy a specialization on a skill (one per skill point at character creation, or 5 Karma during play), upgrade it to an Expertise once the skill hits rank 5, then add a second specialization on top - matches the book's rules exactly, including the two build systems' genuinely different chargen caps.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Skill Karma cost was wrong</div>
+        <div class="entry-body">Raising a skill during play was charging new-rank×2 Karma; the book prices it the same as attributes, new-rank×5. Corrected - if you'd already raised a skill under the old price, that purchase is left alone, only future ones use the right number.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Rules Coverage page</div>
+        <div class="entry-body">A standing reference cross-checking the core rulebook's table of contents against what this app actually implements - what's done, what's partial, what's not built yet, and why.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Conjuring: summon, bind, and track spirits</div>
+        <div class="entry-body">All six core spirit types (Air, Beasts, Earth, Fire, Kin, Water), each with Force-scaled stats computed live, plus a glossary of every power a spirit can carry. Track services owed and Condition Monitor damage while a spirit is bound.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Initiation &amp; Submersion Grade tracking</div>
+        <div class="entry-body">Raise your Initiate or Submersion Grade during play at the book's real Karma cost, which lifts Magic or Resonance's natural maximum - unlocking further Magic/Resonance advancement that was previously capped.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">In-play Karma advancement</div>
+        <div class="entry-body">Once a character is marked In Play: log Karma and Nuyen earned from a run, spend Karma to raise attributes and skills, and pick up new gear either bought with earned nuyen or looted for free - all itemized with an undo.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 13, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Critters added to NPC import</div>
+        <div class="entry-body">18 more stat blocks (mundane and Awakened critters, dragons) importable straight into the GM's NPC roster.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Life Path boost pickers weren't working</div>
+        <div class="entry-body">Modules like Shadowrunner and Harsh Truth grant "+1 to any attribute or skill," but the picker for that choice was rendering as dead text with no way to actually choose. Fixed.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">NPC stat blocks added to import</div>
+        <div class="entry-body">21 Core Rulebook Grunt and Prime Runner stat blocks, one click to drop into the roster.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">GM-only NPC roster</div>
+        <div class="entry-body">A GM's Bar library for tracking NPCs with live damage, separate from player characters.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Persistent top tab bar</div>
+        <div class="entry-body">Character Vault / In Play / GM's Bar, always visible - and the character picker for In Play that goes with it.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Cyberware/bioware/adept powers boost derived stats</div>
+        <div class="entry-body">Reaction, Initiative Dice, and Armor now update automatically from gear and powers that grant them, instead of only reflecting raw attributes.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 12, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Character sheet PDF export</div>
+        <div class="entry-body">Fills the official Genesis character sheet template (pages 1-2) straight from your build.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Technomancer support</div>
+        <div class="entry-body">Complex Forms catalog (Core + Hack &amp; Slash), Living Persona Matrix-attribute calculation, and the Resonant Stream quality.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Lifestyle purchasing</div>
+        <div class="entry-body">Buy any of the six core rulebook lifestyle tiers against earned nuyen.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 8, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Metavariants</div>
+        <div class="entry-body">20 metavariants across the 5 base metatypes (Sixth World Companion) - selectable as an optional override with their own attribute ranges and Karma cost.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 6, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Number inputs jumping to max on iPad</div>
+        <div class="entry-body">Tapping into an attribute/skill field on iPad Safari would select nothing, so typing a digit appended instead of replacing - a new value like "13" instead of "3," which then clamped to the max. Fixed for attribute/skill inputs.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Adept Powers catalog</div>
+        <div class="entry-body">67 powers (Core + Street Wyrd), Power Point pool that tracks current effective Magic - correctly handles Mystic Adepts splitting Magic between spells and powers.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Spells catalog</div>
+        <div class="entry-body">140 spells (Core + Street Wyrd), with the correct free-spell allotment and 5-Karma cost for everything beyond it.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">PACK bundle-buying</div>
+        <div class="entry-body">115 curated equipment bundles from the Sixth World Companion, one click to expand into real gear lines.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Drones + Rigger Command Console gear</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">House rule: fund special racial attributes from Adjustment Points</div>
+        <div class="entry-body">Opt-in checkbox so high-Adjustment-Point metatypes (Troll, Ork, Dwarf) don't end up with unspendable leftover points.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Vehicles + Vehicle Upgrades gear</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Magical Equipment gear + Karma bonding</div>
+        <div class="entry-body">Foci, formulae, and magical supplies - foci also cost Karma to bond, tracked against the same shared Karma pool as everything else.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Augmentations gear (cyberware/bioware)</div>
+        <div class="entry-body">125 entries, wired into the new Essence tracking below.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Essence tracking</div>
+        <div class="entry-body">Every character starts at Essence 6.00, derived down by cyberware/bioware, capping Magic and Resonance per the book's formula.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 5, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Electronics &amp; software gear</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Login broken on plain HTTP</div>
+        <div class="entry-body">The session cookie required HTTPS, which silently broke login before a domain/TLS was set up. Fixed for the no-domain-yet deploy.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Live Play could drop your last edit</div>
+        <div class="entry-body">Navigating away quickly after a change could lose it before the debounced save fired. Fixed.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Live-play damage/Edge/status tracking + GM dashboard</div>
+        <div class="entry-body">Track Physical/Stun damage, Edge, and status effects during a session; GMs get a live dashboard of everyone's state.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Gear catalog begins</div>
+        <div class="entry-body">Weapons, Armor, and General/Survival/Security gear - the first chunks of what became a full equipment catalog.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 4, 2026</h2>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Full Life Path module catalog + Adjustment Points</div>
+        <div class="entry-body">All Starting/Choice/Event modules, plus Priority System bug fixes.</div></div>
+      </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Qualities system</div>
+        <div class="entry-body">230 positive and negative qualities across 8 sourcebooks.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="release">
+    <div class="release-date">
+      <h2>August 3, 2026</h2>
+      <span class="rel">First release</span>
+    </div>
+    <ul class="entries">
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">SR6e Character Generator launches</div>
+        <div class="entry-body">Priority System and Life Path (Life Modules) character creation, the two build systems everything since has built on.</div></div>
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    Generated from the project's git history and session notes - dates are when a change was pushed to the live site, not when work on it started.
+  </footer>
+</div>
+</body>
+</html>
