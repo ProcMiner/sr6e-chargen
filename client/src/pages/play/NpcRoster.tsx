@@ -36,15 +36,28 @@ export function NpcRoster() {
   const [importingId, setImportingId] = useState<string | null>(null);
   const [form, setForm] = useState<DetailsForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scrollToId, setScrollToId] = useState<number | null>(null);
 
   function refresh() {
-    api.listNpcs().then(setNpcs);
+    return api.listNpcs().then(setNpcs);
   }
 
-  useEffect(refresh, []);
+  useEffect(() => {
+    refresh();
+  }, []);
   useEffect(() => {
     api.npcTemplates().then((res) => setTemplates(res.npcTemplates));
   }, []);
+
+  // Runs once the newly added NPC's row is actually in the DOM (after the
+  // refresh() that follows create), so the GM lands on it instead of having
+  // to scroll past a possibly-long "Import from book" list to find it.
+  useEffect(() => {
+    if (scrollToId === null) return;
+    const el = document.querySelector(`[data-npc-id="${scrollToId}"]`);
+    el?.scrollIntoView({ behavior: "instant", block: "start" });
+    setScrollToId(null);
+  }, [scrollToId, npcs]);
 
   // Groups in catalog declaration order (a Map preserves insertion order) -
   // each source file already lists its entries in a sensible sequence, so
@@ -62,9 +75,10 @@ export function NpcRoster() {
     setImportingId(template.id);
     try {
       const npc = await api.createNpc(template.name, template.data);
-      refresh();
+      await refresh();
       setSelectedId(npc.id);
       setForm(toForm(npc.data));
+      setScrollToId(npc.id);
     } finally {
       setImportingId(null);
     }
@@ -89,9 +103,10 @@ export function NpcRoster() {
     try {
       const npc = await api.createNpc(newName.trim(), emptyNpcData());
       setNewName("");
-      refresh();
+      await refresh();
       setSelectedId(npc.id);
       setForm(toForm(npc.data));
+      setScrollToId(npc.id);
     } finally {
       setCreating(false);
     }
@@ -194,7 +209,7 @@ export function NpcRoster() {
       {npcs && npcs.length > 0 && (
         <ul className="module-slots">
           {npcs.map((npc) => (
-            <li key={npc.id}>
+            <li key={npc.id} data-npc-id={npc.id}>
               <div className="module-instance">
                 <div className="module-instance-header">
                   <a
@@ -209,6 +224,7 @@ export function NpcRoster() {
                       {npc.data.description ? ` - ${npc.data.description}` : ""}
                     </strong>
                   </a>
+                  <button onClick={() => select(npc)}>{selectedId === npc.id ? "Minimize" : "Expand"}</button>
                   <button className="danger" onClick={() => handleDelete(npc.id)}>
                     Delete
                   </button>
