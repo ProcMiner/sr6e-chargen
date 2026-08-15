@@ -37,6 +37,7 @@ export function NpcRoster() {
   const [form, setForm] = useState<DetailsForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [scrollToId, setScrollToId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
 
   function refresh() {
     return api.listNpcs().then(setNpcs);
@@ -59,17 +60,35 @@ export function NpcRoster() {
     setScrollToId(null);
   }, [scrollToId, npcs]);
 
-  // Groups in catalog declaration order (a Map preserves insertion order) -
-  // each source file already lists its entries in a sensible sequence, so
-  // no extra sort key is needed here.
-  const templatesByGroup = new Map<string, NpcTemplateEntry[]>();
-  for (const template of templates ?? []) {
-    if (!templatesByGroup.has(template.group)) {
-      templatesByGroup.set(template.group, []);
-    }
-    templatesByGroup.get(template.group)!.push(template);
+  const searchTerm = search.trim().toLowerCase();
+  function matchesSearch(template: NpcTemplateEntry) {
+    if (!searchTerm) return true;
+    return (
+      template.name.toLowerCase().includes(searchTerm) ||
+      template.summary.toLowerCase().includes(searchTerm) ||
+      template.group.toLowerCase().includes(searchTerm)
+    );
   }
-  const groups = [...templatesByGroup.keys()];
+
+  // Nested by book then group, both in catalog declaration order (a Map
+  // preserves insertion order) - each source file already lists its entries
+  // in a sensible sequence, so no extra sort key is needed here. Splitting
+  // by book first keeps same-named groups from different sourcebooks (e.g.
+  // two different books' "Mundane Critters") from merging together as the
+  // catalog grows past a single book.
+  const templatesByBook = new Map<string, Map<string, NpcTemplateEntry[]>>();
+  for (const template of templates ?? []) {
+    if (!matchesSearch(template)) continue;
+    if (!templatesByBook.has(template.book)) {
+      templatesByBook.set(template.book, new Map());
+    }
+    const byGroup = templatesByBook.get(template.book)!;
+    if (!byGroup.has(template.group)) {
+      byGroup.set(template.group, []);
+    }
+    byGroup.get(template.group)!.push(template);
+  }
+  const books = [...templatesByBook.keys()];
 
   async function handleImport(template: NpcTemplateEntry) {
     setImportingId(template.id);
@@ -179,28 +198,44 @@ export function NpcRoster() {
           Core Rulebook Grunts/Prime Runners (p. 203-211) and Critters (p. 215-220). Adding one creates a new NPC
           pre-filled from the printed stat block, ready to tweak.
         </p>
-        {groups.map((groupName) => (
-          <div key={groupName}>
-            <h4>
-              {groupName} ({templatesByGroup.get(groupName)![0].book})
-            </h4>
-            <ul className="module-slots">
-              {templatesByGroup.get(groupName)!.map((template) => (
-                <li key={template.id}>
-                  <div className="module-instance">
-                    <div className="module-instance-header">
-                      <strong>{template.name}</strong>
-                      <button onClick={() => handleImport(template)} disabled={importingId === template.id}>
-                        {importingId === template.id ? "Adding..." : "Add"}
-                      </button>
-                    </div>
-                    <p className="hint">{template.summary}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+
+        <input
+          type="text"
+          className="picker-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search NPCs and critters by name or description..."
+          aria-label="Search NPC templates"
+        />
+
+        {books.map((book) => (
+          <details key={book} className="quality-section" open={!!searchTerm}>
+            <summary>
+              {book} ({[...templatesByBook.get(book)!.values()].reduce((sum, entries) => sum + entries.length, 0)})
+            </summary>
+            {[...templatesByBook.get(book)!.entries()].map(([groupName, entries]) => (
+              <div key={groupName}>
+                <h4>{groupName}</h4>
+                <ul className="module-slots">
+                  {entries.map((template) => (
+                    <li key={template.id}>
+                      <div className="module-instance">
+                        <div className="module-instance-header">
+                          <strong>{template.name}</strong>
+                          <button onClick={() => handleImport(template)} disabled={importingId === template.id}>
+                            {importingId === template.id ? "Adding..." : "Add"}
+                          </button>
+                        </div>
+                        <p className="hint">{template.summary}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </details>
         ))}
+        {searchTerm && books.length === 0 && <p className="hint">No NPCs or critters match "{search}".</p>}
       </details>
 
       {npcs === null && <p>Loading...</p>}
