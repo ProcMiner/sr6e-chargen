@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SR6e CharGen — Rules Coverage</title>
+<style>
+  :root {
+    --bg: #f1f1ee;
+    --surface: #ffffff;
+    --surface-2: #e7e7e3;
+    --border: #d4d3cc;
+    --text: #23262b;
+    --text-dim: #5b5f66;
+    --text-faint: #8a8d93;
+    --accent: #2f7488;
+    --accent-soft: #e4eef0;
+    --done: #2f7a52;
+    --done-bg: #e3f1e8;
+    --partial: #a5730a;
+    --partial-bg: #f7ecd8;
+    --missing: #ab3f3f;
+    --missing-bg: #f6e7e7;
+    --scope: #6b6f76;
+    --scope-bg: #e9e9e6;
+    --rule: #cfced6;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b;
+      --surface: #1b1e23;
+      --surface-2: #22262c;
+      --border: #2c3038;
+      --text: #e7e5df;
+      --text-dim: #a3a29b;
+      --text-faint: #71747c;
+      --accent: #6fb3c9;
+      --accent-soft: #1c3339;
+      --done: #6fbf94;
+      --done-bg: #17301f;
+      --partial: #dab35b;
+      --partial-bg: #332a12;
+      --missing: #d9827f;
+      --missing-bg: #331b1a;
+      --scope: #8c8f97;
+      --scope-bg: #23262c;
+      --rule: #33363e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b; --surface: #1b1e23; --surface-2: #22262c; --border: #2c3038;
+    --text: #e7e5df; --text-dim: #a3a29b; --text-faint: #71747c;
+    --accent: #6fb3c9; --accent-soft: #1c3339;
+    --done: #6fbf94; --done-bg: #17301f;
+    --partial: #dab35b; --partial-bg: #332a12;
+    --missing: #d9827f; --missing-bg: #331b1a;
+    --scope: #8c8f97; --scope-bg: #23262c; --rule: #33363e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f1ee; --surface: #ffffff; --surface-2: #e7e7e3; --border: #d4d3cc;
+    --text: #23262b; --text-dim: #5b5f66; --text-faint: #8a8d93;
+    --accent: #2f7488; --accent-soft: #e4eef0;
+    --done: #2f7a52; --done-bg: #e3f1e8;
+    --partial: #a5730a; --partial-bg: #f7ecd8;
+    --missing: #ab3f3f; --missing-bg: #f6e7e7;
+    --scope: #6b6f76; --scope-bg: #e9e9e6; --rule: #cfced6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    display: grid;
+    grid-template-columns: 220px minmax(0, 720px);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  header.masthead {
+    grid-column: 1 / -1;
+    padding: 3.5rem 0 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    margin: 0.4rem 0 0.6rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    color: var(--text-dim);
+    max-width: 62ch;
+    font-size: 1rem;
+    margin: 0 0 1.4rem;
+  }
+  .caveat {
+    font-size: 0.86rem;
+    color: var(--text-faint);
+    border-left: 2px solid var(--rule);
+    padding-left: 0.9rem;
+    max-width: 60ch;
+  }
+  .caveat strong { color: var(--text-dim); font-weight: 600; }
+
+  nav.toc {
+    position: sticky;
+    top: 2rem;
+    padding-top: 2.5rem;
+    align-self: start;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  nav.toc .toc-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.6rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: toc;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.28rem 0;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.84rem;
+    border-left: 2px solid transparent;
+    padding-left: 0.6rem;
+    margin-left: -0.62rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); border-left-color: var(--accent); outline: none; }
+  nav.toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    flex: none;
+  }
+
+  main { padding-top: 2.5rem; min-width: 0; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 3rem;
+    font-size: 0.82rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.45rem; color: var(--text-dim); }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.14rem 0.45rem;
+    border-radius: 2px;
+    flex: none;
+    white-space: nowrap;
+  }
+  .status-done { color: var(--done); background: var(--done-bg); }
+  .status-partial { color: var(--partial); background: var(--partial-bg); }
+  .status-missing { color: var(--missing); background: var(--missing-bg); }
+  .status-scope { color: var(--scope); background: var(--scope-bg); }
+
+  section.chapter {
+    margin-bottom: 3.4rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .chapter-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.1rem;
+  }
+  h2.chapter-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .chapter-cite {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .chapter-intro {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin: -0.3rem 0 1.2rem;
+    max-width: 64ch;
+  }
+
+  h3.section-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.98rem;
+    margin: 1.6rem 0 0.6rem;
+    color: var(--text);
+  }
+  h3.section-title:first-of-type { margin-top: 0; }
+
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  li.item {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 0.9rem;
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--rule);
+    align-items: start;
+  }
+  li.item:first-child { border-top: none; }
+  .item-status { padding-top: 0.15rem; }
+  .item-name { font-weight: 600; }
+  .item-cite {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    font-weight: 400;
+    margin-left: 0.4rem;
+  }
+  .item-note { color: var(--text-dim); font-size: 0.87rem; margin-top: 0.15rem; }
+  .item-note code {
+    font-family: var(--font-mono);
+    font-size: 0.83em;
+    background: var(--surface-2);
+    padding: 0.05em 0.35em;
+    border-radius: 2px;
+  }
+
+  .out-of-scope-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--scope);
+    border-radius: 0 3px 3px 0;
+    padding: 1rem 1.2rem;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin-top: 1.6rem;
+  }
+  .out-of-scope-block strong { color: var(--text); }
+
+  footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--rule);
+    padding: 1.6rem 0 3rem;
+    color: var(--text-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+    nav.toc { display: none; }
+    main { padding-top: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">SR6e CharGen — internal reference</div>
+    <h1 class="title">Rules Coverage</h1>
+    <p class="dek">Every character-generator-relevant section of the SR6E core rulebook, in the book's own table-of-contents order, with sourcebook additions folded into the matching heading. Scoped to what a <em>character generator</em> needs to build and manage a PC — not combat/Matrix/rigging action resolution, GM advice, or setting lore, which this app was never meant to simulate.</p>
+    <p class="caveat"><strong>How to read this:</strong> statuses reflect the codebase as of today, checked directly against the source files and, in a few spots, freshly verified rather than assumed from older project notes — two real gaps (Priority-system Knowledge Skills, and Specializations entirely) turned up during this pass that weren't previously documented anywhere.</p>
+  </header>
+
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <ol id="toc-list"></ol>
+  </nav>
+
+  <main>
+    <div class="legend">
+      <span class="legend-item"><span class="status status-done">Done</span> fully implemented</span>
+      <span class="legend-item"><span class="status status-partial">Partial</span> implemented with real gaps</span>
+      <span class="legend-item"><span class="status status-missing">Missing</span> not implemented</span>
+      <span class="legend-item"><span class="status status-scope">Out of scope</span> not a chargen concern</span>
+    </div>
+
+    <section class="chapter" id="metatypes">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Character Metatypes</h2>
+        <span class="chapter-cite">core p. 53</span>
+      </div>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Human, Elf, Dwarf, Ork, Troll</span><span class="item-cite">p. 53–55</span>
+          <div class="item-note">Full attribute ranges + racial qualities, both build systems.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Metavariants</span><span class="item-cite">Companion pp. 91–93</span>
+          <div class="item-note">20 entries across the 5 base metatypes (e.g. Dwarf's Duende/Gnome/Hanuman/Koborokuru/Menehune) — attribute ranges, per-Priority Adjustment Points, Customization Karma cost. Optional override in both builders.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+          <div><span class="item-name">Metasapients</span><span class="item-cite">Companion pp. 91–93</span>
+          <div class="item-note">Centaur, Merrow, Naga, Pixie, Sasquatch — explicitly GM-discretion per the book and need mechanics this app models nowhere (innate Magic, natural weapons, Dual Natured). Confirmed excluded, not overlooked.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="lifestyles">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Lifestyles</h2>
+        <span class="chapter-cite">core p. 56</span>
+      </div>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Street, Squatter, Low, Middle, High, Luxury</span>
+          <div class="item-note">All six flat monthly tiers, purchasable against earned nuyen.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Lifestyle Points (per-category customization)</span><span class="item-cite">Companion</span>
+          <div class="item-note">The Companion's deeper system — trading points across Neighborhood/Security/Comforts/etc. categories — deliberately deferred as its own follow-up chunk.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="character-creation">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Character Creation</h2>
+        <span class="chapter-cite">core p. 58</span>
+      </div>
+      <p class="chapter-intro">The step-by-step build flow itself. "Define Your Role and History" and its narrative prompts (birthplace, upbringing, worldview) have no mechanical output to build, and are the same territory the Life Path system covers structurally — not itemized separately below.</p>
+
+      <h3 class="section-title">Select Character Priorities</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Priority table (Metatype / Attributes / Skill / Magic-Resonance / Resources)</span><span class="item-cite">p. 64–66</span>
+          <div class="item-note">All five columns, all five priority letters.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Adjustment Points</span><span class="item-cite">p. 63</span>
+          <div class="item-note">Spent on Edge, pushing a racial attribute above 6, or boosting Magic/Resonance. Plus an opt-in house rule: fund a special attribute's <em>entire</em> value from Adjustment Points rather than just the portion above 6, since RAW otherwise leaves high-Adjustment metatypes with unspendable leftover points.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Life Path (alternative to Priorities)</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Life Modules</span><span class="item-cite">Companion pp. 30–48</span>
+          <div class="item-note">All 3 Starting modules, all 75 Choice modules A–Z, all 11 Event modules. One source-text gap: Security Guard's Contact Types/Knowledge options aren't in the PDF's extractable text anywhere, flagged rather than guessed at.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Select Qualities, Spend Customization Karma</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Quality picker + shared Karma pool</span><span class="item-cite">p. 66</span>
+          <div class="item-note">6-quality cap, net +20 Karma cap enforced. Same pool spells, gear bonding, metavariant cost, and post-creation advancement all draw from — see Qualities chapter below for the catalog itself.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Buy Gear</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Gear purchasing against earned nuyen</span><span class="item-cite">p. 66</span>
+          <div class="item-note">See the Gear chapter below for the full catalog breakdown.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Finishing Steps</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Contacts</span><span class="item-cite">p. 66</span>
+          <div class="item-note">The <code>Contact {name, connection, loyalty}</code> data shape exists, but there's no UI to spend connection/loyalty points against a contact-points budget. Also blocks Coming of Age's own 1-contact starting grant, which currently isn't tracked anywhere.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Knowledge and Language Skills</span><span class="item-cite">p. 67</span>
+          <div class="item-note">Life Path grants and tracks them via module choices. <strong>Priority System has no equivalent anywhere</strong> — no Logic+Intuition point budget, no picker of any kind. A Priority-built character today has no way to add a single knowledge or language skill in the builder.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Final Calculations</span><span class="item-cite">p. 67</span>
+          <div class="item-note">Physical/Stun Monitor, Initiative, Initiative Dice, Attack Rating, Defense Rating all derived live from attributes/gear/adept powers.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Character Advancement</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Post-creation Karma spend</span><span class="item-cite">p. 68, "Improvement Cost" table p. 71</span>
+          <div class="item-note">Built as an <em>in-play</em> feature, not chargen-time: attributes and skills raised via an itemized, undoable log. <strong>Known bug, fix pending:</strong> the book prices skill increases the same as attributes (new-rating×5 Karma); this app currently charges new-rating×2 for skills, an error from before this app had direct rulebook-PDF access. See Post-Creation Advancement below for the full picture, including Initiation/Submersion.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Specializations</span><span class="item-cite">p. 71, 7 Karma flat</span>
+          <div class="item-note">No specialization mechanic anywhere in the data model, at chargen or in the Advancement feature — not even tracked as free text. A skill can never carry a "+2 to a narrow subset" bonus in this app today.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Priority System power-level variants</span><span class="item-cite">p. 63 sidebar</span>
+          <div class="item-note">Street-level (apply one Priority row lower than chosen) and Prime Runner (double starting Karma to 100) aren't offered anywhere.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="qualities">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Qualities</h2>
+        <span class="chapter-cite">core p. 70</span>
+      </div>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Positive &amp; Negative Qualities catalog</span><span class="item-cite">pp. 70–79</span>
+          <div class="item-note">230 entries spanning 9 sourcebooks: core rulebook, Sixth World Companion, Hack &amp; Slash, Double Clutch, Street Wyrd, Firing Squad, Body Shop, Power Plays, No Future.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Astral Beacon, Scorched</span>
+          <div class="item-note">Two core-rulebook entries skipped — their Karma cost/effect text isn't present in the PDF's extractable text layer anywhere, flagged rather than guessed at.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+          <div><span class="item-name">Quality Paths</span><span class="item-cite">Companion pp. 138–143</span>
+          <div class="item-note">A narrative advancement system layered on qualities, structurally different from a flat purchasable catalog — same treatment as the curated Life Modules subset.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="skills">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Skills</h2>
+        <span class="chapter-cite">core p. 92</span>
+      </div>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Skill list &amp; Primary Linked Attribute</span><span class="item-cite">pp. 92–99</span>
+          <div class="item-note">All 19 SR6e skills (the edition consolidated SR5's long list down to broad skills, run 1–6, one at 7 with Aptitude).</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Specializations</span>
+          <div class="item-note">See Character Advancement above — this is the same gap, at both chargen and in-play.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Knowledge and Language Skills</span><span class="item-cite">pp. 97–99</span>
+          <div class="item-note">See Finishing Steps above — Life Path only.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="magic">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Magic</h2>
+        <span class="chapter-cite">core p. 126</span>
+      </div>
+
+      <h3 class="section-title">Magic Basics</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Traditions, Drain resistance, Magical Lodges (as gear)</span><span class="item-cite">p. 127–129</span>
+          <div class="item-note">Traditions are chosen implicitly via magicOption/awakenedType; Drain formulas referenced throughout Spells/Conjuring; Magical Lodge Materials purchasable as gear.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Spells</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Spell catalog</span><span class="item-cite">pp. 130–142; Street Wyrd pp. 25–43, 51–53</span>
+          <div class="item-note">140 entries (73 core + 67 Street Wyrd). Free allotment = Magic (Priority-table base) ×2 for Priority-built Full/Aspected/Mystic Adept magicians; every spell beyond costs 5 Karma from the shared pool. Life Path gets 0 free — no equivalent grant text exists for it.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Ritual Spellcasting &amp; Rituals</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Rituals</span><span class="item-cite">pp. 143–146 (Circle of Healing, Curse, Prodigal Spell, Ward, Watcher, etc.)</span>
+          <div class="item-note">A structurally different multi-participant, multi-step casting system with its own named catalog — the Magic×2 "spells <em>or</em> rituals" choice is modeled as spells-only.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Conjuring</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Spirits — summon, bind, track</span><span class="item-cite">pp. 146–149</span>
+          <div class="item-note">All six core spirit types (Air, Beasts, Earth, Fire, Kin, Water) with Force-scaled attributes/Defense/Initiative/Condition Monitor/attacks, plus a 23-entry Powers glossary. Built as an in-play feature (bound spirits are session-transient, not permanent build data). Summoning/Banishing dice tests stay reference formulas — this app never simulates dice rolls anywhere.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Street Wyrd's expanded spirit content</span><span class="item-cite">Street Wyrd "A Congress of Spirits," pp. 54–71</span>
+          <div class="item-note">Plant/Guardian/Guidance/Task Spirits, Free Spirits, Ally Spirits, Great Form Spirits — not read yet.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Enchanting</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Foci, Formulae, Reagents, Magical Supplies (as gear)</span><span class="item-cite">pp. 149–155, 294–295</span>
+          <div class="item-note">All 7 focus types, per-focus formulas, reagents — purchasable and Karma-bondable.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Alchemy (Preparations) &amp; Artificing (making foci)</span><span class="item-cite">pp. 149–153</span>
+          <div class="item-note">The crafting <em>processes</em> — not modeled, consistent with this app treating all gear as bought outright rather than simulating any crafting system, magical or otherwise.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Adepts</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Power Points &amp; Adept Powers catalog</span><span class="item-cite">pp. 156–158; Street Wyrd pp. 77–84</span>
+          <div class="item-note">67 entries (23 core + 44 Street Wyrd). Power Point pool tracks <em>current effective</em> Magic (Essence-capped), not a frozen base — matches the book's "gain/lose a point with Magic" text exactly.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Adept Ways and Their Benefits</span><span class="item-cite">Street Wyrd pp. 76–77</span>
+          <div class="item-note">Modeled as a single lightweight quality (pick your Way via notes, effect text points to the book) rather than mechanically simulating each of the 9 Ways.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Adept Metamagics</span><span class="item-cite">Street Wyrd pp. 84–85 (Animal Attunement, Astral Projection, Finding Your Way, Infusion, Item Attunement, Virtuoso)</span>
+          <div class="item-note">Require Initiation — see Initiation &amp; Metamagics below.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Mystic Adepts &amp; Aspected Magicians</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Magic split between spells and Power Points</span><span class="item-cite">pp. 158–159</span>
+          <div class="item-note">Mystic Adepts get a dedicated allocation field; free-spell allotment correctly computes off the mage-dedicated remainder, not full Magic.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">The Astral Plane</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Assensing, Astral Projection, Astral Combat, Astral Tracking, Mana Barriers</span><span class="item-cite">pp. 159–161</span>
+          <div class="item-note">Only the pieces needed elsewhere exist: an Astral Initiative formula (used by Spirits) and "Astral Perception" as a purchasable Adept Power. No actual astral-plane mechanics are simulated.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Mentor Spirits</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Mentor Spirit quality</span><span class="item-cite">pp. 162–166</span>
+          <div class="item-note">Purchasable as a single quality (choose your mentor via notes); the specific bonus/tenet text for each of the printed archetypes isn't individually modeled, effect text points to the book.</div></div>
+        </li>
+      </ul>
+
+      <h3 class="section-title">Initiation &amp; Metamagics</h3>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Initiate Grade</span><span class="item-cite">p. 166</span>
+          <div class="item-note">In-play feature: 10+desired-grade Karma cost (confirmed from the book, not guessed), gated on Magic rating, raises Magic's natural maximum.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Metamagics catalog</span><span class="item-cite">p. 167</span>
+          <div class="item-note">Grade purchase takes a freeform metamagic name today (same "pick via notes" precedent as Mentor Spirits); the named metamagics themselves (Centering, Masking, Flexible Signature, etc.) aren't a real catalog with mechanical effects yet.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Initiation/Submersion at chargen ("experienced" character creation)</span>
+          <div class="item-note">Grade tracking only exists in-play; nothing lets a new character start with a Grade already earned.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="matrix">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Matrix — Technomancers</h2>
+        <span class="chapter-cite">core p. 187</span>
+      </div>
+      <p class="chapter-intro">Only the Technomancer build content is in scope here — Matrix Actions, Hosts, IC, and Programs are hacking-action resolution rules for the whole party (mage or not), not character-build data, and this app doesn't simulate dice-rolled tests anywhere.</p>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Living Persona</span><span class="item-cite">p. 189</span>
+          <div class="item-note">Matrix attributes from Charisma/Intuition/Logic/Willpower plus a Resonance-sized bonus pool, each capped at 50% of base (min +4). Tracks current effective Resonance, same convention as Adept Power Points.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Complex Forms catalog</span><span class="item-cite">pp. 189–191; Hack &amp; Slash pp. 62–67</span>
+          <div class="item-note">39 entries (15 core + 24 Hack &amp; Slash). Free allotment = Resonance (Priority base) ×2; every one beyond costs 5 Karma, same shared pool as Spells.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Sprites — compile, register, decompile</span><span class="item-cite">pp. 191–195</span>
+          <div class="item-note">The Resonance-side mirror of Spirit summoning; no in-play tracking or type/power catalog exists.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Submersion Grade</span><span class="item-cite">p. 195</span>
+          <div class="item-note">Same mechanic and Karma formula as Initiation, mirrored onto Resonance.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Echoes catalog</span><span class="item-cite">p. 195</span>
+          <div class="item-note">Same status as Metamagics — Grade purchase takes a freeform name, no mechanical catalog yet.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-partial">Partial</span></span>
+          <div><span class="item-name">Resonant Streams</span><span class="item-cite">Hack &amp; Slash pp. 130–132</span>
+          <div class="item-note">Modeled as a single lightweight quality unlocking the stream's complex form; the fixed per-stream benefits and each stream's unique Aspect Peripheral power aren't individually mechanized.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="gear">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Gear</h2>
+        <span class="chapter-cite">core p. 244</span>
+      </div>
+      <p class="chapter-intro">Chunked to align with the Sixth World Companion's PACKs taxonomy. All ten individual-item chunks plus category-PACK bundle buying are complete.</p>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Weapons</span><span class="item-cite">pp. 247–264 · ~100 entries</span>
+          <div class="item-note">Melee, thrown, tasers, all firearm classes, launchers, accessories, ammo, explosives. Ammo type-cost multipliers (APDS, Explosive, etc.) don't fit the flat-cost model — only base "Regular" ammo priced.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Armor</span><span class="item-cite">pp. 265–267</span>
+          <div class="item-note">Clothes, Armor, Armor Modifications, Helmets &amp; Shields.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">General / survival / security gear</span><span class="item-cite">pp. 278–282</span>
+          <div class="item-note">Security &amp; Restraints, Breaking &amp; Entering, Industrial Chemicals, Survival Gear, Grapple Gun &amp; Rope, Biotech. Tranq Patch's quadratic cost formula doesn't fit the flat per-level model — only Rating 1 priced.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Electronics &amp; software</span><span class="item-cite">pp. 267–277</span>
+          <div class="item-note">Commlinks, Cyberdecks, RFID, Comms &amp; Countermeasures, Software, ID &amp; Credit, Tools, Optics, Auditory, Sensors.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Augmentations (cyberware/bioware)</span><span class="item-cite">pp. 282–293 · 125 entries</span>
+          <div class="item-note">Headware through Cultured Bioware, every Essence-costing item wired into Essence tracking. Implant Grades (Used/Alpha/Beta/Delta) not modeled — standard grade only.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Vehicles</span><span class="item-cite">pp. 295–298 · 34 entries</span>
+          <div class="item-note">Bikes, Cars, Trucks and Vans, Boats, Submarines, Fixed-Wing Aircraft, Rotorcraft, VTOL/VSTOL.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Vehicle Modifications</span><span class="item-cite">p. 295 · 4 entries</span>
+          <div class="item-note">Rigger Interface, Standard/Heavy Weapon Mount, Manual Operation — the entirety of what the core book prints here.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Drones + Rigger Command Console</span><span class="item-cite">pp. 197–198, 299–303 · 30 entries</span>
+          <div class="item-note">Micro through Large Drones, RCC. Autosofts covered by Electronics' generic Software entries, no separate catalog needed.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Category PACK bundle-buying</span><span class="item-cite">Companion pp. 56–71, 197–198 · 115 entries</span>
+          <div class="item-note">Buying a PACK expands into real gear lines with an automatic bundle-adjustment line so nuyen/Essence/Karma stay exact.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Complete Character PACKs</span><span class="item-cite">Companion pp. 49–56 · ~15 entries</span>
+          <div class="item-note">Nest other PACKs inside themselves, include Lifestyle costs (not tracked as gear at all), sometimes carry embedded player choices — don't fit the flat-bundle model.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Vehicle Upgrade PACKs</span><span class="item-cite">Companion p. 71, sourced from Double Clutch</span>
+          <div class="item-note">Not read yet.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="advancement">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Post-Creation Advancement</h2>
+        <span class="chapter-cite">core p. 68, 71–72</span>
+      </div>
+      <p class="chapter-intro">Not its own core-rulebook chapter — the Improvement Cost table lives inside Character Creation (p. 71) — but sizable enough in this app to call out on its own, since it's an <em>in-play</em> feature rather than a chargen step.</p>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Karma &amp; Nuyen awards, attribute/skill advancement, gear (paid or looted)</span>
+          <div class="item-note">Itemized, undoable log; free-loot gear correctly excluded from the nuyen-spent total but still Karma-bondable if magical.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Initiation / Submersion Grade</span>
+          <div class="item-note">See Magic and Matrix chapters above.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Specializations, new Qualities, new Contacts during play</span>
+          <div class="item-note">The Improvement Cost table also covers buying a specialization (7 Karma) and picking up qualities/contacts post-creation — none of that exists yet, consistent with those gaps at chargen too.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="other">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Elsewhere in the App</h2>
+      </div>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Character sheet export</span>
+          <div class="item-note">Fills the official Genesis sheet template, pages 1–2, via coordinate overlay. Pages 3–6 (Spells/Adept Powers/Foci/Rituals/Astral Combat) deferred.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-scope">Out of scope</span></span>
+          <div><span class="item-name">NPC roster (Grunts, Critters)</span><span class="item-cite">"Wild Life," pp. 202–229</span>
+          <div class="item-note">A GM-facing bonus feature (39 importable stat blocks), not player character generation — noted here for completeness, not tracked against this audit's pass/fail.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Reputation &amp; Heat, Run Compensation as tracked stats</span><span class="item-cite">"Running the Game," pp. 232–243</span>
+          <div class="item-note">No Reputation or Heat field exists anywhere in the character data model. Karma/Nuyen awards cover the practical effect of Run Compensation informally, but the book's own tracked numbers aren't modeled.</div></div>
+        </li>
+      </ul>
+
+      <div class="out-of-scope-block">
+        <strong>Deliberately not audited line-by-line:</strong> Game Concepts' test mechanics, the Combat chapter's process/options/barriers/explosives, the Matrix chapter's individual hacking actions and Host/IC rules, the Rigging chapter's driving/crash/vehicle-combat tests, and the Running the Game chapter's GM advice. None of it is character-build data — it's dice-resolution and GM-facing content a character sheet tool was never meant to simulate, and this app doesn't roll dice anywhere in its own right (damage, Edge, and Karma are always player-reported from the table, never generated by the app).
+      </div>
+    </section>
+
+    <footer>
+      Built from the SR6e core rulebook's own table of contents, cross-checked against the live codebase (rules files, data model, builder components) rather than project notes alone — a couple of gaps here (Priority-system Knowledge Skills, Specializations) weren't previously written down anywhere before this pass.
+    </footer>
+  </main>
+</div>
+
+<script>
+  const chapters = document.querySelectorAll("section.chapter");
+  const list = document.getElementById("toc-list");
+  chapters.forEach((ch) => {
+    const title = ch.querySelector(".chapter-title").textContent;
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = "#" + ch.id;
+    a.textContent = title;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+</script>
+</body>
+</html>
