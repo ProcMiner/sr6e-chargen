@@ -27,6 +27,7 @@ import { coreCritterTemplates } from "../rules/critters.js";
 import { bodyShopCritterTemplates } from "../rules/bodyShopCritters.js";
 import { hackAndSlashCritterTemplates } from "../rules/hackAndSlashCritters.js";
 import { hackAndSlashSecurityTemplates } from "../rules/hackAndSlashSecurity.js";
+import { firingSquadTemplates } from "../rules/firingSquadCritters.js";
 import { spirits } from "../rules/spirits.js";
 import { spiritPowers } from "../rules/spiritPowers.js";
 
@@ -89,6 +90,7 @@ rulesRouter.get("/npc-templates", (_req, res) => {
       ...bodyShopCritterTemplates,
       ...hackAndSlashCritterTemplates,
       ...hackAndSlashSecurityTemplates,
+      ...firingSquadTemplates,
     ],
   });
 });

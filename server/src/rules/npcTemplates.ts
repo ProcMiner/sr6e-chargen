@@ -37,10 +37,11 @@
 //   don't fit this roster's shape. Not transcribed here; belongs with a
 //   future Contacts feature instead (see README's "Contact purchasing UI"
 //   gap).
-// - Other sourcebooks with NPC content (Firing Squad, Collapsing Now) were
-//   surveyed (each has ~40+ more NPC-shaped stat blocks) but not
-//   transcribed - future chunks. Power Plays (Corp Info) has no
-//   stat-block-formatted NPCs at all.
+// - Firing Squad's "Fighting Forces" chapter is now covered too - see
+//   firingSquadCritters.ts (35 entries). Collapsing Now was surveyed
+//   (~40+ more NPC-shaped stat blocks) but not yet transcribed - a future
+//   chunk. Power Plays (Corp Info) has no stat-block-formatted NPCs at
+//   all.
 
 export interface NpcTemplateEntry {
   id: string;
