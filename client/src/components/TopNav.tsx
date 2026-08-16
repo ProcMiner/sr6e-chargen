@@ -60,6 +60,13 @@ export function TopNav() {
           <button onClick={() => logout()}>Log out</button>
         </div>
       </div>
+      <div className="top-nav-secondary">
+        <div className="top-nav-secondary-inner">
+          <a href="/user-guide.html" target="_blank" rel="noopener noreferrer">
+            Character Generator User Guide
+          </a>
+        </div>
+      </div>
     </nav>
   );
 }

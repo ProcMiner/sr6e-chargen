@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SR6e CharGen — User Guide</title>
+<style>
+  :root {
+    --bg: #f1f1ee;
+    --surface: #ffffff;
+    --surface-2: #e7e7e3;
+    --border: #d4d3cc;
+    --text: #23262b;
+    --text-dim: #5b5f66;
+    --text-faint: #8a8d93;
+    --accent: #2f7488;
+    --accent-soft: #e4eef0;
+    --rule: #cfced6;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b;
+      --surface: #1b1e23;
+      --surface-2: #22262c;
+      --border: #2c3038;
+      --text: #e7e5df;
+      --text-dim: #a3a29b;
+      --text-faint: #71747c;
+      --accent: #6fb3c9;
+      --accent-soft: #1c3339;
+      --rule: #33363e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171b; --surface: #1b1e23; --surface-2: #22262c; --border: #2c3038;
+    --text: #e7e5df; --text-dim: #a3a29b; --text-faint: #71747c;
+    --accent: #6fb3c9; --accent-soft: #1c3339; --rule: #33363e;
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f1ee; --surface: #ffffff; --surface-2: #e7e7e3; --border: #d4d3cc;
+    --text: #23262b; --text-dim: #5b5f66; --text-faint: #8a8d93;
+    --accent: #2f7488; --accent-soft: #e4eef0; --rule: #cfced6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    display: grid;
+    grid-template-columns: 220px minmax(0, 720px);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  header.masthead {
+    grid-column: 1 / -1;
+    padding: 3.5rem 0 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    margin: 0.4rem 0 0.6rem;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    color: var(--text-dim);
+    max-width: 62ch;
+    font-size: 1rem;
+    margin: 0 0 1rem;
+  }
+  .also {
+    font-size: 0.86rem;
+    color: var(--text-faint);
+  }
+  .also a { color: var(--accent); }
+
+  nav.toc {
+    position: sticky;
+    top: 2rem;
+    padding-top: 2.5rem;
+    align-self: start;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+  nav.toc .toc-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.6rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: toc;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.28rem 0;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.84rem;
+    border-left: 2px solid transparent;
+    padding-left: 0.6rem;
+    margin-left: -0.62rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); border-left-color: var(--accent); outline: none; }
+  nav.toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    flex: none;
+  }
+
+  main { padding-top: 2.5rem; min-width: 0; }
+
+  section.chapter {
+    margin-bottom: 3.2rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .chapter-head {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.1rem;
+  }
+  h2.chapter-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .chapter-intro {
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    margin: 0.6rem 0 0;
+    max-width: 64ch;
+  }
+
+  h3.section-title {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.98rem;
+    margin: 1.7rem 0 0.5rem;
+    color: var(--text);
+  }
+  h3.section-title:first-of-type { margin-top: 0; }
+
+  p { margin: 0.7rem 0; max-width: 68ch; }
+  ol.steps, ul.steps {
+    margin: 0.6rem 0 1rem;
+    padding-left: 1.3rem;
+    max-width: 66ch;
+  }
+  ol.steps li, ul.steps li { margin-bottom: 0.55rem; }
+  ol.steps li::marker, ul.steps li::marker { color: var(--accent); }
+
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 3px 3px 0;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.87rem;
+    color: var(--text-dim);
+    margin: 1rem 0;
+    max-width: 64ch;
+  }
+  .callout strong { color: var(--text); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 0.05em 0.4em;
+    border-radius: 2px;
+  }
+
+  footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--rule);
+    padding: 1.6rem 0 3rem;
+    color: var(--text-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+    nav.toc { display: none; }
+    main { padding-top: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">SR6e CharGen</div>
+    <h1 class="title">User Guide</h1>
+    <p class="dek">How to build a character, finish it up, and take it from the Character Vault into an actual game — plus how the GM's Bar works if you're running the table.</p>
+    <p class="also">Curious what's implemented from the rulebook vs. not yet? See <a href="/rules-coverage.html">Rules Coverage</a>. Curious what's shipped recently? See <a href="/release-notes.html">Release Notes</a>.</p>
+  </header>
+
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <ol id="toc-list"></ol>
+  </nav>
+
+  <main>
+    <section class="chapter" id="overview">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Overview</h2>
+      </div>
+      <p>The app has three areas, all reachable from the tab bar at the top of every page:</p>
+      <ul class="steps">
+        <li><strong>Character Vault</strong> — where you create characters and build them out (attributes, skills, gear, spells, everything). This is chargen mode.</li>
+        <li><strong>In Play</strong> — pick a finished character to actually play with: track damage, Edge, Karma/Nuyen earned in session, Reputation/Heat, and everything else that changes at the table.</li>
+        <li><strong>GM's Bar</strong> — if you're running the game: create a session with a join code, watch your players' vitals from one screen, and keep an NPC roster.</li>
+      </ul>
+      <p>A character always starts in the Character Vault, gets built there, and only shows up in In Play / GM's Bar once it exists — there's no separate "publish" step beyond just saving it.</p>
+    </section>
+
+    <section class="chapter" id="starting">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Starting a Character</h2>
+      </div>
+      <p>From <strong>Character Vault</strong>, type a name into the box at the top, pick a build system from the dropdown next to it, and click <strong>New Character</strong>. That drops you straight into the builder.</p>
+      <p>You get two build systems to choose from, and they produce the same kind of character — they just get you there differently:</p>
+      <ul class="steps">
+        <li><strong>Priority System</strong> — the classic method. You rank five categories (Metatype, Attributes, Skills, Magic or Resonance, Resources) from A to E, and each ranking hands you a bigger or smaller pool to spend in that category.</li>
+        <li><strong>Life Path (Modules)</strong> — build a backstory instead: pick life modules (Ganger, Corporate, Military, College, and dozens more) in order, and your attributes/skills/gear/nuyen come out of the modules you picked rather than a points table.</li>
+      </ul>
+      <p>Neither is "better" — it's a table preference. Priority is faster if you know exactly what character you want; Life Path is more fun if you want the sheet to fall out of a story. Everything past the initial build (Contacts, Qualities, spells/powers, Lifestyle, Gear, PACKs, saving) works identically no matter which one you picked — see <a href="#shared-steps">Every Character</a> below.</p>
+      <div class="callout"><strong>You can't switch systems on an existing character.</strong> The choice is locked in at creation (it's baked into how the build itself is validated). If you want to try the other system, start a new character.</div>
+    </section>
+
+    <section class="chapter" id="priority">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Building with the Priority System</h2>
+      </div>
+      <p>Work down the page roughly in order — later sections often depend on earlier choices (your Metatype choice affects your attribute caps, your Magic/Resonance choice affects what shows up further down, etc.).</p>
+
+      <h3 class="section-title">Power Level (optional)</h3>
+      <p>A toggle at the very top: <strong>Standard</strong>, <strong>Street-level</strong>, or <strong>Prime Runner</strong>. Street-level makes every priority row read one letter worse (a tougher, grittier start); Prime Runner doubles your customization Karma from 50 to 100 (a stronger, more experienced start). Leave it on Standard unless your GM says otherwise.</p>
+
+      <h3 class="section-title">Priority Assignment</h3>
+      <p>Five dropdowns — Metatype, Attributes, Skills, Magic or Resonance, Resources — each gets a different letter A through E, no repeats. Put your highest priority on whatever matters most to your concept: A in Resources for a gear-heavy rigger, A in Magic for a dedicated spellcaster, and so on.</p>
+
+      <h3 class="section-title">Metatype</h3>
+      <p>Once Metatype has a letter, buttons appear for the metatypes that letter unlocks (Human is only available at low priorities; Dwarf/Elf/Ork/Troll need progressively higher ones). Pick one. If a <strong>Metavariant</strong> dropdown appears below it, that's an optional reskin of your base metatype (from the Sixth World Companion) with its own attribute ranges — it costs Karma from your customization pool, so it's entirely optional.</p>
+
+      <h3 class="section-title">Attributes</h3>
+      <p>A point pool (its size depends on your Attributes priority letter) to spend across Body, Agility, Reaction, Strength, Willpower, Logic, Intuition, and Charisma using the +/- buttons. Edge is handled separately, below, in Adjustment Points. Pushing an attribute above 6 is a "special racial attribute" increase and normally has to be paid for from Adjustment Points instead of this pool once you're past 6 — there's a per-attribute "Fund From Adjustment Points" checkbox (a house rule this table uses) that lets you pay for the attribute's <em>entire</em> value from Adjustment Points instead, freeing up regular points for everything else.</p>
+
+      <h3 class="section-title">Skills</h3>
+      <p>Same idea as Attributes — a point pool, spent with +/- buttons across the skill list. Right below it, <strong>Specializations</strong> lets you pick one narrow focus per skill (free at creation, one per skill) for +2 dice on tests in that specific area.</p>
+
+      <h3 class="section-title">Magic or Resonance</h3>
+      <p>If you want a magical or technomancer character, pick one here: Full magician, Aspected magician, Mystic Adept, Adept, or Technomancer. This unlocks the matching sections further down the page (Spells, Adept Powers, Complex Forms, Living Persona) and the Tradition Attribute choice. Skip this entirely for a mundane character — nothing below it will show up, and that's expected.</p>
+
+      <h3 class="section-title">Adjustment Points</h3>
+      <p>A small pool from your Metatype choice, spent on: raising Edge, pushing a special racial attribute past 6 (or funding one entirely, if you checked that box above), and boosting Magic/Resonance above its base rating (up to 6).</p>
+
+      <h3 class="section-title">Resources</h3>
+      <p>Shows your starting nuyen based on your Resources priority letter. Click <strong>Apply</strong> to add it to your pool — you'll spend it later in Lifestyle, PACKs, and Gear. You can also toggle in the Companion's power-level variants (Street-level/Prime Runner) from here if you want a different starting-nuyen table.</p>
+
+      <p>Once Resources is applied, continue to <a href="#shared-steps">Every Character</a> below — Contacts, Knowledge & Language, and Qualities all follow directly on the same page.</p>
+    </section>
+
+    <section class="chapter" id="lifepath">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Building with Life Path (Modules)</h2>
+      </div>
+      <p>Life Path walks you through your character's life in order — where the Priority System asks "how good are you," Life Path asks "what did you do." Work down the page top to bottom.</p>
+
+      <h3 class="section-title">Born This Way</h3>
+      <p>Pick your metatype: Human, Dwarf, Elf, Ork, or Troll. No priority letters involved here — Life Path metatypes just have their own fixed attribute ranges.</p>
+
+      <h3 class="section-title">Growing Up: Early Childhood and Adolescence</h3>
+      <p>Choose 4 skills from the list shown — each comes in at rank 2. This represents what you picked up before adulthood.</p>
+
+      <h3 class="section-title">Coming of Age</h3>
+      <p>Choose your strongest skill (rank 4, or rank 6 if you also picked it in Growing Up) and your best attribute (gains +5 — everything except Edge, Magic, and Resonance is eligible). This step also grants 1-2 qualities (pick them down in the Qualities section), +25,000¥ (added once you make a skill choice), and 4 contact points to spend in Contacts.</p>
+
+      <h3 class="section-title">Adult Life Modules</h3>
+      <p>The heart of Life Path: pick up to 8 modules from a long list (Academy Training, Corporate Intern, Ganger, Military, Street Doc, dozens more) via <strong>Add a module</strong>. Each module grants its own mix of skills, attribute bumps, nuyen, contact points, and sometimes gear or qualities — read a module's summary before adding it, since they vary a lot in what they grant. Awakened-only and Emerged-only modules are labeled as such and only make sense if you picked a matching path.</p>
+
+      <h3 class="section-title">Events</h3>
+      <p>A short list of one-time "life event" modules (Harsh Truth, Hard Work Paid Off, Windfall, etc.) — optional flavor modules that usually grant a smaller, more specific bonus than a full Adult Life Module.</p>
+
+      <p>Continue to <a href="#shared-steps">Every Character</a> below once you're happy with your module picks — Contacts, Knowledge & Language, and Qualities follow directly on the same page, and work the same way regardless of which system got you here.</p>
+      <div class="callout">Life Path's Contacts and Knowledge/Language budgets come entirely from the modules you picked (plus Coming of Age) rather than from Charisma or Logic the way the Priority System's do — that's a genuine rules difference between the two systems, not a bug. Life Path contacts can also be pushed further with customization Karma if you want to exceed what your modules granted.</div>
+    </section>
+
+    <section class="chapter" id="shared-steps">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Every Character: Shared Steps</h2>
+        <p class="chapter-intro">From here on, Priority and Life Path characters go through the exact same sections, on the same page, right below whichever builder you were just using.</p>
+      </div>
+
+      <h3 class="section-title">Contacts</h3>
+      <p>Click <strong>Add</strong> to bring in a new contact, then spend points raising their Connection and Loyalty ratings. How many points you have and where they come from depends on your build system (Charisma-based for Priority, module-based for Life Path) — see above.</p>
+
+      <h3 class="section-title">Knowledge &amp; Language Skills</h3>
+      <p>Every character gets one free Native language regardless of build system. Beyond that, spend your knowledge/language budget on knowledge topics or additional language levels (Basic, then Specialist, then Expert).</p>
+
+      <h3 class="section-title">Qualities</h3>
+      <p>Pick up to 6 Qualities (positive and negative) from the catalog — your net Karma from Qualities is capped at +20. Racial qualities from your metatype don't count against the 6-quality cap.</p>
+
+      <h3 class="section-title">Magic/Resonance extras (if applicable)</h3>
+      <p>If you picked a magic or Resonance path, more sections appear further down: <strong>Spells</strong>, <strong>Adept Powers</strong>, and/or <strong>Complex Forms</strong>, plus a <strong>Living Persona</strong> panel for technomancers to split their Matrix attributes. Every one of these is skipped automatically for a mundane character.</p>
+
+      <h3 class="section-title">Lifestyle</h3>
+      <p>Pick a lifestyle tier (Street through Luxury) and how many months you're prepaying. This spends from the same nuyen pool as Gear and PACKs below, so it's worth deciding before you go on a shopping spree.</p>
+
+      <h3 class="section-title">PACKs</h3>
+      <p>Pre-assembled gear bundles at a flat price, organized by category — weapon PACKs, armor PACKs, augmentation PACKs, and full <strong>Complete Character PACKs</strong> (entire pre-built loadouts, some of which include a Shadowrunner Starter PACK and a month of lifestyle automatically). Buying a PACK expands it into individual gear lines below, so everything in it stays individually editable afterward — buying a PACK is just a shortcut, not a separate kind of item.</p>
+
+      <h3 class="section-title">Gear</h3>
+      <p>The full item-by-item catalog, organized into collapsible categories (Weapons, Armor, Electronics, Augmentations, Vehicles, and many more). Anything with Essence cost or Karma-bonding cost (cyberware, bioware, foci) is tracked automatically against your Essence and Karma pools as you buy it.</p>
+
+      <h3 class="section-title">Decker Persona (if applicable)</h3>
+      <p>Shows up once you own a cyberdeck or a commlink/cyberjack pair. Assign the printed Attack/Sleaze/Data Processing/Firewall numbers from your devices across the four Matrix attribute slots — the book allows freely recombining these across your owned devices, so this panel lets you actually do that instead of being stuck with one fixed split.</p>
+
+      <h3 class="section-title">Summary &amp; Saving</h3>
+      <p>The right-hand sidebar (or below everything, on a narrow screen) tallies your whole character live: attributes, derived stats (Condition Monitors, Initiative, Attack/Defense Rating), skills, remaining nuyen, and remaining Karma. Click <strong>Save</strong> in the header any time — nothing is saved automatically while you're building, so save before you navigate away. <strong>Download Character Sheet</strong> fills in the official Genesis character sheet PDF with your current build.</p>
+    </section>
+
+    <section class="chapter" id="moving-to-play">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Moving a Character into Play</h2>
+      </div>
+      <p>There's no explicit "finish" button — a character is playable as soon as it's saved. When you're ready to actually run it at the table:</p>
+      <ol class="steps">
+        <li>Go to <strong>In Play</strong> in the top bar. This lists every character you own.</li>
+        <li>Click the character you want to play. This opens its Live Play page.</li>
+        <li>If your GM has already created a session, enter the join code they gave you under <strong>Games</strong> and click <strong>Join a game</strong>. You can be in more than one game with the same character, and leave a game later with <strong>Leave</strong>.</li>
+      </ol>
+      <p>From here the page is your character's dashboard for actually playing: Physical/Stun damage trackers, Edge, a Combat reference panel (Attack Rating, Defense Rating, and reference tables), Reputation &amp; Heat, Karma &amp; Advancement (award Karma/Nuyen from a run, spend Karma raising attributes/skills, track Initiation/Submersion), and — if applicable — Spirits, The Astral Plane, and The Matrix panels. Everything here saves automatically a moment after you change it; there's no separate save step once you're in Live Play.</p>
+      <div class="callout">You can jump back into the builder (Character Vault) at any time to keep shopping or adjusting your build — Live Play and the builder both read and write the same character, so changes show up in both places.</div>
+    </section>
+
+    <section class="chapter" id="gms-bar">
+      <div class="chapter-head">
+        <h2 class="chapter-title">GM's Bar</h2>
+        <p class="chapter-intro">Everything here is for running the table, not playing a single character.</p>
+      </div>
+
+      <h3 class="section-title">Creating and running a session</h3>
+      <ol class="steps">
+        <li>Go to <strong>GM's Bar</strong> in the top bar and click <strong>Create [your username]'s Game</strong> the first time (you only need one session per campaign — players join it once and stay).</li>
+        <li>Share the <strong>join code</strong> shown at the top of your session with your players — they enter it on their own character's Live Play page.</li>
+        <li>Click into your session from the list to see every connected character at a glance: Physical/Stun damage bars, Edge, Reputation/Heat (plus the party's highest Heat, since that's what actually matters for group effects), and any active status effects.</li>
+      </ol>
+      <p>This view polls automatically every few seconds, so you don't need to refresh the page during a session — just keep it open on a second screen.</p>
+
+      <h3 class="section-title">NPC roster</h3>
+      <p>A separate GM-only library, further down the same page, reusable across every game you run (it isn't tied to one session). Click <strong>Add NPC</strong> for a blank stat block, or use <strong>Import from book</strong> to pull in one of the pre-built Grunt, Prime Runner, and Critter stat blocks straight from the rulebooks — searchable by name, and grouped by sourcebook. Each imported NPC gets its own live damage tracker, same as a player character's, and you can minimize/expand each card to keep the list manageable once it grows.</p>
+    </section>
+  </main>
+
+  <footer>
+    Written by walking through both build systems and the In Play / GM's Bar flows directly in the app, not from memory — matching the real button labels and section order as of when this was written. If a step here stops matching what you actually see, that's this page falling behind a UI change, not the app being wrong.
+  </footer>
+</div>
+
+<script>
+  const chapters = document.querySelectorAll("section.chapter");
+  const list = document.getElementById("toc-list");
+  chapters.forEach((ch) => {
+    const title = ch.querySelector(".chapter-title").textContent;
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = "#" + ch.id;
+    a.textContent = title;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+</script>
+</body>
+</html>

@@ -115,12 +115,12 @@ a {
 }
 
 .top-nav-links a {
-  color: var(--text-faint);
+  color: var(--text-dim);
   text-decoration: none;
 }
 
 .top-nav-links a:hover {
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 .top-nav-user {
@@ -129,6 +129,29 @@ a {
   gap: 0.75rem;
   color: var(--text-dim);
   margin-left: auto;
+}
+
+/* Distinct line under the main bar - separate from top-nav-links above,
+   which sits inline with the tabs/user section instead of on its own row. */
+.top-nav-secondary {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.top-nav-secondary-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.4rem 1.5rem;
+  font-size: 0.82rem;
+}
+
+.top-nav-secondary a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.top-nav-secondary a:hover {
+  color: var(--text);
 }
 
 .page {

@@ -440,7 +440,11 @@ and `GearCatalogEntry` for the shared shape/conventions).
   components can be reused as-is inside step containers or need their own
   "focused" layout. Likely doesn't need any character.ts schema changes -
   this is a presentation-layer restructure of `BuilderRoot.tsx`, not new
-  data.
+  data. Reconfirmed as wanted 2026-08-16 while writing the User Guide
+  (`client/public/user-guide.html`) - walking a new player through the
+  current single-page flow made the case for a guided/stepped version even
+  clearer, but the guide ships first as the interim fix rather than waiting
+  on this larger UX project.
 
 ## Ops
 
