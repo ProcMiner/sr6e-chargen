@@ -419,7 +419,7 @@
         </li>
         <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">Final Calculations</span><span class="item-cite">p. 67</span>
-          <div class="item-note">Physical/Stun Monitor, Initiative, Initiative Dice, Attack Rating, Defense Rating all derived live from attributes/gear/adept powers.</div></div>
+          <div class="item-note">Physical/Stun Monitor, Initiative, Initiative Dice, unarmed Attack Rating, and Defense Rating all derived live from attributes/gear/adept powers - see Combat below for the formulas.</div></div>
         </li>
       </ul>
 
@@ -436,6 +436,32 @@
         <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">Priority System power-level variants</span><span class="item-cite">p. 63 sidebar</span>
           <div class="item-note">Optional toggle above the Priority Assignment table. Street-level: every category's table values (metatype options, attribute/skill points, magic options, resources) are read one row worse than the letter assigned - floored at row E, exactly as the book describes ("since you can't go any lower than row E, that means you would have two selections from that row"). Prime Runner: doubles the customization Karma pool from 50 to 100. Priority System only, matching where the sidebar sits in the book.</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="chapter" id="combat">
+      <div class="chapter-head">
+        <h2 class="chapter-title">Combat</h2>
+        <span class="chapter-cite">core pp. 67, 104-111</span>
+      </div>
+      <p class="chapter-intro">Mundane (non-Matrix, non-Astral) combat - Attack Rating and Defense Rating are real computed numbers; everything else is reference text, same "no dice-rolling engine" treatment as every other combat-adjacent system in this app.</p>
+      <ul class="items">
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Attack Rating &amp; Defense Rating</span><span class="item-cite">pp. 67, 108</span>
+          <div class="item-note">New "Combat" panel in LivePlay (and a Derived-stats line in the chargen Summary): unarmed Attack Rating (Strength + Reaction) computed live; Defense Rating (Body + worn armor + augmentation armor) computed live too. Worn armor sums your single best owned Clothes/Armor item (base suits "are not cumulative" per the book) plus every Helmet/Shield you own (those do stack) - closes the "no Defense Rating anywhere" and "worn-armor summing deferred" gaps noted in earlier sessions. A melee weapon's own Attack Rating (add Strength directly) and a ranged weapon's printed Attack Rating/Range table stay reference text, since those live as free-text per-item stats in the gear catalog, not a single number to compute against.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
+          <div><span class="item-name">Combat Process, Edge in Combat, Range Categories, Firing Modes, Damage Types, Combat Options</span><span class="item-cite">pp. 104-111</span>
+          <div class="item-note">Reference tables/text in the same LivePlay panel: the 5-step Combat Process (incl. the Attack/Defense Rating +/-4 Edge-distribution rule) and the Initiative tie-break order (Edge, Reaction, Intuition, coin flip - "ERIC"); the combat-specific Edge spend table (1-5 Edge); the 5 range bands and 4 firing-mode Attack Rating/Damage modifiers; the 4 elemental Damage Types' secondary status effects; and brief reference summaries of Off-Hand Attacks, Knockdown, Multiple Attacks, Grapple, Cover, and Barriers.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Generic Edge Actions catalog</span><span class="item-cite">p. 47</span>
+          <div class="item-note">The full 1-5 Edge "Edge Actions" list (Called Shot - Disarm/Vitals, Fire from Cover, Knockout Blow, Bring the Drama, etc.) spans every discipline, not just combat - only the short combat-specific Edge-spend table (reroll/heal/auto-hit/etc.) is transcribed above. A real future chunk, not attempted here.</div></div>
+        </li>
+        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+          <div><span class="item-name">Barrier-breaking-through math, Environment/Visibility modifiers</span><span class="item-cite">pp. 111, 118</span>
+          <div class="item-note">Deep GM-facing minutiae (hole diameters by weapon/DV, lighting/weather Edge calls) - same category of content as Hosts/IC for the Matrix chapter, deliberately out of scope.</div></div>
         </li>
       </ul>
     </section>
@@ -743,7 +769,7 @@
       </ul>
 
       <div class="out-of-scope-block">
-        <strong>Deliberately not audited line-by-line:</strong> Game Concepts' test mechanics, the Combat chapter's process/options/barriers/explosives, the Matrix chapter's individual hacking actions and Host/IC rules, the Rigging chapter's driving/crash/vehicle-combat tests, and the Running the Game chapter's GM advice. None of it is character-build data — it's dice-resolution and GM-facing content a character sheet tool was never meant to simulate, and this app doesn't roll dice anywhere in its own right (damage, Edge, and Karma are always player-reported from the table, never generated by the app).
+        <strong>Deliberately not audited line-by-line:</strong> Game Concepts' test mechanics, the Combat chapter's barrier-breaking-through math and explosives (see the Combat chapter above for what IS covered - Attack/Defense Rating, the Combat Process, and reference tables), the Matrix chapter's individual hacking actions and Host/IC rules, the Rigging chapter's driving/crash/vehicle-combat tests, and the Running the Game chapter's GM advice. None of it is character-build data — it's dice-resolution and GM-facing content a character sheet tool was never meant to simulate, and this app doesn't roll dice anywhere in its own right (damage, Edge, and Karma are always player-reported from the table, never generated by the app).
       </div>
     </section>
 

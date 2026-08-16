@@ -15,6 +15,7 @@ import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
+import { Combat } from "./Combat";
 import { ReputationHeat } from "./ReputationHeat";
 import { Spirits } from "./Spirits";
 import { Astral } from "./Astral";
@@ -316,6 +317,12 @@ export function LivePlay() {
           <button onClick={resetEdge}>Reset to Max</button>
         </div>
       </section>
+
+      {gearRules && (
+        <section>
+          <Combat data={characterData} gearRules={gearRules} />
+        </section>
+      )}
 
       <section>
         <h2>Status Effects</h2>

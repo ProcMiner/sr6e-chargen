@@ -6,6 +6,7 @@ import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } 
 import { contactsKarmaSpent } from "../../deriveContacts";
 import { LANGUAGE_LEVEL_NAMES } from "../../character";
 import { modifierBonuses } from "../../deriveModifiers";
+import { defenseRating, unarmedAttackRating } from "../../deriveCombat";
 import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
 import type {
   AdeptPowerRulesResponse,
@@ -163,6 +164,14 @@ export function SummarySheet({
               <dd>+{derived.armor}</dd>
             </div>
           )}
+          <div>
+            <dt>Attack Rating (unarmed)</dt>
+            <dd>{unarmedAttackRating(data)}</dd>
+          </div>
+          <div>
+            <dt>Defense Rating</dt>
+            <dd>{defenseRating(data, gearRules.gear, derived.armor)}</dd>
+          </div>
         </dl>
       </section>
 
