@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../api";
 import { useAuth } from "../../AuthContext";
 import type { PlaySessionSummary, SessionDetail } from "../../playState";
+import { heatEffectFor } from "../../deriveReputation";
 import { NpcRoster } from "./NpcRoster";
 
 const POLL_INTERVAL_MS = 5000;
@@ -102,6 +103,13 @@ export function GmDashboard() {
 
           {detail.characters.length === 0 && <p className="hint">No characters have joined yet.</p>}
 
+          {detail.characters.length > 0 && (
+            <p className="hint">
+              Party Heat (highest of the group, per the book's rule): {Math.max(...detail.characters.map((c) => c.heat))} -{" "}
+              {heatEffectFor(Math.max(...detail.characters.map((c) => c.heat))).effect}
+            </p>
+          )}
+
           <div className="module-picker">
             {detail.characters.map((c) => {
               const physicalPct = Math.min(100, (c.playState.physicalDamage / c.maxPhysical) * 100);
@@ -132,6 +140,9 @@ export function GmDashboard() {
                   </p>
                   <p>
                     Edge: {c.playState.edgeAvailable} / {c.maxEdge}
+                  </p>
+                  <p>
+                    Reputation: {c.reputation} | Heat: {c.heat}
                   </p>
                   {c.playState.statusEffects.length > 0 && (
                     <div className="chip-row">

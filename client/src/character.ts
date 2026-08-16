@@ -327,6 +327,24 @@ export interface CharacterData {
   initiateGrade?: number;
   /** Submersion Grade (Resonance side), same shape as initiateGrade. */
   submersionGrade?: number;
+  /**
+   * "Running the Game" p. 235-237: a signed running score of how the
+   * runner is regarded, GM-adjusted by narrative events (there's no
+   * formula - the book's own Reputation Changes table is explicitly "more
+   * a guideline than a definitive listing"). Undefined/0 for a fresh
+   * character. See deriveReputation.ts for the >=10/<=-10 threshold
+   * effects.
+   */
+  reputation?: number;
+  /**
+   * "Running the Game" p. 236-237: pressure from law enforcement, floored
+   * at 0. Increases from the GM's end-of-session 2D6 roll (self-reported -
+   * this app never rolls dice); decreases from Working a Contact, paying
+   * bribes, or lying low, all book-guideline reference text rather than
+   * simulated mechanics. See deriveReputation.ts for the Heat Effects tier
+   * lookup.
+   */
+  heat?: number;
   /** Itemized Initiation/Submersion purchase log - see InitiationEntry and deriveInitiation.ts. */
   initiations?: InitiationEntry[];
   /**

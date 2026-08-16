@@ -275,6 +275,11 @@ a {
   padding-left: 1.1rem;
 }
 
+.rules-table .current-row td {
+  background: var(--accent-bg, rgba(255, 200, 0, 0.15));
+  font-weight: 600;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;

@@ -57,6 +57,9 @@ export interface SessionCharacterCard {
   maxPhysical: number;
   maxStun: number;
   maxEdge: number;
+  /** Read-only glance for the GM - see character.ts's reputation/heat fields and deriveReputation.ts. Editing happens on the player's own LivePlay page. */
+  reputation: number;
+  heat: number;
   playState: PlayState;
 }
 

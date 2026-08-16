@@ -15,6 +15,7 @@ import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
+import { ReputationHeat } from "./ReputationHeat";
 import { Spirits } from "./Spirits";
 import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
@@ -381,6 +382,10 @@ export function LivePlay() {
           <Advancement data={characterData} onChange={scheduleDataSave} priorityRules={priorityRules} />
         </section>
       )}
+
+      <section>
+        <ReputationHeat data={characterData} onChange={scheduleDataSave} />
+      </section>
 
       {spiritRules && (
         <section>

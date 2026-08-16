@@ -81,6 +81,8 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
       attributes?: Partial<Attributes>;
       gear?: { modifiers?: ResolvedModifier[]; qty: number }[];
       adeptPowers?: { modifiers?: ResolvedModifier[] }[];
+      reputation?: number;
+      heat?: number;
     };
     const maxEdge = maxEdgeFor(c);
     const derived = deriveStats(
@@ -114,6 +116,8 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
       maxPhysical: derived.physicalMonitor,
       maxStun: derived.stunMonitor,
       maxEdge,
+      reputation: parsedData.reputation ?? 0,
+      heat: Math.max(0, parsedData.heat ?? 0),
       playState,
     };
   });
