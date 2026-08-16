@@ -7,6 +7,7 @@ import { InPlay } from "./pages/InPlay";
 import { BuilderRoot } from "./pages/builder/BuilderRoot";
 import { LivePlay } from "./pages/play/LivePlay";
 import { GmDashboard } from "./pages/play/GmDashboard";
+import { NpcBuilder } from "./pages/play/NpcBuilder";
 import { TopNav } from "./components/TopNav";
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/characters/:id/live" element={<LivePlay />} />
         <Route path="/in-play" element={<InPlay />} />
         <Route path="/play" element={<GmDashboard />} />
+        <Route path="/npcs/:id/build" element={<NpcBuilder />} />
       </Route>
       <Route path="*" element={<Navigate to="/characters" replace />} />
     </Routes>

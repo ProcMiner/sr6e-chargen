@@ -51,6 +51,26 @@ button.link-button {
   text-decoration: underline;
 }
 
+/* An <a>/<Link> that needs to visually match its sibling <button>s (e.g. a
+   navigation link sitting next to Expand/Delete buttons in a card header) -
+   mirrors the base button rule above since that selector only targets real
+   button elements. */
+.button-link {
+  font: inherit;
+  cursor: pointer;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.button-link:hover {
+  border-color: var(--accent);
+}
+
 input,
 select,
 textarea {

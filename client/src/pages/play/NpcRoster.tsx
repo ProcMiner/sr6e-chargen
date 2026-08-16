@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api, type NpcSummary } from "../../api";
 import { emptyNpcData, type NpcData } from "../../npc";
 import type { NpcTemplateEntry } from "../../rules";
@@ -260,6 +261,9 @@ export function NpcRoster() {
                     </strong>
                   </a>
                   <button onClick={() => select(npc)}>{selectedId === npc.id ? "Minimize" : "Expand"}</button>
+                  <Link to={`/npcs/${npc.id}/build`} className="button-link">
+                    {npc.data.fullBuild ? "Edit Full Build" : "Build Full Character"}
+                  </Link>
                   <button className="danger" onClick={() => handleDelete(npc.id)}>
                     Delete
                   </button>
