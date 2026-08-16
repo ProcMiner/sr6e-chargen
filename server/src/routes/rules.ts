@@ -12,6 +12,7 @@ import { augmentationsGear } from "../rules/augmentations.js";
 import { magicalEquipmentGear } from "../rules/magicalEquipment.js";
 import { vehiclesGear } from "../rules/vehicles.js";
 import { vehicleUpgradesGear } from "../rules/vehicleUpgrades.js";
+import { vehicleModsDoubleClutchGear } from "../rules/vehicleModsDoubleClutch.js";
 import { dronesGear } from "../rules/drones.js";
 import { packs } from "../rules/packs.js";
 import { coreSpells } from "../rules/spells.js";
@@ -54,6 +55,7 @@ rulesRouter.get("/gear", (_req, res) => {
       ...magicalEquipmentGear,
       ...vehiclesGear,
       ...vehicleUpgradesGear,
+      ...vehicleModsDoubleClutchGear,
       ...dronesGear,
     ],
   });

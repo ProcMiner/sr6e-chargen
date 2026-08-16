@@ -38,12 +38,18 @@
 //   (`focus-weapon`) rather than needing new mechanics - Force 3's
 //   bondingKarma (3/level) already computes to exactly 9.
 //
-// Vehicle Upgrade PACKs (book p. 71) remain deferred: they bundle vehicle
-// modifications (elemental hardening, nitro boost, rigger cocoon, gun
-// ports, etc.) that source from Double Clutch (the Rigger sourcebook) and
-// don't exist in this app's gear catalog yet - only the core rulebook's
-// basic 4-entry vehicle upgrade set does (vehicleUpgrades.ts). Confirmed
-// with the user this stays its own separate follow-on chunk.
+// Vehicle Upgrade PACKs (book p. 71, 4 entries: Dirty Tricks, Gun Ports,
+// Rigger's Baby, Combat Biker) are now built too, closing out the gear
+// rollout entirely. They bundle vehicle modifications (elemental
+// hardening, nitro boost, rigger cocoon, gun ports, etc.) sourced from
+// Double Clutch (the Rigger sourcebook) - read directly rather than
+// guessed at, transcribed into the new vehicleModsDoubleClutch.ts (~18
+// entries, only what these 4 PACKs actually reference, not the whole
+// book's modification chapter). "Rigger adaptation" is Double Clutch's own
+// name for the core rulebook's existing Rigger Interface - reused, not
+// duplicated. Two of the four PACKs print a "Vehicle's Body must be at
+// least N" prerequisite; not enforced anywhere, reference text only in the
+// summary, same as every other player-self-enforces mechanic in this app.
 //
 // Known gaps/simplifications in this pass, flagged per-entry where they
 // occur rather than silently guessed at:
@@ -1669,6 +1675,73 @@ export const packs: PackCatalogEntry[] = [
     items: [
       { itemId: "cybereyes-rating-3", qty: 1, notes: "Smartlink-ready, built-in magnification." },
       { itemId: "reflex-recorder", qty: 1, notes: "Firearms; used grade in the book, standard grade catalog price/Essence used instead." },
+    ],
+  },
+
+  // --- Vehicle Upgrade PACKs (Companion p. 71, sourced from Double Clutch) ---
+  {
+    id: "pack-dirty-tricks-vehicle",
+    name: "Dirty Tricks Vehicle PACK",
+    category: "vehicle-upgrade-pack",
+    subcategory: "Vehicle Upgrade PACKs",
+    cost: 11150,
+    summary:
+      "Mod Slots: Electronics 1. Electrochromic paint, oil slick sprayer, road strip ejector, 6 spike strips, thermal smoke projector, gas dispersal system (5 doses of Neurostun X - toxin doses aren't separately priced in this catalog, folded into the bundle adjustment), shredder tires, spoof kit.",
+    items: [
+      { itemId: "dc-electrochromic-paint", qty: 1 },
+      { itemId: "dc-oil-slick-sprayer", qty: 1 },
+      { itemId: "dc-road-strip-ejector", qty: 1 },
+      { itemId: "dc-spike-strip", qty: 6 },
+      { itemId: "dc-thermal-smoke-projector", qty: 1 },
+      { itemId: "dc-gas-dispersal-system", qty: 1, notes: "Loaded with 5 doses of Neurostun X in the book." },
+      { itemId: "dc-shredder-tires", qty: 1 },
+      { itemId: "dc-spoof-kit", qty: 1 },
+    ],
+  },
+  {
+    id: "pack-gun-ports-vehicle",
+    name: "Gun Ports Vehicle PACK",
+    category: "vehicle-upgrade-pack",
+    subcategory: "Vehicle Upgrade PACKs",
+    cost: 4000,
+    summary: "Mod Slots: Chassis 2. Four gun ports - choose which direction each one faces (front, left, right, or rear).",
+    items: [{ itemId: "dc-gun-port", qty: 4, notes: "Player's choice of facing per port." }],
+  },
+  {
+    id: "pack-riggers-baby",
+    name: "Rigger's Baby",
+    category: "vehicle-upgrade-pack",
+    subcategory: "Vehicle Upgrade PACKs",
+    cost: 116000,
+    summary:
+      "Requires a vehicle with Body 10+ (not enforced - player/GM self-checks). Mod Slots: Chassis 7, Skin 1, Powertrain 10. Rigger adaptation, improved handling 2, rigger cocoon, a 4-CF smuggling compartment with electromagnetic shielding, elemental hardening 2 (electricity), improved acceleration 2, nitro boost, improved stability 2, top speed increase 2.",
+    items: [
+      { itemId: "vehicle-upgrade-rigger-interface", qty: 1, notes: "\"Rigger adaptation\" in Double Clutch's own terminology." },
+      { itemId: "dc-improved-handling", qty: 1, rating: 2 },
+      { itemId: "dc-rigger-cocoon", qty: 1 },
+      { itemId: "dc-smuggling-compartment", qty: 1, rating: 4 },
+      { itemId: "dc-electromagnetic-shielding", qty: 1, rating: 4 },
+      { itemId: "dc-elemental-hardening", qty: 1, rating: 2, notes: "Electricity." },
+      { itemId: "dc-improved-acceleration", qty: 1, rating: 2 },
+      { itemId: "dc-nitro-boost", qty: 1 },
+      { itemId: "dc-improved-stability", qty: 1, rating: 2 },
+      { itemId: "dc-top-speed-increase", qty: 1, rating: 2 },
+    ],
+  },
+  {
+    id: "pack-combat-biker",
+    name: "Combat Biker",
+    category: "vehicle-upgrade-pack",
+    subcategory: "Vehicle Upgrade PACKs",
+    cost: 59000,
+    summary:
+      "Requires a vehicle with Body 4+ (not enforced - player/GM self-checks). Mod Slots: Chassis 4, Skin 1, Powertrain 4. Rigger adaptation, improved handling 2, elemental hardening 2 (electricity), nitro boost, improved stability 1.",
+    items: [
+      { itemId: "vehicle-upgrade-rigger-interface", qty: 1, notes: "\"Rigger adaptation\" in Double Clutch's own terminology." },
+      { itemId: "dc-improved-handling", qty: 1, rating: 2 },
+      { itemId: "dc-elemental-hardening", qty: 1, rating: 2, notes: "Electricity." },
+      { itemId: "dc-nitro-boost", qty: 1 },
+      { itemId: "dc-improved-stability", qty: 1, rating: 1 },
     ],
   },
 ];
