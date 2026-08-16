@@ -1,18 +1,19 @@
 import type { CharacterData } from "../../../character";
-import type { GearRulesResponse, PackCatalogEntry, PackRulesResponse } from "../../../rules";
+import type { GearRulesResponse, LifestyleRulesResponse, PackCatalogEntry, PackRulesResponse } from "../../../rules";
 import { nuyenRemaining } from "../../../deriveGear";
-import { canAffordPack, explodePackToGearLines } from "../../../derivePacks";
+import { canAffordPack, explodePackToGearLines, packLifestyleLine } from "../../../derivePacks";
 
 interface Props {
   packRules: PackRulesResponse;
   gearRules: GearRulesResponse;
+  lifestyleRules: LifestyleRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
   /** Nuyen already committed outside gear (e.g. lifestyle purchases - see deriveLifestyle.ts), so this picker's afford checks reflect the whole shared nuyen pool. */
   extraNuyenSpent?: number;
 }
 
-export function PackPicker({ packRules, gearRules, data, onChange, extraNuyenSpent = 0 }: Props) {
+export function PackPicker({ packRules, gearRules, lifestyleRules, data, onChange, extraNuyenSpent = 0 }: Props) {
   const remaining = nuyenRemaining(data, extraNuyenSpent);
 
   const bySubcategory = new Map<string, PackCatalogEntry[]>();
@@ -24,8 +25,13 @@ export function PackPicker({ packRules, gearRules, data, onChange, extraNuyenSpe
 
   function buyPack(pack: PackCatalogEntry) {
     if (!canAffordPack(pack, remaining)) return;
-    const newLines = explodePackToGearLines(pack, gearRules.gear);
-    onChange({ ...data, gear: [...data.gear, ...newLines] });
+    const newLines = explodePackToGearLines(pack, gearRules.gear, packRules.packs);
+    const lifestyleLine = packLifestyleLine(pack, packRules.packs, lifestyleRules.lifestyles);
+    onChange({
+      ...data,
+      gear: [...data.gear, ...newLines],
+      lifestyles: lifestyleLine ? [...data.lifestyles, lifestyleLine] : data.lifestyles,
+    });
   }
 
   if (packRules.packs.length === 0) return null;

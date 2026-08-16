@@ -177,6 +177,7 @@ export function BuilderRoot() {
           <PackPicker
             packRules={packRules}
             gearRules={gearRules}
+            lifestyleRules={lifestyleRules}
             data={data}
             onChange={setData}
             extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}

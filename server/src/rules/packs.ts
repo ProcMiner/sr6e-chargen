@@ -14,24 +14,36 @@
 // purchase, so Essence/Karma/nuyen accounting for PACK contents works
 // exactly like a manual purchase would.
 //
-// The Companion's PACKs split into two structurally different tiers:
+// The Companion's PACKs split into two structurally different tiers, both
+// now built:
 // - Category PACKs (Weapons, Armor, Sensor, Identity, Augmentation,
-//   Console, Drone Autosoft, Vehicle Upgrade - pp. 56-71): flat, fixed item
-//   lists at one stated price. This file covers these.
-// - Complete Character PACKs (~15 entries, pp. 49-56): nest other PACKs
-//   inside themselves ("Included PACK: Shadowrunner Starter PACK"), include
-//   Lifestyle costs (a category this app doesn't track as gear at all), and
-//   sometimes carry embedded player choices or conditional Karma-only costs
-//   (e.g. "pay 9 Karma to bond the focus"). Explicitly out of scope for this
-//   pass - confirmed with the user - a natural follow-up once this
-//   foundation exists and the Lifestyle-tracking gap is addressed.
+//   Console, Drone Autosoft - pp. 56-71): flat, fixed item lists at one
+//   stated price.
+// - Complete Character PACKs (16 entries incl. the small standalone
+//   "Augmented for Firearms PACK", pp. 49-55): full-nuyen pre-built
+//   character kits. This needed the Lifestyle-tracking gap closed first
+//   (see client/src/deriveLifestyle.ts) and two new PackCatalogEntry
+//   fields - `includesPackId` (for "Included PACK: Shadowrunner Starter
+//   PACK", resolved one level deep by explodePackToGearLines) and
+//   `lifestyle` (a granted lifestyle-month, overriding rather than
+//   stacking with whatever the nested PACK would have granted - matches
+//   the book's "upgraded from starter PACK" language). Only augmentations
+//   (Essence), foci (Karma bonding), lifestyle, and one representative
+//   vehicle/drone/RCC/cyberdeck anchor are itemized per PACK; the rest of
+//   each PACK's large item list (weapons, armor, accessories, extra fake
+//   licenses) is folded into the automatic bundle-adjustment line, same
+//   simplification precedent the category PACKs already established. A
+//   PACK's embedded Karma-only cost (Close Combat Adept's "pay 9 Karma to
+//   bond the focus") maps directly onto an existing catalog item
+//   (`focus-weapon`) rather than needing new mechanics - Force 3's
+//   bondingKarma (3/level) already computes to exactly 9.
 //
-// Vehicle Upgrade PACKs (book p. 71) are ALSO deferred: the book states
-// "These upgrade PACKs include vehicle modifications and upgrades from
-// Double Clutch" - they source from the Rigger sourcebook, not the
-// Companion itself, and that PDF hasn't been read this session. Flagged
-// rather than guessed at, same treatment as every other cross-sourcebook
-// gap noted throughout this rollout (e.g. qualities.ts's sourcebook list).
+// Vehicle Upgrade PACKs (book p. 71) remain deferred: they bundle vehicle
+// modifications (elemental hardening, nitro boost, rigger cocoon, gun
+// ports, etc.) that source from Double Clutch (the Rigger sourcebook) and
+// don't exist in this app's gear catalog yet - only the core rulebook's
+// basic 4-entry vehicle upgrade set does (vehicleUpgrades.ts). Confirmed
+// with the user this stays its own separate follow-on chunk.
 //
 // Known gaps/simplifications in this pass, flagged per-entry where they
 // occur rather than silently guessed at:
@@ -63,6 +75,10 @@ export interface PackCatalogEntry {
   summary: string;
   /** References into the existing gear catalogs (gear.ts, armor.ts, etc.) - not new items of their own. */
   items: { itemId: string; qty: number; rating?: number; notes?: string }[];
+  /** Another PACK's id whose contents are folded in ("Included PACK: Shadowrunner Starter PACK") - resolved one level deep by explodePackToGearLines, since no PACK in this book nests two levels. */
+  includesPackId?: string;
+  /** A lifestyle this PACK grants (one month). Overrides, doesn't stack with, any lifestyle from includesPackId's nested PACK - matches the book's "upgraded from starter PACK" language. */
+  lifestyle?: { itemId: string; months: number };
 }
 
 export const packs: PackCatalogEntry[] = [
@@ -1372,5 +1388,287 @@ export const packs: PackCatalogEntry[] = [
     cost: 6000,
     summary: "Drone-specific Maneuvering 6, weapon Targeting 6.",
     items: [{ itemId: "software-autosoft", qty: 2, rating: 6 }],
+  },
+
+  // --- Complete Character PACKs (Companion pp. 49-55) ---
+  // Each is a full-nuyen pre-built character kit. 14 of 15 nest the
+  // Shadowrunner Starter PACK inside themselves ("Included PACK") -
+  // includesPackId resolves that one level deep (explodePackToGearLines,
+  // derivePacks.ts). Only augmentations (for Essence accuracy), foci (for
+  // Karma-bonding accuracy), lifestyle grants, and a representative
+  // vehicle/drone/RCC/cyberdeck anchor are itemized; the rest of each
+  // PACK's large item list (weapons, armor, accessories, extra fake
+  // licenses) is folded into the automatic bundle-adjustment line, same
+  // simplification precedent the category PACKs above already established.
+  // "Used" grade cyberware/bioware (Implant Grades still aren't modeled -
+  // see augmentations.ts's header) is approximated with the standard-grade
+  // catalog entry in every PACK that specifies it; each affected PACK's
+  // summary states the book's own printed Essence Cost as the authoritative
+  // cross-check figure.
+  {
+    id: "pack-starter-shadowrunner",
+    name: "Shadowrunner Starter PACK",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 25000,
+    summary:
+      "The foundation nearly every other Complete Character PACK below builds on (\"Included PACK\"). Fake SIN (rating 4), two more fake licenses (rating 4, player's choice of covered activity), Hermes Ikon + Meta Link commlinks, 10 stealth tags, bug scanner, tag eraser, area jammer (rating 6), micro-transceiver, 10 plastic straps, miniwelder + 2 spare fuel canisters, gas mask, respirator (rating 6), climbing gear, survival kit, flashlight, gecko tape gloves, grapple gun (100m rope), biomonitor, 2 stim patches (rating 6), 2 trauma patches, trid projector, mapsoft (local area). One month Low lifestyle (the book offers 2,000¥ toward another lifestyle instead - swap the Low lifestyle line out afterward if you'd rather have the nuyen).",
+    items: [
+      { itemId: "id-fake-sin", qty: 1, rating: 4 },
+      { itemId: "id-fake-license", qty: 2, rating: 4, notes: "Player's choice of covered activity/item." },
+      { itemId: "commlink-hermes-ikon", qty: 1 },
+      { itemId: "commlink-meta-link", qty: 1 },
+    ],
+    lifestyle: { itemId: "lifestyle-low", months: 1 },
+  },
+  {
+    id: "pack-dirt-poor",
+    name: "Dirt Poor",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 8000,
+    summary:
+      "The only Complete Character PACK that does NOT include the Shadowrunner Starter PACK - a bare-minimum-resources start. Defiance Super-Shock Taser (hidden arm slide, 10 taser darts), shock gloves, armor vest (chemical protection 1, cold resistance 1, electricity resistance 2, fire resistance 2), contacts (rating 3, flare compensation, image link, choose low-light or thermographic vision), micro-transceiver, Sony Emperor commlink. One month Low lifestyle.",
+    items: [],
+    lifestyle: { itemId: "lifestyle-low", months: 1 },
+  },
+  {
+    id: "pack-full-magician",
+    name: "Full Magician",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 50000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. 4 throwing knives, 2 stun/2 fragmentation/2 thermal smoke grenades, armor jacket + helmet, 10 stim patches (rating 6), mage-sight goggles, periscope, optical binoculars, contacts (choose low-light or thermographic vision), plus 2 more fake licenses (Magician, Stun Grenades). Lifestyle upgraded from the Starter PACK's Low to one month Medium.",
+    items: [
+      { itemId: "magical-lodge-materials", qty: 1, rating: 6 },
+      { itemId: "reagents", qty: 100 },
+      { itemId: "vehicle-chrysler-nissan-jackrabbit", qty: 1, notes: "w/ rating 2 maneuvering autosoft." },
+    ],
+    lifestyle: { itemId: "lifestyle-middle", months: 1 },
+  },
+  {
+    id: "pack-close-combat-adept",
+    name: "Close Combat Adept",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 50000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Combat axe, katana, polearm, telescoping staff, combat knife, 4 throwing knives, armor vest + helmet, plus 2 more fake licenses (Magician, Foci). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      {
+        itemId: "focus-weapon",
+        qty: 1,
+        rating: 3,
+        notes: "Enchants one owned Close Combat weapon (player's choice); pay 9 Karma to bond and unlock its effect.",
+      },
+    ],
+  },
+  {
+    id: "pack-face",
+    name: "Face",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 50000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Shock gloves, light collapsible crossbow (5 Narcoject bolts), 2 stun/2 fragmentation/2 thermal smoke grenades, Flash-pak, Armanté suit + Actioneer business clothes + lined coat (all electrochromic), cellular glove molder, keycard copier, lockpick set, disguise kit, white noise generator, contacts/earbuds/glasses, empty certified credsticks (3 standard, 1 silver, 1 gold), plus 2 more fake licenses (Locksmith, Stun Grenades). Lifestyle stays the Starter PACK's Low.",
+    items: [],
+  },
+  {
+    id: "pack-gunslinger-adept",
+    name: "Gunslinger Adept",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 50000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. No augmentations, by design (\"none of those Magic-reducing augmentations\"). Ruger Super Warhawk, Ares Predator VI, Ruger Redhawk, Ares Light Fire 75, Mossberg CMDT, Cavalier Arms Crockett EBR, lined coat, contacts/earbuds/glasses (built-in smartlink), plus 2 more fake licenses (Pistols, concealed carry). Lifestyle stays the Starter PACK's Low.",
+    items: [],
+  },
+  {
+    id: "pack-cybered-covert-operative",
+    name: "Cybered Covert Operative",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 150000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 3.63 (computed total below is close but not exact - the cyberarm's shock limb/retractable spur accessories aren't separately modeled). Agility 6 for the cyberarm, Reaction +2, +2d6 Initiative dice (two more Minor Actions). 4 throwing stars, light collapsible crossbow (6 Narcoject bolts), telescoping staff, Chameleon suit, lined coat, contacts/earbuds, lockpick set, cellular glove molder, keycard copier, sequencer, glue sprayer + solvent, 30m myomeric rope, stealth grapple gun, plus 2 more fake licenses (Augmentations, bodyguard). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      {
+        itemId: "cyberlimb-arm-synthetic",
+        qty: 1,
+        notes: "Agility 6, shock limb, retractable spur (accessories folded into the adjustment line).",
+      },
+      { itemId: "skin-pocket", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "wired-reflexes-2", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "voice-modulator", qty: 1, notes: "Rating 3 in the book, flat Essence cost regardless of rating; used grade not modeled." },
+    ],
+  },
+  {
+    id: "pack-decker",
+    name: "Decker",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 275000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 3.4 (computed total below reads a bit lower - the cyberjack is \"used\" grade in the book, not separately modeled). Full 18-program Basic + Hacking software suite plus Agent (rating 6), shock gloves, Ares Predator VI, lined coat + helmet, white noise generator, data tap, Electronics toolkit, directional jammer, contacts/glasses, medkit, plus 2 more fake licenses (Augmentations, pistols) and 1,000¥ cash left over. Lifestyle upgraded from the Starter PACK's Low to one month Medium.",
+    items: [
+      { itemId: "cyberjack-rating-6", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "datajack", qty: 1 },
+      { itemId: "cyberdeck-renraku-kitsune", qty: 1 },
+      { itemId: "vehicle-hyundai-shin-hyung", qty: 1 },
+    ],
+    lifestyle: { itemId: "lifestyle-middle", months: 1 },
+  },
+  {
+    id: "pack-full-conversion-cyborg",
+    name: "Full Conversion Cyborg",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 450000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 5.9 (computed total below reads noticeably higher - none of these are \"alphaware\" grade in this catalog, and this app doesn't model the book's multi-cyberlimb Essence discount; the book figure is authoritative). Defense Rating +15, Agility 6, Strength 4, six extra boxes to the Physical Condition Monitor. Ares Viper Slivergun, Ruger Super Warhawk, AK-97, stun baton, katana, full body armor + armor jacket, 20 doses of cram, 4 doses of jazz, Flash-pak, plus 2 more fake licenses (Cyber implant weapons, full body armor). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      { itemId: "cyberlimb-skull-obvious", qty: 1, notes: "Armor 4." },
+      { itemId: "cyberlimb-torso-obvious", qty: 1, notes: "Armor 5, smuggling compartment." },
+      { itemId: "cyberlimb-arm-obvious", qty: 2, notes: "One w/ gyromount, one w/ an integrated Ares Predator VI (external clip port, silencer)." },
+      { itemId: "cyberlimb-leg-obvious", qty: 2, notes: "Armor 3, holster, hydraulic jacks 6." },
+      { itemId: "cybereyes-rating-4", qty: 1 },
+      { itemId: "cyberears-rating-1", qty: 1, notes: "Approximates the book's \"basic system\" cyberears (w/ damper)." },
+    ],
+  },
+  {
+    id: "pack-street-samurai",
+    name: "Street Samurai",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 275000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 5.9 (computed total below is close but not exact - \"used\" grade on wired reflexes isn't separately modeled). Body +2, Agility +2, Strength +2, +4 Reaction, +2 DR, +2 Unarmed AR, +2d6 Initiative dice (two more minor actions). Katana, stun baton, Ruger Redhawk, Ares Predator VI, Ingram Smartgun XI, Mossberg CMDT, Ares Alpha, armor jacket + helmet, Flash-pak, plus 2 more fake licenses (Augmentations, pistols, concealed carry, submachineguns - two of the four come from the Starter PACK). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      { itemId: "wired-reflexes-2", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "reaction-enhancers", qty: 1, rating: 2 },
+      { itemId: "bone-lacing-aluminum", qty: 1 },
+      { itemId: "muscle-replacement", qty: 1, rating: 2 },
+      { itemId: "cybereyes-rating-4", qty: 1 },
+      { itemId: "cyberears-rating-3", qty: 1 },
+    ],
+  },
+  {
+    id: "pack-vat-job-combat-specialist",
+    name: "Vat Job Bioware-Augmented Combat Specialist",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 275000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 5.17 (computed total below is close but not exact - \"used\" grade isn't separately modeled). All-bioware build, invisible to a cyberware scan. Body +4 (damage soak only), Agility +2, Strength +2, Reaction +2, Unarmed AR +3, +2d6 Initiative dice (two more minor actions) - the adrenaline pump's bonus is a 2d6-round activated boost, not always-on. Monofilament whip, Colt Manhunter, FN P93 Praetor, lined coat + helmet, contacts, 2 flash-paks, grenades (smoke/thermal smoke/stun), 10 stim patches, plus 2 more fake licenses (Pistols, concealed carry). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      { itemId: "adrenaline-pump", qty: 1, rating: 2, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "bone-density-augmentation", qty: 1, rating: 4, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "muscle-augmentation", qty: 1, rating: 2, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "muscle-toner", qty: 1, rating: 2, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "synaptic-booster", qty: 1, rating: 2, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "skin-pocket", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "reflex-recorder", qty: 1, notes: "Exotic Weapons; used grade in the book, standard grade catalog price/Essence used instead." },
+    ],
+  },
+  {
+    id: "pack-weapons-specialist",
+    name: "Weapons Specialist",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 275000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 3.95 (computed total below is close but not exact - \"used\" grade isn't separately modeled). Agility +4, Reaction +2, +2d6 Initiative dice, +1 augmented rank in Athletics/Close Combat/Exotic Weapons/Firearms. A huge weapon collection (forearm snap blades, combat knife/axe, polearm, sap, stun baton, throwing knives, taser, Walther Palm Pistol, Ruger Redhawk/Super Warhawk, HK-227, Remington Roomsweeper, Ranger Arms SM-5, RPK HMG, ArmTech MGL-6) plus explosives (conventional/plastic/foam packages, armorer + demolitions toolkits), lined coat/helmet/full body armor/ballistic shield, plus 2 more fake licenses (Augmentations, concealed carry, pistols, shotguns, submachine guns - two of the five come from the Starter PACK). Lifestyle upgraded from the Starter PACK's Low to one month Medium.",
+    items: [
+      { itemId: "cyberears-rating-1", qty: 1, notes: "Approximates the book's \"basic system\" cyberears (w/ damper)." },
+      { itemId: "cybereyes-rating-3", qty: 1 },
+      { itemId: "wired-reflexes-2", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "muscle-toner", qty: 1, rating: 4, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "reflex-recorder", qty: 4, notes: "Athletics, Close Combat, Exotic Weapons, Firearms (one each, all used grade in the book)." },
+    ],
+    lifestyle: { itemId: "lifestyle-middle", months: 1 },
+  },
+  {
+    id: "pack-max-hardware-decker",
+    name: "Max Hardware Decker",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 450000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Book's printed Essence Cost: 5 (computed total below is close but not exact - the cyberjack is \"used\" grade, and the cyberdeck is installed as headware rather than carried, neither separately modeled). Logic +3. Full 18-program Basic + Hacking software suite plus Agent (rating 6), Ruger Redhawk, Ares Viper Slivergun, armor vest, data tap, earbuds, Electronics toolkit, MCT Gnat drone (rating 2 Clearsight autosoft), white noise generator, plus 2 more fake licenses (Augmentations, pistols). Lifestyle stays the Starter PACK's Low.",
+    items: [
+      { itemId: "cerebral-booster", qty: 1, rating: 3 },
+      { itemId: "cyberjack-rating-6", qty: 1, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "cyberdeck-shiawase-cyber-6", qty: 1, notes: "Installed as headware in the book - modeled as a normal carried cyberdeck." },
+      { itemId: "datajack", qty: 1 },
+      { itemId: "cybereyes-rating-4", qty: 1 },
+    ],
+  },
+  {
+    id: "pack-transport-rigger",
+    name: "Transport Rigger",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 450000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. Logic +2, +3 dice to Piloting tests. Ares Predator VI, armor jacket + helmet, automotive toolkit/shop, plus 2 more fake licenses (Pistols, concealed carry). Lifestyle upgraded from the Starter PACK's Low to one month Medium. Vehicle/drone weapon-mount and road-warfare-kit modifications (rigger adaptation, gun ports, spike strips, etc.) aren't itemized individually - see the deferred Vehicle Upgrade PACKs for that catalog.",
+    items: [
+      { itemId: "cerebral-booster", qty: 1, rating: 2 },
+      { itemId: "control-rig", qty: 1, rating: 3, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "cybereyes-rating-3", qty: 1 },
+      { itemId: "rcc-maersk-spider", qty: 1, notes: "w/ cyberprograms Armor/Encryption/Signal Scrubber/Stealth/Toolbox/Virtual Machine, rating 4 autosofts." },
+      { itemId: "vehicle-ares-roadmaster", qty: 1, notes: "Rigger-adapted, RPK HMG pop-up heavy weapon mount, full road-warfare kit." },
+      { itemId: "vehicle-ford-americar", qty: 1, notes: "Rigger-adapted, Panther XXL + FN HAR weapon mounts, full road-warfare kit." },
+      { itemId: "drone-mct-hornet", qty: 4, notes: "Stinger armed with Narcoject." },
+      { itemId: "drone-gm-nissan-flip-flop", qty: 1 },
+    ],
+    lifestyle: { itemId: "lifestyle-middle", months: 1 },
+  },
+  {
+    id: "pack-drone-rigger",
+    name: "Drone Rigger",
+    category: "complete-character-pack",
+    subcategory: "Complete Character PACKs",
+    cost: 450000,
+    includesPackId: "pack-starter-shadowrunner",
+    summary:
+      "Includes the Shadowrunner Starter PACK. 2 Ares Crusader II pistols, helmet + lined coat, automotive/aircraft toolkits and shops, armorer kit + shop, plus 2 more fake licenses (RCC, augmentations). Lifestyle upgraded from the Starter PACK's Low to one month Medium. Drone weapon-mount loadouts aren't itemized individually - see the deferred Vehicle Upgrade PACKs for that catalog.",
+    items: [
+      { itemId: "cerebral-booster", qty: 1, rating: 2 },
+      { itemId: "control-rig", qty: 1, rating: 2, notes: "Used grade in the book; standard grade catalog price/Essence used instead." },
+      { itemId: "cybereyes-rating-3", qty: 1 },
+      { itemId: "rcc-proteus-poseidon", qty: 1, notes: "w/ cyberprograms Armor/Encryption/Signal Scrubber/Stealth/Toolbox/Virtual Machine, rating 5 autosofts." },
+      { itemId: "vehicle-gmc-bulldog-step-van", qty: 1, notes: "Rigger-adapted, RPK HMG pop-up turret heavy weapon mount." },
+      { itemId: "drone-steel-lynx-combat", qty: 1, notes: "Two heavy weapon mounts: RPK HMG + ArmTech MGL-12." },
+      { itemId: "drone-mct-nissan-roto-drone", qty: 4, notes: "2 w/ ArmTech MGL-12 heavy mount, 2 w/ AK-97 standard mount." },
+      { itemId: "drone-horizon-flying-eye", qty: 6, notes: "3 w/ flash-paks, 3 w/ smoke grenades." },
+      { itemId: "drone-gmc-micromachine", qty: 1 },
+    ],
+    lifestyle: { itemId: "lifestyle-middle", months: 1 },
+  },
+  {
+    id: "pack-augmented-for-firearms",
+    name: "Augmented for Firearms PACK",
+    category: "augmentation-pack",
+    subcategory: "Augmentation PACKs",
+    cost: 25000,
+    summary:
+      "Not a Complete Character PACK (no included Starter PACK, no lifestyle) - a standalone starting point for a gun-focused mundane or gunslinger adept willing to spend a little Essence. Book's printed Essence Cost: 0.41 (computed total below is close but not exact - \"used\" grade on the reflex recorder isn't separately modeled). Ares Predator VI, Ares Light Fire 75, Streetline Special.",
+    items: [
+      { itemId: "cybereyes-rating-3", qty: 1, notes: "Smartlink-ready, built-in magnification." },
+      { itemId: "reflex-recorder", qty: 1, notes: "Firearms; used grade in the book, standard grade catalog price/Essence used instead." },
+    ],
   },
 ];

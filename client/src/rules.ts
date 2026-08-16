@@ -201,6 +201,10 @@ export interface PackCatalogEntry {
   summary: string;
   /** References into the existing gear catalogs - not new items of their own. */
   items: { itemId: string; qty: number; rating?: number; notes?: string }[];
+  /** Another PACK's id whose contents are folded in ("Included PACK: Shadowrunner Starter PACK") - resolved one level deep by explodePackToGearLines, since no PACK in this book nests two levels. */
+  includesPackId?: string;
+  /** A lifestyle this PACK grants (one month). Overrides, doesn't stack with, any lifestyle from includesPackId's nested PACK - matches the book's "upgraded from starter PACK" language. */
+  lifestyle?: { itemId: string; months: number };
 }
 
 export interface PackRulesResponse {
