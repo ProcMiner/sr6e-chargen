@@ -38,10 +38,11 @@
 //   future Contacts feature instead (see README's "Contact purchasing UI"
 //   gap).
 // - Firing Squad's "Fighting Forces" chapter is now covered too - see
-//   firingSquadCritters.ts (35 entries). Collapsing Now was surveyed
-//   (~40+ more NPC-shaped stat blocks) but not yet transcribed - a future
-//   chunk. Power Plays (Corp Info) has no stat-block-formatted NPCs at
-//   all.
+//   firingSquadCritters.ts (35 entries). Collapsing Now's generic archetype
+//   NPCs (across six of its ten profiled organizations - its named,
+//   plot-specific individuals were deliberately skipped, user confirmed) are
+//   covered too - see collapsingNowCritters.ts (28 entries). Power Plays
+//   (Corp Info) has no stat-block-formatted NPCs at all.
 
 export interface NpcTemplateEntry {
   id: string;

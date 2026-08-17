@@ -1,0 +1,820 @@
+// Collapsing Now (Runner Resource sourcebook) chunk of the NPC template
+// catalog - see npcTemplates.ts's header for the full rationale (same
+// NpcTemplateEntry shape). Kept in its own file the same way every other
+// sourcebook chunk is split out.
+//
+// Scope, confirmed with the user via AskUserQuestion before transcribing:
+// "Generic archetypes only" - Collapsing Now profiles ten organizations,
+// but mixes reusable Professional-Rating-style archetype stat blocks with
+// named, plot-specific individuals (Anna Moller, the Sea Dragon's k'air'k/
+// Selena Juarez/Mako, the Shadow Chapters' Donovan Pyke/Ms. Snow/Eddie Wei/
+// Blue/Mr. Dufresne/Juanita Dasilva/Dezba, etc.). Only the former belongs in
+// a GM's reusable "Import from book" roster - named characters are surveyed
+// and confirmed to have no reusable archetype content of their own, so they
+// are deliberately NOT transcribed here, same boundary already established
+// for Sample Contacts and Hack & Slash's Paragons.
+//
+// 28 entries total, across the six organizations that print generic
+// archetypes: Freedom Network (7), GreenWar (3), Grey Cell (6), Ordo
+// Maximus (5), Stark/Theissen/Van der Mer (3), The Yakuza (4).
+//
+// Also deliberately NOT included:
+// - The Monads (Freedom Network chapter, p. 68-69) - their "Nanite Volume"
+//   mechanic (jazz/kamikaze/nitro side-effect avoidance tied to a pool this
+//   app doesn't model) isn't representable without inventing a placeholder
+//   mechanic; excluded rather than guessed.
+// - Sea Dragon and the Shadow Chapters - surveyed in full; both chapters'
+//   stat blocks are exclusively named plot individuals with no generic
+//   archetype content, so there is nothing to transcribe from them.
+// - Yakuza's "Boryokudan" foot-soldiers explicitly point to the core
+//   rulebook's own Gangers/Mob Muscle Grunts (p. 204, SR6) instead of
+//   printing a new stat block - already covered by this app's core
+//   rulebook NPC templates, so no new entry is needed.
+//
+// Stat-block numbers are transcribed as printed; flavor text is
+// paraphrased in our own words, same convention as every other catalog
+// file in this project.
+//
+// Known gaps/notes, flagged rather than guessed at:
+// - `armor` is derived as (printed Defense Rating) - (printed base Body,
+//   ignoring any parenthetical/temporary Body boost), the same convention
+//   used in npcTemplates.ts and firingSquadCritters.ts. A few entries here
+//   print a boosted Body (e.g. Ordo Field Operative's "3(+2)", Cyberzombie's
+//   "4(+2)") - the base value is used, so the derived armor may run a point
+//   or two off the character's boosted-Body combat state.
+// - The book's raw text extraction interleaved two columns in the "Stark,
+//   Theissen, and Van der Mer" section (STV Spider/Fixer/Mage-Lawyer flavor
+//   text and stat blocks printed out of matching order); the three entries
+//   below were re-verified against a second, layout-preserving extraction
+//   pass before transcribing to confirm each stat block is attributed to
+//   the correct named archetype.
+// - STV Spider's stat block is explicitly marked in the book as "Cybercombat
+//   related values (running hot sim)" - no separate physical-only AC/DR line
+//   is printed for her at all (she's a desk-bound in-house Matrix defender).
+//   `armor` here is derived from that combined hot-sim DR per the usual
+//   formula, but treat it as a hot-sim-in-combat value; caught away from a
+//   terminal she likely has far less protection than the number implies.
+
+import type { NpcTemplateEntry } from "./npcTemplates.js";
+
+const COLLAPSING_NOW = "Collapsing Now";
+
+/** "X/Y" printed Initiative rank/Initiative Dice -> "X + Yd6". */
+function initiative(rank: number, dice: number): string {
+  return `${rank} + ${dice}d6`;
+}
+
+const CM_NOTE =
+  "Condition Monitor is ONE combined Physical+Stun track per SR6's grunt rules (core rulebook p. 204) - treat the Physical and Stun trackers below as a single shared pool, not two separate ones.";
+
+export const collapsingNowTemplates: NpcTemplateEntry[] = [
+  // --- Freedom Network (book pp. 19-20) ---
+  {
+    id: "npc-cn-freedom-popular-will-thug",
+    name: "Popular Will Thug",
+    group: "Freedom Network",
+    summary: "Rank-and-file muscle for the Freedom Network's Popular Will faction.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 2. Street-level muscle for the Popular Will faction.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 2,
+      initiative: initiative(5, 1),
+      combat: [
+        "B4 A4 R2 S4 W2 L3 I3 C2 ESS6",
+        "AC: A1, I2",
+        "Active Skills: Athletics 2, Close Combat 3, Firearms 2, Influence 2 (Intimidation +2), Perception 2, Stealth 2",
+        "Knowledge Skills: [Specific Sprawl] Gangs, [Specific Sprawl] Streets, Political Rhetoric",
+        "Languages: Appropriate native language based on region of origin",
+        "Qualities: Toughness",
+        "Gear: Armor clothing (DR +2), Sony Emperor commlink (rating 2, D/F 1/1), synthleather jacket (DR +1)",
+        "Weapons: Bike chain [Unarmed, DV 2S, AR 5/-/-/-/-]; Knife [Blade, DV 2P, AR 6/1*/-/-/-, *max range 20 meters]; Knucks [Unarmed, DV 3P, AR 6/-/-/-/-]; Unarmed [DV 2S, AR 6/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-popular-will-lieutenant",
+    name: "Popular Will Lieutenant",
+    group: "Freedom Network",
+    summary: "A step up from the rank-and-file Popular Will thug, with bone lacing and a harder punch.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 2. Popular Will faction lieutenant.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 2,
+      initiative: initiative(5, 1),
+      combat: [
+        "B5 A4 R2 S4 W2 L3 I3 C3 ESS5",
+        "AC: A1, I2",
+        "Active Skills: Athletics 2, Close Combat 4, Firearms 2, Influence 3 (Intimidation +2), Perception 2, Stealth 2",
+        "Knowledge Skills: [Specific Sprawl] Gangs, [Specific Sprawl] Streets, Political Rhetoric",
+        "Languages: Appropriate native language based on region of origin",
+        "Qualities: Toughness",
+        "Augmentations: Bone lacing (aluminum)",
+        "Gear: Armor clothing (DR +2), Sony Emperor commlink (rating 2, D/F 1/1), synthleather jacket (DR +1)",
+        "Weapons: Bike chain [Unarmed, DV 2S, AR 5/-/-/-/-]; Unarmed [Unarmed, DV 4P, AR 8/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-institute-researcher",
+    name: "Institute Researcher",
+    group: "Freedom Network",
+    summary: "A Moller Institute researcher - fragile in a fight, but the one with the Biotech/Electronics/Engineering skills.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 2. Moller Institute researcher.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 0,
+      initiative: initiative(6, 1),
+      combat: [
+        "B2 A2 R2 S1 W4 L5(7) I4 C3 ESS5.4",
+        "AC: A1, I2",
+        "Active Skills: Biotech 5, Electronics 4, Engineering 4, Perception 3",
+        "Knowledge Skills: Academic Institutions, Biology, Magical Theory, Matrix Theory, Medicine",
+        "Augmentations: Cerebral booster 2, datajack, datalock 4",
+        "Gear: Erika Elite commlink (Rating 4, D/F 2/1)",
+        "Weapons: Unarmed [Close Combat, DV 2S, AR 3/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-forum-politician",
+    name: "Forum Politician",
+    group: "Freedom Network",
+    summary: "A Freedom Network public face - a talker backed by a hold-out needler, not a fighter.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 3. Public-facing political operative.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 2,
+      initiative: initiative(6, 1),
+      combat: [
+        "B3 A3 R2 S3 W4 L3 I4 C5 ESS5.2",
+        "AC: A1, I2",
+        "Active Skills: Athletics 2, Con 6, Firearms 1, Influence 6, Perception 4",
+        "Knowledge Skills: Bureaucracy, Political Tactics",
+        "Languages: Appropriate native language based on region of origin, plus one language native to the region spoken by a minority group",
+        "Qualities: First Impression",
+        "Augmentations: Datajack, synthacardium 1, toxin extractor 2, voice modulator 1",
+        "Gear: Actioneer business clothes (DR +2), Transys Avalon commlink (rating 6, D/F 3/1)",
+        "Weapons: Fichetti Tiffani Needler [Hold-out, DV 3P, SS, AR 10/6/2/-/-, 4(c)]; Unarmed [Unarmed, DV 2S, AR 6/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-johnson",
+    name: "Freedom Network Johnson",
+    group: "Freedom Network",
+    summary: "The Freedom Network's own Mr./Ms. Johnson - a smooth-talking fixer with a Manhunter for backup.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 4. Runs jobs for the organization as its own Mr./Ms. Johnson.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 6,
+      initiative: initiative(8, 1),
+      combat: [
+        "B3 A3 R3 S3 W3 L3 I5 C4 ESS4.8",
+        "AC: A1, I2",
+        "Active Skills: Con 5, Electronics 4, Firearms 3, Influence 5, Perception 3",
+        "Knowledge Skills: Finance, Psychology, Runner Teams",
+        "Augmentations: Datajack, datalock 4, orthoskin 4",
+        "Gear: Actioneer business clothes (DR +2), glasses [capacity 4, w/ flare compensation, image link, smartlink], Transys Avalon commlink (Rating 6, D/F 3/1)",
+        "Weapons: Colt Manhunter [Heavy Pistol, DV 3P, AR 10/8/6/-/-, SA, 14(c), w/ smartgun system]; Unarmed [Unarmed, DV 2S, AR 6/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-akyromantic-magician",
+    name: "Akyromantic Magician",
+    group: "Freedom Network",
+    summary: "A Hermetic mage trained in the Institute's akyromancy metamagic, fielding both a normal and an astral combat block.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 4. Hermetic mage, Initiate Grade 5 in akyromancy.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(7, 1),
+      combat: [
+        "B4 A2 R4 S4 W5 L5 I3 C5 M7 ESS6",
+        "Normal: DR 8, I/ID 7/1, AC A1/I2, CM 11, Move 10/15/+1",
+        "Astral: DR 3, I/ID 8/2, AC A1/I3, CM -, Move -",
+        "Active Skills: Astral 3, Close Combat 2, Con 2, Firearms 4, Influence 2, Perception 2, Stealth 3",
+        "Knowledge Skills: Arcana, Magical Theory, Magical Traditions, Metaplanes",
+        "Magical Tradition: Hermetic",
+        "Initiation, Metamagics: Grade 5, akyromancy",
+        "Gear: Armor jacket (DR +4), glasses [rating 2, w/ flare compensation, image link], Erika Elite commlink (Rating 4, D/F 2/1)",
+        "Weapons: Colt Government 2076 [Heavy Pistol, DV 3P, SA, AR 10/8/6/-/-, 14(c), w/ laser sight]; Colt M23 [Assault Rifle, DV 4P, SA/BF/FA, AR 5/8/8/8/1, 40(c), w/ laser sight]; Unarmed [Unarmed, DV 2S, AR 8/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-freedom-akyromantic-technomancer",
+    name: "Akyromantic Technomancer",
+    group: "Freedom Network",
+    summary: "A technomancer trained in akyromancy, submerged and Echo-capable, fielding both a normal and a Matrix combat block.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Freedom Network, Professional Rating 4. Technomancer, Submersion 1, akyromancy Echo.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 5,
+      initiative: initiative(8, 1),
+      combat: [
+        "B5 A2 R2 S3 W5 L5 I6 C5 RES7 ESS6",
+        "Normal: DR 9, I/ID 8/1, AC A1/I2, CM 11, Move 10/15/+1",
+        "Matrix: DR 10, I/ID 11/3, AC A1/I4, CM -, Move -",
+        "Active Skills: Con 3, Cracking 6 (Cybercombat +2), Electronics 6 (Computer +2), Firearms 4, Influence 2, Perception 3",
+        "Knowledge Skills: Hacker Groups, Host Design, Matrix Theory, Technomancer Groups",
+        "Qualities: Incompetent (Tasking)",
+        "Submersion, Echoes: 1, akyromancy",
+        "Gear: Armor jacket (DR +4), glasses [capacity 1, w/ flare compensation]",
+        "Living Persona: Attack 5, Sleaze 6, Data Processing 5, Firewall 5, plus 3 points to allocate",
+        "Weapons: Colt Government 2076 [Heavy Pistol, DV 3P, AR 10/8/6/-/-, SA, 14(c), w/ laser sight]; Colt M23 [Assault Rifle, DV 4P, AR 5/8/8/8/1, SA/BF/FA, 40(c), w/ laser sight]; Unarmed [Unarmed, DV 2S, AR 5/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+
+  // --- GreenWar (book p. 37) ---
+  {
+    id: "npc-cn-greenwar-eco-warrior",
+    name: "GreenWar Eco-Warrior",
+    group: "GreenWar",
+    summary: "A non-Awakened GreenWar fighter, heavily modified and often rigged with an IED vest.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "GreenWar, Non-Awakened, Professional Rating 5. Heavily cybered fighter, often wired to an IED vest.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 6,
+      initiative: initiative(11, 3),
+      combat: [
+        "B5 A5(7) R5(7) S3 W3 L2 I4 C2 EDG4 ESS1.0",
+        "AC: A1, I4",
+        "Skills: Athletics 4 (Throwing +2), Close Combat 4 (Unarmed Combat +2), Engineering 4 (Demolitions +2), Electronics 3, Exotic Weapons (Acid Thrower) 5, Firearms 5, Perception 5, Stealth 3",
+        "Augmentations: Bone lacing (titanium), cybereyes (rating 3, w/ flare compensation, image link, smartlink, vision enhancement, vision magnification), damage compensator 3, muscle toner 2, platelet factory, tracheal filter 3, wired reflexes 2",
+        "Gear: Armor jacket (IED modified)*, biomonitor/killswitch*, explosive package (rating 10), Erika Elite commlink (DR 4)",
+        "Weapons: Mimung [Exotic (Acid Thrower), DV 3P, SS, 14/10/6/-/-, 4(m)]; FN HAR [Rifle, DV 5P, SA/BF/FA, 3/11/10/6/1, 35(c), w/ gas vent, laser marker, standard ammunition]; Survival knife [Blade, DV 3P, 8/2*/-/-/-]; Chemical or incendiary grenade [Grenade, DV 6P/4P/2P, 15m]",
+        "*If killed, this triggers as an explosion (treat as a fragmentation grenade, p. 236, SR6); can also be triggered wirelessly with a minor action.",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-greenwar-hunter-adept",
+    name: "GreenWar Hunter Adept",
+    group: "GreenWar",
+    summary: "An Awakened GreenWar predator, trained to hunt down and punish those who participate in ecocide.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "GreenWar, Professional Rating 5. Adept trained in outdoor tracking, close combat, firearms, and bomb-making.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(11, 3),
+      combat: [
+        "B5* A6(8) R5(7) S4 W5 L4 I4 C2 M6 ESS6",
+        "AC: A1, I4",
+        "Skills: Athletics 4 (Throwing +2), Close Combat 5 (Blades +2), Engineering 2 (Demolitions +2), Firearms 4, Influence 2 (Intimidation +2), Outdoors 4, Perception 4, Stealth 4",
+        "Adept Powers: Attribute Boost (Body) 1, Enhanced Accuracy, Improved Physical Attribute (Agility) 2, Improved Reflexes 2, Improved Sense (Smell), Mystic Armor 2, Traceless Walk",
+        "Gear: Big Game Hunter armor (DR +4, w/ chemical protection 3), explosive package (rating 10) or thermite, Erika Elite commlink (DR 4), survival kit",
+        "Weapons: FN HAR [Rifle, DV 5P, SA/BF/FA, 5/13/12/8/3, 35(c), w/ gas vent, laser marker, standard ammunition]; Survival knife [Blade, DV 3P, 10/4*/-/-/-]; Hyperallergenic Grenade [Special]; Spore Grenade [Special]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-greenwar-radical-eco-shaman",
+    name: "GreenWar Radical Eco-Shaman",
+    group: "GreenWar",
+    summary: "A once-peaceful eco-shaman turned militant, ready to strike back with magic and conjured spirits.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "GreenWar, Professional Rating 5. Toxic shaman, willing to fight and conjure spirits for Mother Gaia.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(8, 1),
+      combat: [
+        "B4 A4 R4 S3 W4 L3 I4 C5 EDG3 M6 ESS6",
+        "AC: A1, I2",
+        "Skills: Astral 4, Athletics 2, Close Combat 2, Conjuring 5 (Summoning +2), Engineering 2, Firearms 2, Perception 5, Sorcery 5",
+        "Spells: Acid Stream, Agony, Animate Stone/Wood (choose one), Detect Life, Heal, Ice Storm, Mindlink, Shape Stone/Wood (choose one)",
+        "Magical Tradition: Toxic shaman, resists drain with Willpower + Charisma 4",
+        "Initiate Level, Metamagics: 1, centering",
+        "Gear: Armor jacket, Erika Elite commlink (DR 4), survival kit, reagents (10 drams)",
+        "Weapons: Knife [Blade, DV 4P, 6/1*/-/-/-, *max range 20 meters]; Ares Light Fire 70 [Light Pistol, DV 2P, SA, 10/7/6/-/-, 16(c), w/ laser sight, silencer]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+
+  // --- Grey Cell (book pp. 51-53) ---
+  {
+    id: "npc-cn-grey-cell-operator",
+    name: "Grey Cell Operator",
+    group: "Grey Cell",
+    summary: "A heavy hitter, called in when Grey Cell needs direct action or heavy combat.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 8. Heavy combat specialist.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 11,
+      initiative: initiative(12, 3),
+      combat: [
+        "B5 A6(7) R4(8) S5(6) W4 L3 I4 C3 ESS3.12",
+        "AC: A1, I4",
+        "Skills: Athletics 6, Biotech 3, Close Combat 5, Engineering 4, Firearms 7, Perception 5, Stealth 5",
+        "Augmentations (all alphaware): Cybereyes (rating 4, w/ low-light vision, smartlink, thermographic vision, vision magnification), muscle replacement 1, reaction enhancers 2, wired reflexes 2",
+        "Gear: Commlink (DR 6), medium mil-spec armor (+9) w/ helmet (+2), medkit (rating 4), sub-vocal mic",
+        "Weapons (choose one primary among the first three): Onotari Arms War Hound [Assault Rifle, DV 5P, SA/BF/FA, 4/11/9/6/2, 38(c), w/ caseless rounds, smartgun system]; Ingram Grey Knight [MMG, DV 5P, BF/FA, 2/10/10/8/6, w/ 100 caseless rounds (belt), smartgun system]; Cavalier Arms Crockett EBR [Sniper Rifle, DV 5P, SA/BF, 5/10/13/10/10, 20(c), w/ caseless rounds, smartgun system, vision magnification]; Shotgun [Shotgun, DV 3P, SS/SA, 7/10/6/-/-, 6(c)]; Ares Predator VI [Heavy Pistol, DV 3P, SA/BF, 10/10/8/-/-, 15(c), w/ caseless rounds]; Combat Knife [Blade, DV 3P, 8/2*/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-grey-cell-adept-operator",
+    name: "Grey Cell Adept Operator",
+    group: "Grey Cell",
+    summary: "A Grey Cell adept, effective at all combat ranges but especially deadly up close.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 8. Adept combatant.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 12,
+      initiative: initiative(12, 3),
+      combat: [
+        "B4 A6 R5(7) S3 W5 L2 I5 C3 M5 ESS6",
+        "AC: A1, I4",
+        "Skills: Astral 5, Athletics 4, Close Combat 7, Engineering 3, Firearms 6, Perception 5, Stealth 6",
+        "Qualities: Ambidextrous",
+        "Adept Powers: Astral Perception, Combat Sense, Improved Reflexes 2, Killing Hands, Mystic Armor 2, Spell Resistance",
+        "Initiate Level, Metamagics: 1, centering",
+        "Gear: Commlink (DR 6), light mil-spec armor (+8) w/ helmet (+2), medkit (rating 4), sub-vocal mic",
+        "Weapons: Colt Arms M-24 [Machine Pistols, DV 3P, SA/BF/FA, 8/9/8/-/-, 30(c), w/ stabilizing arm brace]; Onotari Arms Kali II [Rifle, DV 4P, SA/BF/FA, 7/11/9/4/-, 32(c), w/ caseless ammo]; Trench knife x2 [Blade, DV 3P/S*, 7/-/-/-/-]; Tactical hammer (Long) [Club, DV 4P, 9/-/-/-/-]",
+        "*Stun damage when hitting with the knucks part of the weapon.",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-grey-cell-watcher-investigator",
+    name: "Grey Cell Watcher/Investigator",
+    group: "Grey Cell",
+    summary: "Boots-on-the-ground surveillance and investigation, always vigilant for magical or other threats.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 4. Field investigator and surveillance specialist.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(8, 1),
+      combat: [
+        "B3 A3 R3 S3 W5 L6 I5 C4 ESS5.4",
+        "AC: A1, I2",
+        "Skills: Athletics 2, Close Combat 3 (Clubs +2), Con 4, Electronics 2, Firearms 3, Influence 5, Perception 6, Piloting 3, Stealth 5",
+        "Augmentations: Cyberears (rating 2, w/ audio enhancement, dampener, spatial recognizer), cybereyes (rating 4, w/ flare compensation, image link, low-light vision, thermographic vision, vision enhancement, vision magnification)",
+        "Gear: AR gloves, armored jacket (+4), binoculars (w/ image link, low light, vision magnification), bug scanner, data chip (x5), electric paper (x10), endoscope, Erika Elite commlink (DR 4), jammer (rating 4), laser microphone (w/ audio enhancement, select sound filter 2), monocle (w/ low light, thermographic vision, vision enhancement), RFID tags (x5), security/stealth tags (x5), tag eraser",
+        "Weapons: Colt Manhunter [Heavy Pistol, DV 3P, SA, 11/9/7/-/-, 14(c), w/ smartgun system]; Defiance Super Shock [Taser, DV 6S(e), SS, 10/6*/-/-/-, 4(m), *max range 20 meters]; Extendable baton [Club, DV 2S, 5/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-grey-cell-watcher-decker",
+    name: "Grey Cell Watcher/Decker",
+    group: "Grey Cell",
+    summary: "Grey Cell's Matrix operations, research, and monitoring expert.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 5. Matrix operations, research, and monitoring specialist.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(7, 1),
+      combat: [
+        "B2 A3 R3 S2 W4 L6 I4 C5 ESS4.3",
+        "AC: A1, I2",
+        "Skills: Athletics 4, Biotech 2 (First Aid +2), Close Combat 1, Con 5, Cracking 6, Electronics 5, Engineering 5, Firearms 2 (Pistols +2), Influence 3, Piloting 2, Stealth 6",
+        "Augmentations: Cybereyes (rating 2, w/ low-light, vision magnification), cyberjack (rating 2)",
+        "Gear: AR gloves, armored jacket (+4), Erika Elite commlink (DR 4), jammer (rating 4), omnidirectional microphone (w/ audio enhancement, select sound filter 2), Shiawase Cyber-6 cyberdeck (DR 5, A/S 8/7, program slots 10), tag eraser, Transys Avalon commlink (DR 6)",
+        "Weapons: Colt America L36 [Light Pistol, DV 2s/2S(e), SA, 9/9/7/-/-, 11(c), w/ laser sight, 50 rounds gel ammo, 50 rounds stick-n-shock ammo]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-grey-cell-handler-face",
+    name: "Grey Cell Handler/Face",
+    group: "Grey Cell",
+    summary: "Provides direction and coordination to all Grey Cell field groups.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 6. Coordinator and face for Grey Cell field teams.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(7, 1),
+      combat: [
+        "B4 A3 R3 S3 W4 L6 I4 C6 ESS5",
+        "AC: A1, I2",
+        "Skills: Athletics 4, Biotech 3 (First Aid +2), Close Combat 3, Con 5, Electronics 5, Engineering 2, Firearms 4, Influence 6, Piloting 3, Stealth 6",
+        "Qualities: First Impression",
+        "Augmentations: Cybereyes (rating 4, w/ low-light, smartlink, thermographic vision, vision magnification), tailored pheromones 3",
+        "Gear: AR gloves, armored jacket (+4), bug scanner, Hermes Ikon commlink (DR 5), jammer (rating 5), keycard copier, maglock passkey, medkit (rating 4), satellite link, stim patch (x3), trauma patch (x3), white noise generator (rating 5)",
+        "Weapons: Ares Crusader II [Machine Pistol, DV 2P, SA/BF, 8/8/6/-/-, 40(c), w/ smartgun system, 40 regular ammo, 40 rounds stick-n-shock ammo]; Extendable baton [Club, DV 2S, 5/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-grey-cell-magical-researcher",
+    name: "Grey Cell Magical Researcher",
+    group: "Grey Cell",
+    summary: "Tasked with learning new magical skills and aiding cells whenever possible.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Grey Cell, Professional Rating 4. Magical researcher and support caster.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(6, 1),
+      combat: [
+        "B3 A3 R3 S2 W5 L4 I3 C5 M7 ESS6",
+        "AC: A1, I2",
+        "Skills: Astral 6, Conjuring 6, Enchanting 4, Firearms 2, Influence 5, Perception 4, Sorcery 6",
+        "Spells: Analyze Magic, Analyze Truth, Antidote, Clout, Detect Enemies, Detect Life, Detect Magic, Fireball, Heal, Increase Reflexes, Improved Invisibility, Lightning Bolt, Physical Mask, Powerbolt",
+        "Initiate Level, Metamagics: 1, masking",
+        "Gear: Armored jacket (+4), Erika Elite commlink (DR 4), glasses (rating 3, w/ flare compensation, low-light vision, thermographic vision)",
+        "Weapons: Ruger Redhawk [Light Pistol, DV 3P, SA/BF, 8/11/8/-/-, 8(cy), w/ laser sight]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+
+  // --- Ordo Maximus (book pp. 94-96) ---
+  {
+    id: "npc-cn-ordo-splatterpunks",
+    name: "Ordo Splatterpunks",
+    group: "Ordo Maximus",
+    summary: "Go-ganger vampire wannabes, disposable labor for Fear the Dark or Tamanous.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Ordo Maximus, Orks, Professional Rating 4. Body Bank-augmented brutes chasing the 'Dark Kiss'.",
+      physicalMonitor: 12,
+      stunMonitor: 12,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 4,
+      initiative: initiative(8, 3),
+      combat: [
+        "B6 A4(6) R3(5) S5(7) W4 L2 I3 C2 ESS2.6",
+        "AC: A1, I4",
+        "Skills: Athletics 4, Close Combat 4 (Blades +2), Firearms 5 (Pistols +2), Influence 2 (Intimidation +2), Outdoors 3, Perception 4, Stealth 3",
+        "Qualities: Built Tough 1, Guts",
+        "Augmentations: Muscle replacement 2, wired reflexes 2",
+        "Gear: Armor jacket (DR +4), Renraku Sensei commlink (DR 3)",
+        "Weapons: Combat knife [Blade, DV 3P, 8/2*/-/-/-, *max range 20 meters]; FN P93 Praetor [Submachine Gun, DV 4P, SA/BF/FA, 9/12/7/-/-, 50(c), w/ flashlight, integral rigid stock, laser sight]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-ordo-field-operative",
+    name: "Ordo Field Operative",
+    group: "Ordo Maximus",
+    summary: "A lower-ranking Inner Circle member: precision assassination, theft, coercion, and blackmail rather than blunt force.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Ordo Maximus, Human, Professional Rating 6. Elite Inner Circle field operative.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 5,
+      initiative: initiative(14, 4),
+      combat: [
+        "B3(+2) A6(8) R5(8) S4 W6 L5(7) I6 C5 ESS3.06",
+        "AC: A1, I5",
+        "Skills: Athletics 5 (Gymnastics +2), Biotech 2, Close Combat 7, Con 5, Cracking 2, Electronics 5, Engineering 3, Firearms 6 (Pistols +2), Influence 8 (Intimidation +2, Negotiation +3), Outdoors 5 (Tracking +2), Perception 8, Piloting 6, Stealth 7 (Palming +2, Sneaking +3)",
+        "Qualities: High Pain Tolerance",
+        "Augmentations (all betaware): Bone lacing (aluminum), cerebral booster 2, cyberears (rating 3, w/ audio enhancement, balance augmenter, damper, select sound filter 2, sound link), cybereyes (rating 4, w/ image link, smartlink, thermographic vision, vision enhancement, vision magnification), muscle toner 2, synaptic booster 3, tooth compartment, voice modulator 2",
+        "Gear: Armor jacket (DR +4), Transys Avalon commlink (DR 6)",
+        "Weapons: Ares Light Fire 75 [Light Pistol, DV 2P, SA, 10/7/6/-/-, 16(c), w/ laser sight, silencer, smartgun system]; PJSS Model 55 [Shotgun, DV 4P, SA/BF (short), 3/12/8/-/-, 2(b), w/ integrated shock pad, rigid stock]; Sap [Club, DV 2S, 6/-/-/-/-]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-ordo-fear-the-dark-terrorist",
+    name: "Fear the Dark Terrorist",
+    group: "Ordo Maximus",
+    summary: "An Infected supremacist absorbed into the Ordo, hands-on and viciously effective with biological and chemical warfare.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Ordo Maximus, Vampire, Professional Rating 5. Infected shock troop, formerly Fear the Dark.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(8, 2),
+      combat: [
+        "B3 A5 R4 S3 W5 L3 I4 C4 M6 ESS 2D6 (Infected - variable, not a fixed value)",
+        "AC: A1, I3",
+        "Skills: Athletics 8, Con 4, Close Combat 7 (Unarmed Combat +2), Firearms 2, Influence 5, Perception 8, Stealth 7",
+        "Powers: Dual Natured, Enhanced Senses (hearing, smell, thermographic vision), Essence Drain, Immunity (age, pathogens, toxins), Infection, Mist Form, Natural Weapon (bite), Regeneration, Sapience",
+        "Weaknesses: Allergy (sunlight, Severe), Allergy (wood, Severe), Dietary Requirement (metahuman blood), Essence Loss, Induced Dormancy (lack of air, [Essence] minutes)",
+        "Gear: Erika Elite commlink (DR 4), lined coat (DR +3), thermal smoke grenade (x4), tranq patch (rating 7, x4)",
+        "Weapons: Bite [Unarmed, DV 3P, 7/-/-/-/-]; Ares Light Fire 70 [Light Pistol, DV 2P, SA, 10/7/6/-/-, 16(c), w/ laser sight, silencer]; Sword [Blade, DV 3P, 9/-/-/-/-]",
+      ].join("\n"),
+      notes: `${CM_NOTE} Move is boosted to 15/20/+2 by its Infected nature.`,
+    },
+  },
+  {
+    id: "npc-cn-ordo-arcanoarchaeologist",
+    name: "Ordo Arcanoarchaeologist",
+    group: "Ordo Maximus",
+    summary: "Seeks mystical relics and artifacts by any means necessary, digs and auctions alike.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Ordo Maximus, Elf, Professional Rating 6. Hermetic mage specializing in mystical relic acquisition.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(10, 1),
+      combat: [
+        "B3 A5 R5 S3 W6 L6 I5 C4 M7 ESS6.0",
+        "AC: A1, I2",
+        "Skills: Astral 6, Athletics 4, Biotech 3, Close Combat 3, Con 4, Conjuring 5, Enchanting 5, Engineering 3, Firearms 4, Influence 4 (Negotiation +2), Outdoors 6 (Survival +2), Sorcery 7, Stealth 5",
+        "Qualities: Focused Concentration 2",
+        "Spells: Analyze Magic, Analyze Truth, Armor, Cleansing Heal, Detect Magic, Hush, Increase Reflexes, Invisibility, Mana Barrier, Physical Mask, Powerball, Shape Stone, Stunbolt",
+        "Magical Tradition: Hermetic",
+        "Initiate Level, Metamagics: 2, centering, quickening",
+        "Gear: Armor vest (DR +3), disenchanting focus 2, power focus 3",
+        "Weapons: Ares Viper Slivergun [Heavy Pistol, DV 4P(f), SA/BF, 12/8/6/-/-, 30(c), w/ silencer]; Combat knife [Blade, DV 3P, 8/2*/-/-/-, *max range 20 meters]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-ordo-cyberzombie",
+    name: "Cyberzombie",
+    group: "Ordo Maximus",
+    summary: "A shock trooper built from a heavily cybered corpse, deployed tactically at range before closing to violent melee.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Ordo Maximus, Human, Professional Rating 7. Cyberzombie shock trooper, rarely deployed and rarely seen.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 9,
+      initiative: initiative(11, 5),
+      combat: [
+        "B4(+2) A4(6) R4(8) S5 W4 L3 I3 C2 ESS0.05",
+        "AC: A1, I6",
+        "Skills: Athletics 7, Biotech 4, Close Combat 8 (Clubs +2), Exotic Weapons 4 (Flamethrower +2), Firearms 8 (Longarms +2), Influence 4 (Intimidation +3), Outdoors 2, Perception 5, Stealth 5",
+        "Qualities: Guts, Magic Resistance",
+        "Augmentations (all betaware): Bone lacing (titanium), cyberarm [right, obvious, Agi 6, Str 6], cyberears (rating 3, w/ audio enhancement, balance augmenter, damper, select sound filter 2, sound link), cybereyes (rating 3, w/ image link, smartlink, thermographic vision, vision enhancement), dermal plating 2, Hermes Ikon commlink (implanted, DR 5), muscle toner 2, skilljack (rating 1, w/ suite of language skills as needed), skillwires (rating 1), wired reflexes 4",
+        "Gear: Full body armor (DR +5), jammer (directional, rating 5)",
+        "Weapons: Extendable baton [Club, DV 3S, 5/-/-/-/-]; Ingram Smartgun XI [Submachine Gun, DV 3P, SA/BF, 11/9/6/-/-, 32(c), w/ gas-vent system, silencer, smartgun system]; Yamaha Raiden [Rifle, DV 4P, SA/BF/FA, 4/11/10/7/2, 60(c), w/ silencer, smartgun system]; Grenade launcher [DV as grenade, 4/11/7/1/-, 4(c), w/ 12 high explosive grenades]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+
+  // --- Stark, Theissen, and Van der Mer (book pp. 139-140) ---
+  {
+    id: "npc-cn-stv-spider",
+    name: "STV Spider",
+    group: "Stark, Theissen, and Van der Mer",
+    summary: "The firm's in-house Matrix defender, protecting client vaults and sensitive files from a hot-sim rig.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Stark, Theissen, and Van der Mer, Professional Rating 4. Desk-bound in-house Matrix defender.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 12,
+      initiative: initiative(16, 3),
+      combat: [
+        "B3 A2 R3 S1 W3 L5 I5 C3 ESS3.4",
+        "Combat stats below are hot-sim/cybercombat values (marked * in the book) - no separate physical-only AC/DR line is printed for this desk-bound defender.",
+        "AR 15, DR 15, I/ID 16/3, AC A1/I4, Matrix CM 11",
+        "Matrix Skills (dice pools): Cracking 11 (Cybercombat +3), Electronics 11 (Matrix Perception +2)",
+        "Augmentations: Cyberjack [DR 5, D/F 8/7, +3 MIB]",
+        "Gear: Cyberdeck Shiawase Cyber-6 [DR 5, A/S 8/7, active program slots: 10]",
+        "Matrix Programs: Armor, Biofeedback, Biofeedback Filter, Configurator, Encryption, Fork, Lockdown, Overclock, Toolbox, Trace",
+      ].join("\n"),
+      notes: `${CM_NOTE} No separate physical-only AC/DR is printed for this NPC (only the hot-sim/cybercombat-flagged block above) - \`armor\` is derived from that combined DR (15) minus Body (3) = 12 per this catalog's usual formula, but treat it as a hot-sim-in-combat value; caught away from a terminal she likely has far less protection.`,
+    },
+  },
+  {
+    id: "npc-cn-stv-fixer",
+    name: "STV Fixer",
+    group: "Stark, Theissen, and Van der Mer",
+    summary: "An established firm lawyer acting as fixer or Mr./Ms. Johnson, leaning on contacts, environment, and negotiation over direct conflict.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Stark, Theissen, and Van der Mer, Non-Awakened, Professional Rating 4. Fixer/Mr. Johnson for the local metroplex.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(8, 2),
+      combat: [
+        "B3 A4 R3(4) S2 W5 L5 I4 C6 EDG4 ESS4.4",
+        "AC: A1, I3",
+        "Move: 10/15/+1",
+        "Qualities: First Impression, Indomitable or Photographic Memory (choose one)",
+        "Skills: Athletics 2, Con 5 (Performance +2), Close Combat 2 (Unarmed Combat +2), Electronics 3, Influence 5 (Negotiation +2), Firearms 3, Perception 5, Stealth 3",
+        "Augmentations: Cyberears (rating 3, w/ audio enhancement, dampener, select sound filter 4, spatial recognizer, soundlink), datajack, datalock (rating 8), synaptic booster 1, tailored pheromones 3",
+        "Gear: AR gloves, bug scanner, contacts (w/ image link, low-light, vision enhancement), Hermes Ikon commlink (DR 5), jammer (rating 5), Mortimer of London Crimson Sky Suit (w/ Shockweave rating 6), security tags (x5), white noise generator (rating 6), fake SINs",
+        "Weapons: Cold Secret Agent [DV 2P, SS, 9/7/-/-/-, 6(c); metal scanners do not detect it]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-stv-mage-lawyer",
+    name: "STV Mage-Lawyer",
+    group: "Stark, Theissen, and Van der Mer",
+    summary: "A seasoned junior partner and magician, sustaining a high lifestyle with prominent clients and a spirit always on call.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "Stark, Theissen, and Van der Mer, Junior Partner Level, Professional Rating 6. Seasoned lawyer and magician.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(8, 1),
+      combat: [
+        "B3 A3 R4 S2 W5 L5 I4 C5 M8 ESS6",
+        "AC: A1, I2",
+        "Move: 10/15/+1",
+        "Skills: Astral 4 (Emotional States +2), Athletics 2, Con 4 (Performance +2), Close Combat 2, Conjuring 5 (Summoning +2), Influence 5 (Etiquette +2), Perception 5, Sorcery 6",
+        "Spells: Analyze Truth, Clairaudience, Clairvoyance, Confusion, Control Thought, Detect Enemies, Detect Magic, Elemental Armor, Focus Burst, Mind Probe, Manabolt, Mystic Armor. May have permanent or temporary spirit or critter powers (p. 221, SR6) as part of a pact or client dealings.",
+        "Initiate Level, Metamagics: 2, centering, spell shaping",
+        "Gear: Mortimer of London Summit Suit (w/ mystic weave rating 3), Transys Avalon commlink (DR 6), monocle (w/ image link, low light, thermographic vision, vision enhancement), Power focus 2 (ring)",
+        "Always has a spirit (Force 5, 2 services) at their disposal.",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+
+  // --- The Yakuza (book pp. 157-159) ---
+  {
+    id: "npc-cn-yakuza-kyodai",
+    name: "Yakuza Kyodai",
+    group: "The Yakuza",
+    summary: "A 'big brother' of the organization - muscle, skills, and brains to deliver help when someone asks for it.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "The Yakuza, Professional Rating 3. Mid-level enforcer/organizer. Human baseline stats; adjust per the Metahuman Adjustment Chart (p. 211, SR6) for other metatypes.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(7, 2),
+      combat: [
+        "B3 A4 R3(4) S4 W3 L3 I3 C2 ESS5.0",
+        "AC: A1, I3",
+        "Skills: Athletics 3, Close Combat 4, Con 1, Firearms 3, Influence 1, Perception 2, Stealth 2",
+        "Augmentations: Wired reflexes 1",
+        "Gear: Armor vest (DR +3), Sony Emperor (DR 2)",
+        "Weapons: Browning Ultra Power [Heavy Pistol, DV 3P, SA, 10/9/6/-/-, 10(c), w/ laser sight]; Knife [Blade, DV 2P, 6/1*/-/-/-, *max range 20 meters]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-yakuza-wakagashira",
+    name: "Yakuza Wakagashira",
+    group: "The Yakuza",
+    summary: "One step above a kyodai - tough and capable, with the power and skill to cause real trouble.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "The Yakuza, Professional Rating 5. Senior enforcer/lieutenant. Human baseline stats; adjust per the Metahuman Adjustment Chart (p. 211, SR6) for other metatypes.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(10, 3),
+      combat: [
+        "B4(+1) A5 R4(6) S3 W5 L4 I4 C4 ESS4.2",
+        "AC: A1, I4",
+        "Skills: Athletics 4, Close Combat 5, Con 4, Electronics 3, Engineering 2, Firearms 6, Influence 4, Outdoors 2, Perception 4, Piloting 2, Stealth 4",
+        "Augmentations: Bone lacing (plastic), cybereyes (rating 3, w/ image link, low-light vision, smartlink, vision enhancement), synaptic booster 2",
+        "Gear: Actioneer Business Clothes (DR +2), Hermes Ikon commlink (DR 5)",
+        "Weapons: Sap [Club, DV 2S, 6/-/-/-/-]; Ares Predator VI [Heavy Pistol, DV 3P, SA/BF, 10/10/8/-/-, 15(c), w/ smartgun system]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-yakuza-komon-surgeon",
+    name: "Yakuza Komon Surgeon",
+    group: "The Yakuza",
+    summary: "Patches up the organization's wounded with grumpy, perpetually-exasperated efficiency.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "The Yakuza, Professional Rating 4. Organization medic. Human baseline stats; adjust per the Metahuman Adjustment Chart (p. 211, SR6) for other metatypes.",
+      physicalMonitor: 10,
+      stunMonitor: 10,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 2,
+      initiative: initiative(8, 1),
+      combat: [
+        "B3 A2 R3 S2 W4 L5(6) I5 C2 ESS5.5",
+        "AC: A1, I2",
+        "Skills: Athletics 2, Biotech 5, Close Combat 2, Electronics 3, Engineering 2, Firearms 2, Influence 2, Outdoors 1, Perception 6, Piloting 2",
+        "Augmentations: Cerebral booster 1, cybereyes (rating 3, w/ flare compensation, image link, low-light vision, vision enhancement, vision magnification)",
+        "Gear: Actioneer Business Clothing (DR +2), antidote patch x5, Erika Elite commlink (DR 4), medkit (rating 5), stim patch x5",
+        "Weapons: Ares Light Fire 75 [Light Pistol, DV 2P, SA, 10/7/6/-/-, 16(c), w/ smartgun system]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+  {
+    id: "npc-cn-yakuza-so-honbucho",
+    name: "Yakuza So-Honbucho",
+    group: "The Yakuza",
+    summary: "Doesn't carry a big gun, but their social and Matrix skills make them dangerous in the corridors of power.",
+    book: COLLAPSING_NOW,
+    data: {
+      description: "The Yakuza, Professional Rating 6. Senior social/Matrix operator. Human baseline stats; adjust per the Metahuman Adjustment Chart (p. 211, SR6) for other metatypes.",
+      physicalMonitor: 11,
+      stunMonitor: 11,
+      physicalDamage: 0,
+      stunDamage: 0,
+      armor: 3,
+      initiative: initiative(10, 1),
+      combat: [
+        "B3 A3 R5 S2 W5 L6 I5 C6 ESS2.7",
+        "AC: A1, I2",
+        "Skills: Athletics 3, Close Combat 2, Con 7, Cracking 5, Electronics 6, Engineering 4, Firearms 2 (Pistols +2), Influence 7, Outdoors 3, Perception 6, Piloting 3, Stealth 4",
+        "Programs: Armor, Edit, Encryption, Exploit, Overclock, Signal Scrubber",
+        "Augmentations: Commlink (implanted, DR 6), cyberdeck (implanted, DR 5, 8/7), cyberjack (DR 5, 8/7), datajack",
+        "Gear: Armanté suit (DR +3)",
+        "Weapons: Fichetti Security 600 [Light Pistol, DV 2P, SA, 10/9/6/-/-, 30(c), w/ detachable folding stock, laser sight]",
+      ].join("\n"),
+      notes: CM_NOTE,
+    },
+  },
+];
