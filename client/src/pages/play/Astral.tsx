@@ -8,14 +8,17 @@
 // (shared with Living Persona), not duplicated here.
 import type { CharacterData } from "../../character";
 import { astralInitiative } from "../../derive";
+import { isAdept, isMysticAdept } from "../../deriveAdeptPowers";
 import {
   ASSENSING_TABLE,
   ASTRAL_TRACKING_MODIFIERS,
   MANA_BARRIERS_TABLE,
+  adeptDrainResistancePool,
   astralAttackRating,
   astralDefenseRating,
   astralProjectionMaxHours,
   astralUnarmedDamage,
+  traditionDrainResistancePool,
 } from "../../deriveAstral";
 
 interface Props {
@@ -26,10 +29,44 @@ export function Astral({ data }: Props) {
   const magic = data.attributes.magic;
   if (magic === undefined) return null;
   const traditionAttribute = data.traditionAttribute;
+  const pureAdept = isAdept(data);
+  const mysticAdept = isMysticAdept(data);
 
   return (
     <div className="astral-panel">
       <h2>The Astral Plane</h2>
+
+      <details className="quality-section">
+        <summary>Drain Resistance</summary>
+        <p className="hint">
+          Reduces drain damage by 1 per hit rolled, to a minimum of 0. Drain is Stun damage by default,
+          unless the specific power/spell/effect that caused it says otherwise. Can't be healed by rest,
+          medkits, or magic - only time or Edge.
+        </p>
+        {pureAdept ? (
+          <p className="hint">
+            Adept Power Drain: Body + Willpower ={" "}
+            <strong>{adeptDrainResistancePool(data.attributes)}</strong>
+          </p>
+        ) : traditionAttribute ? (
+          <>
+            <p className="hint">
+              Spellcasting/Conjuring/Enchanting Drain: Willpower + Tradition Attribute ={" "}
+              <strong>{traditionDrainResistancePool(data.attributes, traditionAttribute)}</strong>
+            </p>
+            {mysticAdept && (
+              <p className="hint">
+                Adept Power Drain: Body + Willpower ={" "}
+                <strong>{adeptDrainResistancePool(data.attributes)}</strong>
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="hint">
+            Choose a Tradition Attribute (in the builder's Magic or Resonance section) to compute this.
+          </p>
+        )}
+      </details>
 
       <details className="quality-section">
         <summary>Assensing</summary>

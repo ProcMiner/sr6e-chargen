@@ -6,6 +6,16 @@
 // Defense Rating, Astral Projection's time limit) is derived as a real
 // number. Astral Initiative itself already lives in derive.ts
 // (astralInitiative()) since it's shared with Living Persona.
+//
+// Drain resistance (p. 128, "Magic Basics" - not actually part of the
+// Astral Plane chapter) lives here too, purely for UI colocation: it's
+// shown in the same LivePlay panel as Astral Combat since both key off the
+// same Tradition Attribute choice. Two distinct formulas exist per the
+// book: "Those characters roll their tradition Attribute + Willpower" for
+// spellcasting/conjuring/enchanting drain, vs. "Adepts... resist [drain]
+// with Body + Willpower" (p. 163) for drain from activating an adept
+// power - a Mystic Adept needs both, a pure Adept only the second, a
+// Full/Aspected Magician only the first.
 import type { Attributes } from "./rules";
 
 export type TraditionAttribute = "logic" | "charisma";
@@ -28,6 +38,16 @@ export function astralDefenseRating(attributes: Attributes): number {
 /** Base Damage Value of an unarmed astral attack: tradition attribute / 2, rounded up (p.161) - net hits add 1 per hit on top, same as any other test in this app (player-reported, not rolled). */
 export function astralUnarmedDamage(attributes: Attributes, traditionAttribute: TraditionAttribute): number {
   return Math.ceil(attributes[traditionAttribute] / 2);
+}
+
+/** Drain resistance for spellcasting/conjuring/enchanting: Willpower + tradition attribute (p.128). Reduces drain damage by 1 per hit, minimum 0. */
+export function traditionDrainResistancePool(attributes: Attributes, traditionAttribute: TraditionAttribute): number {
+  return attributes.willpower + attributes[traditionAttribute];
+}
+
+/** Drain resistance for activating an adept power: Body + Willpower (p.163) - a different formula from the tradition-based one above, since adepts channel mana internally rather than through a tradition. */
+export function adeptDrainResistancePool(attributes: Attributes): number {
+  return attributes.body + attributes.willpower;
 }
 
 export const ASSENSING_TABLE: { hits: string; info: string[] }[] = [
