@@ -313,7 +313,7 @@ function drawPage2(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
 }
 
 export async function generateCharacterSheetPdf(inputs: SheetInputs): Promise<Uint8Array> {
-  const templateBytes = await fetch("/character-sheet-template.pdf").then((r) => r.arrayBuffer());
+  const templateBytes = await fetch("/sre6-chargen/character-sheet-template.pdf").then((r) => r.arrayBuffer());
   const doc = await PDFDocument.load(templateBytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const ctx: DrawCtx = { font };

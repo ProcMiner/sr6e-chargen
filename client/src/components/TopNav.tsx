@@ -44,7 +44,7 @@ export function TopNav() {
           ))}
         </div>
         <div className="top-nav-links">
-          <a href="/release-notes.html" target="_blank" rel="noopener noreferrer">
+          <a href="/sre6-chargen/release-notes.html" target="_blank" rel="noopener noreferrer">
             Release Notes
           </a>
           <a
@@ -62,7 +62,7 @@ export function TopNav() {
       </div>
       <div className="top-nav-secondary">
         <div className="top-nav-secondary-inner">
-          <a href="/user-guide.html" target="_blank" rel="noopener noreferrer">
+          <a href="/sre6-chargen/user-guide.html" target="_blank" rel="noopener noreferrer">
             Character Generator User Guide
           </a>
         </div>

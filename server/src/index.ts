@@ -53,11 +53,17 @@ app.use("/api/play", playRouter);
 app.use("/api/npcs", npcsRouter);
 
 if (isProd) {
+  // The chargen app itself lives under /sre6-chargen (not the domain root) so
+  // the root can eventually become a landing page linking out to this and
+  // future TTRPG tools on the same domain - see landingDir below.
   const clientDist = path.join(__dirname, "..", "..", "client", "dist");
-  app.use(express.static(clientDist));
-  app.get(/^(?!\/api).*/, (_req, res) => {
+  app.use("/sre6-chargen", express.static(clientDist));
+  app.get(/^\/sre6-chargen(\/.*)?$/, (_req, res) => {
     res.sendFile(path.join(clientDist, "index.html"));
   });
+
+  const landingDir = path.join(__dirname, "..", "landing");
+  app.use(express.static(landingDir));
 }
 
 app.listen(PORT, () => {

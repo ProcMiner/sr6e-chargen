@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ProcMiner's Gaming</title>
+<style>
+  :root {
+    --bg: #f1f1ee;
+    --surface: #ffffff;
+    --border: #d4d3cc;
+    --text: #23262b;
+    --text-dim: #5b5f66;
+    --accent: #2f7488;
+    --accent-soft: #e4eef0;
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b;
+      --surface: #1b1e23;
+      --border: #2c3038;
+      --text: #e7e5df;
+      --text-dim: #a3a29b;
+      --accent: #6fb3c9;
+      --accent-soft: #1c3339;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 2rem;
+  }
+  .page {
+    max-width: 34rem;
+    width: 100%;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .dek {
+    color: var(--text-dim);
+    margin: 0 0 2rem;
+  }
+  .tools {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  a.tool-card {
+    display: block;
+    padding: 1.1rem 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s;
+  }
+  a.tool-card:hover, a.tool-card:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .tool-name {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .tool-desc {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">ProcMiner's Gaming</div>
+    <h1>TTRPG tools</h1>
+    <p class="dek">A small collection of tabletop tools, built for a small group of friends.</p>
+    <div class="tools">
+      <a class="tool-card" href="/sre6-chargen">
+        <div class="tool-name">Shadowrun 6E Character Generator</div>
+        <div class="tool-desc">Build and manage characters, run live sessions, and export a character sheet.</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
