@@ -221,6 +221,10 @@
         <div><div class="entry-title">Convert Karma to nuyen</div>
         <div class="entry-body">The Gear section now has a "Convert Karma to nuyen" control (core rulebook p.66, "Spend Customization Karma") - 2,000¥ per Karma point, or 5,000¥ if you've taken the In Debt quality. This was a real rule with zero way to actually do it in the app before now; the In Debt quality's own description already referenced it. Chargen only (hidden once a character moves into Live Play), and both the Gear picker and the Summary sheet show the extra nuyen and spent Karma alongside their usual totals.</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Knowledge/Language and specialization suggestion fields</div>
+        <div class="entry-body">Two testers reported being unable to type anything into a Life Path module's Knowledge/Language field - the text box just sat there. The one thing that field had that a normal text input doesn't is a native browser autocomplete (an <code>&lt;input list&gt;</code> wired to a <code>&lt;datalist&gt;</code> of suggested topics), which is exactly the kind of thing that behaves inconsistently across browsers. Replaced it, along with the two other spots using the same pattern (skill specialization suggestions in both the Priority builder and LivePlay's Advancement panel), with plain text inputs plus a row of clickable suggestion chips underneath - same suggestions, no native popup involved.</div></div>
+      </li>
     </ul>
   </div>
 

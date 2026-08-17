@@ -485,16 +485,10 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
             </select>
             <input
               type="text"
-              list="priority-specialization-suggestions"
               placeholder="Focus (e.g. Light Pistols)"
               value={specFocus}
               onChange={(e) => setSpecFocus(e.target.value)}
             />
-            <datalist id="priority-specialization-suggestions">
-              {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
             <button
               onClick={addSpecialization}
               disabled={!specFocus.trim() || !canAddSpecializationAtChargen(specSkill) || skillPointsRemaining < 1}
@@ -502,6 +496,15 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
               Add
             </button>
           </div>
+          {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).length > 0 && (
+            <div className="chip-row">
+              {SKILL_SPECIALIZATION_SUGGESTIONS[specSkill]!.map((s) => (
+                <button key={s} type="button" className="chip" onClick={() => setSpecFocus(s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

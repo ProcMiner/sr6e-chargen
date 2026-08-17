@@ -426,16 +426,10 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
         </select>
         <input
           type="text"
-          list="advancement-specialization-suggestions"
           placeholder="Focus (e.g. Light Pistols)"
           value={specFocus}
           onChange={(e) => setSpecFocus(e.target.value)}
         />
-        <datalist id="advancement-specialization-suggestions">
-          {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).map((s) => (
-            <option key={s} value={s} />
-          ))}
-        </datalist>
         {canAddSecondSpecialization(data, specSkill) ? (
           <button
             onClick={() => {
@@ -459,6 +453,15 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
           </button>
         )}
       </div>
+      {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).length > 0 && (
+        <div className="chip-row">
+          {SKILL_SPECIALIZATION_SUGGESTIONS[specSkill]!.map((s) => (
+            <button key={s} type="button" className="chip" onClick={() => setSpecFocus(s)}>
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isAwakened && (
         <>

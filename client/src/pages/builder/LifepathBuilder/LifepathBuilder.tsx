@@ -739,33 +739,41 @@ function ModuleInstance({
           const allowsLanguage = module.knowledgeChoice!.allowsLanguage;
           const matchedLanguage =
             type === "language" ? existingLanguages.find((l) => l.name.toLowerCase() === name.toLowerCase()) : undefined;
+          // Suggestions render as clickable chips rather than a native
+          // <input list>/<datalist> - that combination was reported as
+          // unresponsive to typing on at least two testers' real browsers
+          // (unreproducible in-house, but the datalist wiring was the one
+          // thing this field had that a plain contact-name input doesn't),
+          // so it's replaced outright rather than chased further.
+          const suggestions = type === "language" ? existingLanguages.map((l) => l.name) : module.knowledgeChoice!.suggestions;
           return (
-            <div key={key} className="inline-field">
-              {allowsLanguage && (
-                <select value={type} onChange={(e) => onKnowledgeChoice(key, e.target.value as "knowledge" | "language", name)}>
-                  <option value="knowledge">Knowledge</option>
-                  <option value="language">Language</option>
-                </select>
-              )}
-              <input
-                list={`${instanceKey}-knowledge-suggestions-${k}`}
-                value={name}
-                onChange={(e) => onKnowledgeChoice(key, type, e.target.value)}
-                placeholder={
-                  type === "language" ? "Language name" : (module.knowledgeChoice!.suggestions[0] ?? "custom")
-                }
-              />
-              <datalist id={`${instanceKey}-knowledge-suggestions-${k}`}>
-                {(type === "language" ? existingLanguages.map((l) => l.name) : module.knowledgeChoice!.suggestions).map(
-                  (s) => (
-                    <option key={s} value={s} />
-                  )
+            <div key={key}>
+              <div className="inline-field">
+                {allowsLanguage && (
+                  <select value={type} onChange={(e) => onKnowledgeChoice(key, e.target.value as "knowledge" | "language", name)}>
+                    <option value="knowledge">Knowledge</option>
+                    <option value="language">Language</option>
+                  </select>
                 )}
-              </datalist>
-              {matchedLanguage && (
-                <span className="hint">
-                  levels up an existing language (currently {matchedLanguage.level ?? 1}/{MAX_PURCHASABLE_LANGUAGE_LEVEL})
-                </span>
+                <input
+                  value={name}
+                  onChange={(e) => onKnowledgeChoice(key, type, e.target.value)}
+                  placeholder={type === "language" ? "Language name" : "custom"}
+                />
+                {matchedLanguage && (
+                  <span className="hint">
+                    levels up an existing language (currently {matchedLanguage.level ?? 1}/{MAX_PURCHASABLE_LANGUAGE_LEVEL})
+                  </span>
+                )}
+              </div>
+              {suggestions.length > 0 && (
+                <div className="chip-row">
+                  {suggestions.map((s) => (
+                    <button key={s} type="button" className="chip" onClick={() => onKnowledgeChoice(key, type, s)}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           );
