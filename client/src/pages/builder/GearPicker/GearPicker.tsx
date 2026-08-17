@@ -9,10 +9,13 @@ import {
   gearUnitCost,
   gearUnitEssenceCost,
   karmaRemaining,
+  karmaToNuyenRate,
+  nuyenFromKarmaConversion,
   nuyenRemaining,
   ratingFor,
 } from "../../../deriveGear";
 import { resolveGearModifiers } from "../../../deriveModifiers";
+import { NumberStepper } from "../../../components/NumberStepper";
 
 interface Props {
   rules: GearRulesResponse;
@@ -38,6 +41,14 @@ export function GearPicker({
   const selected = data.gear;
   const remaining = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
+  const karmaSpentOnNuyen = data.karmaSpentOnNuyen ?? 0;
+  const rate = karmaToNuyenRate(data);
+  // Ceiling on the stepper if it were set back to 0 - what's already converted plus whatever's still free to spend.
+  const maxKarmaConvertible = karmaBudget + karmaSpentOnNuyen;
+
+  function setKarmaSpentOnNuyen(next: number) {
+    onChange({ ...data, karmaSpentOnNuyen: next });
+  }
 
   const [search, setSearch] = useState("");
   const [addFree, setAddFree] = useState(false);
@@ -177,13 +188,32 @@ export function GearPicker({
     <div className="gear-picker">
       <h2>Gear</h2>
       <p className="hint">
-        {data.nuyen.toLocaleString()}¥ earned - {gearCostTotal(selected).toLocaleString()}¥ spent ={" "}
-        {remaining.toLocaleString()}¥ remaining
+        {data.nuyen.toLocaleString()}¥ earned
+        {karmaSpentOnNuyen > 0 && ` + ${nuyenFromKarmaConversion(data).toLocaleString()}¥ from Karma`} -{" "}
+        {gearCostTotal(selected).toLocaleString()}¥ spent = {remaining.toLocaleString()}¥ remaining
       </p>
       <p className="hint">
         {data.karma.toLocaleString()} Karma pool - {gearBondingKarmaTotal(selected).toLocaleString()} spent bonding
-        foci = {karmaBudget.toLocaleString()} remaining
+        foci
+        {karmaSpentOnNuyen > 0 && ` - ${karmaSpentOnNuyen.toLocaleString()} converted to nuyen`} ={" "}
+        {karmaBudget.toLocaleString()} remaining
       </p>
+
+      {!allowFree && (
+        <label className="inline-field">
+          Convert Karma to nuyen
+          <NumberStepper
+            label="Karma converted to nuyen"
+            min={0}
+            max={maxKarmaConvertible}
+            value={karmaSpentOnNuyen}
+            onChange={setKarmaSpentOnNuyen}
+          />
+          <span className="hint">
+            {rate.toLocaleString()}¥ per Karma point{rate === 5000 ? " (In Debt)" : ""} - core rulebook p.66
+          </span>
+        </label>
+      )}
 
       {selected.length > 0 && (
         <ul className="module-slots">

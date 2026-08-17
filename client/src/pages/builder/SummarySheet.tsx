@@ -2,7 +2,13 @@ import type { CharacterData } from "../../character";
 import { astralInitiative, deriveStats, effectiveAttributes } from "../../derive";
 import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
-import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
+import {
+  gearBondingKarmaTotal,
+  gearCostTotal,
+  karmaRemaining,
+  nuyenFromKarmaConversion,
+  nuyenRemaining,
+} from "../../deriveGear";
 import { contactsKarmaSpent } from "../../deriveContacts";
 import { LANGUAGE_LEVEL_NAMES } from "../../character";
 import { modifierBonuses } from "../../deriveModifiers";
@@ -397,11 +403,17 @@ export function SummarySheet({
       <section>
         <h3>Resources</h3>
         <p>{data.nuyen.toLocaleString()}¥ earned</p>
+        {(data.karmaSpentOnNuyen ?? 0) > 0 && (
+          <p>{nuyenFromKarmaConversion(data).toLocaleString()}¥ from converting Karma</p>
+        )}
         <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
         {lifestyleSpend > 0 && <p>{lifestyleSpend.toLocaleString()}¥ spent on lifestyle</p>}
         <p>{nuyenRemaining(data, lifestyleSpend).toLocaleString()}¥ remaining</p>
         <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
+        {(data.karmaSpentOnNuyen ?? 0) > 0 && (
+          <p>{(data.karmaSpentOnNuyen ?? 0).toLocaleString()} Karma converted to nuyen</p>
+        )}
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
         {complexFormKarma > 0 && <p>{complexFormKarma.toLocaleString()} Karma spent on complex forms</p>}
         {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}

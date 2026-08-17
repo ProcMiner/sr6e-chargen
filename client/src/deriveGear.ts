@@ -20,6 +20,14 @@
 // spellKarmaCost) - callers that need that too pass it as the optional
 // second argument, since computing it here would require pulling in
 // PriorityRulesResponse for a file that's otherwise gear-only.
+//
+// One Karma pool spend feeds nuyen back in the other direction: chargen's
+// "Spend Customization Karma" step (core rulebook p.66) lets Karma convert
+// to nuyen at a flat rate. That's tracked as its own field
+// (CharacterData.karmaSpentOnNuyen) rather than by mutating `data.nuyen`
+// directly, matching every other Karma spend's convention - both
+// nuyenRemaining and karmaRemaining fold it in automatically, so callers
+// never need to know it exists.
 import type { CharacterData, GearLine } from "./character";
 import type { GearCatalogEntry } from "./rules";
 
@@ -31,8 +39,18 @@ export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }
 
+/** 2,000 nuyen per Karma point normally, or 5,000 with the In Debt quality (core rulebook p.66, "in-debt" quality entry). */
+export function karmaToNuyenRate(data: CharacterData): number {
+  return data.qualities.some((q) => q.id === "in-debt") ? 5000 : 2000;
+}
+
+/** Nuyen gained from converting Karma at chargen - see CharacterData.karmaSpentOnNuyen. */
+export function nuyenFromKarmaConversion(data: CharacterData): number {
+  return (data.karmaSpentOnNuyen ?? 0) * karmaToNuyenRate(data);
+}
+
 export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {
-  return data.nuyen - gearCostTotal(data.gear) - extraNuyenSpent;
+  return data.nuyen + nuyenFromKarmaConversion(data) - gearCostTotal(data.gear) - extraNuyenSpent;
 }
 
 export function gearBondingKarmaTotal(gear: GearLine[]): number {
@@ -40,7 +58,7 @@ export function gearBondingKarmaTotal(gear: GearLine[]): number {
 }
 
 export function karmaRemaining(data: CharacterData, extraKarmaSpent = 0): number {
-  return data.karma - gearBondingKarmaTotal(data.gear) - extraKarmaSpent;
+  return data.karma - gearBondingKarmaTotal(data.gear) - (data.karmaSpentOnNuyen ?? 0) - extraKarmaSpent;
 }
 
 export function ratingFor(entry: GearCatalogEntry, rating: number | undefined): number {

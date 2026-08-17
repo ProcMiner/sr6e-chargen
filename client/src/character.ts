@@ -321,6 +321,15 @@ export interface CharacterData {
   mysticAdeptPowerPoints?: number;
   nuyen: number;
   karma: number;
+  /**
+   * Karma converted to nuyen during character creation's "Finishing
+   * Touches" step (core rulebook p.66, "Spend Customization Karma") -
+   * 2,000 nuyen per Karma point, or 5,000 with the In Debt quality. See
+   * deriveGear.ts's karmaToNuyenRate/nuyenFromKarmaConversion. Chargen-only
+   * (undefined/0 once in play) - the Companion's optional downtime
+   * "Working for the Man" variant of this exchange isn't modeled.
+   */
+  karmaSpentOnNuyen?: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
   /** Initiate Grade (Magic side) - 0/undefined until first initiation. Raises Magic's natural maximum; see deriveEssence.ts. */

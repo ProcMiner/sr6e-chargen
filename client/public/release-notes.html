@@ -217,6 +217,10 @@
         <div><div class="entry-title">Body/Strength/etc. cyberware and bioware bonuses now actually show up</div>
         <div class="entry-body">Attribute-boosting augmentation (Muscle Augmentation, Muscle Replacement, Bone Lacing, and the like) was silently invisible everywhere except the specific stats an earlier fix already covered (Reaction, Initiative Dice, Armor) - the chargen Summary's attribute list, unarmed Attack Rating, Defense Rating, Astral Combat, Matrix Initiative, and LivePlay's Combat/Astral/Matrix/Advancement panels all read your raw natural attribute only, so a character could never actually see their Strength or Body climb past their metatype's natural maximum no matter how much cyberware they installed. Every one of those now reads the augmented (natural + gear bonus) value, shown alongside the natural score wherever they differ (e.g. "9 (8 natural)"). Confirmed correct for both build systems (Priority and Life Path) and all five metatypes' attribute ranges against the core rulebook's table. Also caught and fixed a separate, narrower bug found in the same pass: Bone Lacing (Plastic)'s own +1 Body/+1 Armor was listed in its stat block but never wired to actually apply, unlike its Aluminum/Titanium siblings.</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-new">New</span></span>
+        <div><div class="entry-title">Convert Karma to nuyen</div>
+        <div class="entry-body">The Gear section now has a "Convert Karma to nuyen" control (core rulebook p.66, "Spend Customization Karma") - 2,000¥ per Karma point, or 5,000¥ if you've taken the In Debt quality. This was a real rule with zero way to actually do it in the app before now; the In Debt quality's own description already referenced it. Chargen only (hidden once a character moves into Live Play), and both the Gear picker and the Summary sheet show the extra nuyen and spent Karma alongside their usual totals.</div></div>
+      </li>
     </ul>
   </div>
 
