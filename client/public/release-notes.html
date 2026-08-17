@@ -229,6 +229,10 @@
         <div><div class="entry-title">Exceptional (Attribute) quality now actually raises the attribute max</div>
         <div class="entry-body">Purchasable for 12 Karma with zero mechanical effect - the quality's own text ("its maximum ... increases by 1") was never wired to the attribute cap anywhere, so buying it (and picking, say, Strength) changed nothing. Now folded into the same attribute-range calculation the metatype and metavariant caps already go through, so the attribute editor's max, Advancement's post-creation cap, and every other consumer of a character's attribute ranges all pick it up automatically.</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">The real cause of the Knowledge/Language typing bug: crypto.randomUUID() on plain HTTP</div>
+        <div class="entry-body"><code>crypto.randomUUID()</code> - used all over the app to mint an id for anything new (a knowledge line, a contact, a gear line, an advancement log entry) - only exists in a "secure context" (HTTPS, or the <code>localhost</code> exemption). This site runs on plain HTTP at a bare IP, so on Firefox and Safari that function is simply undefined, and every one of those call sites threw and silently swallowed the update - explaining both the Knowledge/Language field and the "can't add a second contact" reports as the same underlying bug, not two. Never caught in-house because local dev always tests against <code>localhost</code>, which every browser exempts. Replaced with a small <code>generateId()</code> helper (<code>id.ts</code>) that falls back to a non-cryptographic id when the real one isn't available - these ids are only ever used as list/React keys, never anything security-sensitive. The previous session's datalist removal is still a good simplification and stays in, but wasn't the actual root cause.</div></div>
+      </li>
     </ul>
   </div>
 

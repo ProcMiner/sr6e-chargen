@@ -11,6 +11,7 @@ import type { CharacterData } from "../../character";
 import type { BoundSpirit, PlayState } from "../../playState";
 import type { SpiritRulesResponse } from "../../rules";
 import { NumberStepper } from "../../components/NumberStepper";
+import { generateId } from "../../id";
 import {
   ASTRAL_REPUTATION_ADJUSTMENTS,
   astralReputationEffect,
@@ -76,7 +77,7 @@ export function Spirits({ data, onDataChange, playState, onChange, spiritRules }
     const name = nameInput.trim() || selectedType.name;
     const services = Math.max(0, Number(servicesInput) || 0);
     const entry: BoundSpirit = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       spiritTypeId: selectedType.id,
       name,
       force,

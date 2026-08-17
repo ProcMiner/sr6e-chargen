@@ -18,6 +18,7 @@
 // (3 Karma each per the Advancement Costs table, p.71) aren't built yet -
 // same deferred-scope precedent as Contacts' in-play advancement.
 import type { KnowledgeSkillLine, LanguageLevel } from "./character";
+import { generateId } from "./id";
 
 /** Slots consumed by one line - a knowledge topic or a language's first (Basic) level costs 1; each further language level costs 1 more. Native (level 4) never appears here - see CharacterData.nativeLanguage. */
 export function knowledgeSkillSlotCost(line: KnowledgeSkillLine): number {
@@ -50,11 +51,11 @@ export function normalizeKnowledgeSkills(raw: unknown): KnowledgeSkillLine[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry): KnowledgeSkillLine => {
     if (typeof entry === "string") {
-      return { id: crypto.randomUUID(), name: entry, type: "knowledge" };
+      return { id: generateId(), name: entry, type: "knowledge" };
     }
     const e = entry as Partial<KnowledgeSkillLine>;
     return {
-      id: e.id ?? crypto.randomUUID(),
+      id: e.id ?? generateId(),
       name: e.name ?? "",
       type: e.type === "language" ? "language" : "knowledge",
       level: e.type === "language" ? (e.level ?? 1) : undefined,

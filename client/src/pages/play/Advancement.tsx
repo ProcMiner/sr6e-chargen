@@ -23,6 +23,7 @@ import {
   type CoreAttributeKey,
 } from "../../deriveAdvancement";
 import { canInitiate, canSubmerge, initiationCost, initiationKarmaTotal } from "../../deriveInitiation";
+import { generateId } from "../../id";
 import {
   EXPERTISE_KARMA_COST,
   SKILL_SPECIALIZATION_SUGGESTIONS,
@@ -84,7 +85,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       attributes: { ...data.attributes, [key]: next },
       advancement: [
         ...(data.advancement ?? []),
-        { id: crypto.randomUUID(), type: "attribute", key, fromRating: current, toRating: next, karmaCost: cost, date: new Date().toISOString() },
+        { id: generateId(), type: "attribute", key, fromRating: current, toRating: next, karmaCost: cost, date: new Date().toISOString() },
       ],
     });
   }
@@ -101,7 +102,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       skills: { ...data.skills, [name]: next },
       advancement: [
         ...(data.advancement ?? []),
-        { id: crypto.randomUUID(), type: "skill", key: name, fromRating: current, toRating: next, karmaCost: cost, date: new Date().toISOString() },
+        { id: generateId(), type: "skill", key: name, fromRating: current, toRating: next, karmaCost: cost, date: new Date().toISOString() },
       ],
     });
   }
@@ -138,7 +139,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       initiateGrade: grade,
       initiations: [
         ...(data.initiations ?? []),
-        { id: crypto.randomUUID(), type: "initiation", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
+        { id: generateId(), type: "initiation", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
       ],
     });
     setMetamagicName("");
@@ -155,7 +156,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       submersionGrade: grade,
       initiations: [
         ...(data.initiations ?? []),
-        { id: crypto.randomUUID(), type: "submersion", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
+        { id: generateId(), type: "submersion", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
       ],
     });
     setEchoName("");
@@ -182,9 +183,9 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
 
   function buySpecialization(skill: string, focus: string) {
     if (!focus.trim() || !canAddSpecialization(data, skill) || SPECIALIZATION_KARMA_COST > available) return;
-    const specEntry = { id: crypto.randomUUID(), skill, focus: focus.trim(), tier: "specialization" as const };
+    const specEntry = { id: generateId(), skill, focus: focus.trim(), tier: "specialization" as const };
     const logEntry: SpecializationEntry = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       skill,
       focus: focus.trim(),
       action: "new",
@@ -203,7 +204,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
     const existing = specializations.find((s) => s.skill === skill && s.tier === "specialization");
     if (!existing) return;
     const logEntry: SpecializationEntry = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       skill,
       focus: existing.focus,
       action: "expertise",
@@ -219,9 +220,9 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
 
   function buySecondSpecialization(skill: string, focus: string) {
     if (!focus.trim() || !canAddSecondSpecialization(data, skill) || SPECIALIZATION_KARMA_COST > available) return;
-    const specEntry = { id: crypto.randomUUID(), skill, focus: focus.trim(), tier: "specialization" as const };
+    const specEntry = { id: generateId(), skill, focus: focus.trim(), tier: "specialization" as const };
     const logEntry: SpecializationEntry = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       skill,
       focus: focus.trim(),
       action: "second",

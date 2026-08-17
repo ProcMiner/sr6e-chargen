@@ -14,6 +14,7 @@ import {
   withRating,
 } from "../../../deriveContacts";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL } from "../../../deriveKnowledge";
+import { generateId } from "../../../id";
 
 const BASE_ATTR_KEYS = [
   "body",
@@ -165,7 +166,7 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
   function addContact() {
     const name = newContactName.trim();
     if (!name || !newContactType || contactCpRemaining < 2) return;
-    const contact: Contact = { id: crypto.randomUUID(), name, type: newContactType, connection: 1, loyalty: 1 };
+    const contact: Contact = { id: generateId(), name, type: newContactType, connection: 1, loyalty: 1 };
     onChange({ ...data, contacts: [...contacts, contact] });
     setNewContactName("");
   }
@@ -265,14 +266,14 @@ export function LifepathBuilder({ rules, metatypeAttributes, metavariants, skill
     // same name is how a level-up is expressed, not a duplicate entry.
     function addKnowledgeChoice(type: "knowledge" | "language", name: string) {
       if (type === "knowledge") {
-        knowledge.push({ id: crypto.randomUUID(), name, type: "knowledge" });
+        knowledge.push({ id: generateId(), name, type: "knowledge" });
         return;
       }
       const existing = knowledge.find((k) => k.type === "language" && k.name.toLowerCase() === name.toLowerCase());
       if (existing) {
         existing.level = Math.min(MAX_PURCHASABLE_LANGUAGE_LEVEL, (existing.level ?? 1) + 1) as 1 | 2 | 3;
       } else {
-        knowledge.push({ id: crypto.randomUUID(), name, type: "language", level: 1 });
+        knowledge.push({ id: generateId(), name, type: "language", level: 1 });
       }
     }
 

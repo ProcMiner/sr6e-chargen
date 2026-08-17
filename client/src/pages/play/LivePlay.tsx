@@ -21,6 +21,7 @@ import { Spirits } from "./Spirits";
 import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
+import { generateId } from "../../id";
 
 const COMMON_STATUS_EFFECTS = [
   "Prone",
@@ -205,7 +206,7 @@ export function LivePlay() {
   function addStatusEffect(effect: Omit<StatusEffect, "id">) {
     scheduleSave({
       ...playState!,
-      statusEffects: [...playState!.statusEffects, { id: crypto.randomUUID(), ...effect }],
+      statusEffects: [...playState!.statusEffects, { id: generateId(), ...effect }],
     });
   }
 

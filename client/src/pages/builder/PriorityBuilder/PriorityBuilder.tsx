@@ -8,6 +8,7 @@ import { SKILL_SPECIALIZATION_SUGGESTIONS } from "../../../deriveSpecializations
 import { contactsCostTotal, priorityContactPointPool, withRating } from "../../../deriveContacts";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL, knowledgeSlotsSpent, priorityKnowledgeSlotPool } from "../../../deriveKnowledge";
 import { effectivePriorityLetter, startingKarma } from "../../../derivePriorityVariant";
+import { generateId } from "../../../id";
 
 const PURCHASABLE_LANGUAGE_LEVELS: LanguageLevel[] = Array.from(
   { length: MAX_PURCHASABLE_LANGUAGE_LEVEL },
@@ -163,7 +164,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   function addSpecialization() {
     const focus = specFocus.trim();
     if (!focus || !canAddSpecializationAtChargen(specSkill) || skillPointsRemaining < 1) return;
-    const entry: SkillSpecialization = { id: crypto.randomUUID(), skill: specSkill, focus, tier: "specialization" };
+    const entry: SkillSpecialization = { id: generateId(), skill: specSkill, focus, tier: "specialization" };
     onChange({ ...data, specializations: [...specializations, entry] });
     setSpecFocus("");
   }
@@ -228,7 +229,7 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
   function addContact() {
     const name = newContactName.trim();
     if (!name || contactPointsRemaining < 2) return;
-    const contact: Contact = { id: crypto.randomUUID(), name, connection: 1, loyalty: 1 };
+    const contact: Contact = { id: generateId(), name, connection: 1, loyalty: 1 };
     onChange({ ...data, contacts: [...contacts, contact] });
     setNewContactName("");
   }
@@ -255,8 +256,8 @@ export function PriorityBuilder({ rules, data, onChange }: Props) {
     if (!name || knowledgeSlotsRemaining < 1) return;
     const line: KnowledgeSkillLine =
       newKnowledgeType === "language"
-        ? { id: crypto.randomUUID(), name, type: "language", level: 1 }
-        : { id: crypto.randomUUID(), name, type: "knowledge" };
+        ? { id: generateId(), name, type: "language", level: 1 }
+        : { id: generateId(), name, type: "knowledge" };
     onChange({ ...data, knowledgeSkills: [...knowledgeSkills, line] });
     setNewKnowledgeName("");
   }
