@@ -156,7 +156,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 45000,
     availability: "3L",
     essenceCost: 1,
-    stats: { "Attributes (D/F)": "4/3", "VR Matrix Init Dice": "+1" },
+    stats: { attributesDF: "4/3", "VR Matrix Init Dice": "+1" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {
@@ -167,7 +167,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 65000,
     availability: "3L",
     essenceCost: 1.5,
-    stats: { "Attributes (D/F)": "5/4", "VR Matrix Init Dice": "+1" },
+    stats: { attributesDF: "5/4", "VR Matrix Init Dice": "+1" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {
@@ -178,7 +178,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 80000,
     availability: "3L",
     essenceCost: 2,
-    stats: { "Attributes (D/F)": "6/5", "VR Matrix Init Dice": "+1" },
+    stats: { attributesDF: "6/5", "VR Matrix Init Dice": "+1" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {
@@ -189,7 +189,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 95000,
     availability: "4L",
     essenceCost: 2.3,
-    stats: { "Attributes (D/F)": "7/6", "VR Matrix Init Dice": "+2" },
+    stats: { attributesDF: "7/6", "VR Matrix Init Dice": "+2" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {
@@ -200,7 +200,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 140000,
     availability: "5L",
     essenceCost: 2.6,
-    stats: { "Attributes (D/F)": "8/7", "VR Matrix Init Dice": "+2" },
+    stats: { attributesDF: "8/7", "VR Matrix Init Dice": "+2" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {
@@ -211,7 +211,7 @@ export const augmentationsGear: GearCatalogEntry[] = [
     cost: 210000,
     availability: "6L",
     essenceCost: 3,
-    stats: { "Attributes (D/F)": "9/8", "VR Matrix Init Dice": "+2" },
+    stats: { attributesDF: "9/8", "VR Matrix Init Dice": "+2" },
     summary: "A decker's primary anti-hacking defense, providing Data Processing and Firewall ratings and functioning as a datajack.",
   },
   {

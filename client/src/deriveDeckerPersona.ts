@@ -23,6 +23,8 @@ export interface MatrixDevice {
   deviceRating: number;
   /** The device's two printed non-zero Matrix-attribute values (a cyberdeck's Attack/Sleaze pair, or a commlink/cyberjack's Data Processing/Firewall pair) - order doesn't carry meaning once pooled, since either number can go to either matching slot. */
   values: number[];
+  /** A cyberjack's printed "VR Matrix Init Dice" bonus (e.g. Rating 6's +2) - 0 for devices without one. */
+  vrInitBonus: number;
 }
 
 function parsePair(raw: string | undefined): number[] {
@@ -31,6 +33,12 @@ function parsePair(raw: string | undefined): number[] {
     .split("/")
     .map((n) => Number(n))
     .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+function parseBonus(raw: string | undefined): number {
+  if (!raw) return 0;
+  const n = Number(raw.replace("+", ""));
+  return Number.isFinite(n) ? n : 0;
 }
 
 /** Every gear line the character owns that grants Matrix attributes (cyberdecks, commlinks, cyberjacks) - core rulebook p.174, 177-178. */
@@ -45,6 +53,7 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
       name: line.name,
       deviceRating: Number(entry.stats?.deviceRating) || 0,
       values: pair,
+      vrInitBonus: parseBonus(entry.stats?.["VR Matrix Init Dice"]),
     });
   }
   return devices;
@@ -93,6 +102,16 @@ export function deckerDefenseRating(allocation: DeckerPersonaAllocation): number
 /** Matrix Condition Monitor for a device: (Device Rating / 2, rounded up) + 8 (core rulebook p.174, 179). */
 export function matrixConditionMonitor(deviceRating: number): number {
   return Math.ceil(deviceRating / 2) + 8;
+}
+
+/** Sum of every owned device's "VR Matrix Init Dice" bonus (a cyberjack's, typically) - added on top of the base VR dice count below. */
+export function matrixVrInitBonusDice(devices: MatrixDevice[]): number {
+  return devices.reduce((sum, d) => sum + d.vrInitBonus, 0);
+}
+
+/** VR Initiative dice count for a given base (1 cold-sim, 2 hot-sim), plus any device bonus, capped at 5D6 total same as physical Initiative (core rulebook p.179). */
+export function matrixVrInitDice(baseDice: number, devices: MatrixDevice[]): number {
+  return Math.min(5, baseDice + matrixVrInitBonusDice(devices));
 }
 
 /**

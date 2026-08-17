@@ -24,6 +24,7 @@ import {
   deckerMatrixInitiativeVRHot,
   matrixConditionMonitor,
   matrixDevices,
+  matrixVrInitDice,
 } from "../../deriveDeckerPersona";
 import {
   CONVERGENCE_OS,
@@ -60,9 +61,10 @@ export function Matrix({ data, gearRules }: Props) {
         ) : (
           <p className="hint">
             AR: {deckerMatrixInitiativeAR(data.attributes)} + 1D6 | VR (cold-sim):{" "}
-            {deckerMatrixInitiativeVRCold(data.attributes, allocation)} + 1D6 | VR (hot-sim):{" "}
-            {deckerMatrixInitiativeVRHot(data.attributes, allocation)} + 2D6 (dice on top of the usual 1D6,
-            capped at 5D6 total same as physical Initiative)
+            {deckerMatrixInitiativeVRCold(data.attributes, allocation)} + {matrixVrInitDice(1, devices)}D6 | VR
+            (hot-sim): {deckerMatrixInitiativeVRHot(data.attributes, allocation)} + {matrixVrInitDice(2, devices)}D6
+            (dice on top of the usual 1D6, capped at 5D6 total same as physical Initiative - a cyberjack's own VR
+            Matrix Init Dice bonus is folded in above)
           </p>
         )}
         {isTechnomancer ? (
