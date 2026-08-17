@@ -7,8 +7,9 @@
 // resolve at the table. Astral Initiative itself lives in derive.ts
 // (shared with Living Persona), not duplicated here.
 import type { CharacterData } from "../../character";
-import { astralInitiative } from "../../derive";
+import { astralInitiative, effectiveAttributes } from "../../derive";
 import { isAdept, isMysticAdept } from "../../deriveAdeptPowers";
+import { modifierBonuses } from "../../deriveModifiers";
 import {
   ASSENSING_TABLE,
   ASTRAL_TRACKING_MODIFIERS,
@@ -31,6 +32,7 @@ export function Astral({ data }: Props) {
   const traditionAttribute = data.traditionAttribute;
   const pureAdept = isAdept(data);
   const mysticAdept = isMysticAdept(data);
+  const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   return (
     <div className="astral-panel">
@@ -46,18 +48,18 @@ export function Astral({ data }: Props) {
         {pureAdept ? (
           <p className="hint">
             Adept Power Drain: Body + Willpower ={" "}
-            <strong>{adeptDrainResistancePool(data.attributes)}</strong>
+            <strong>{adeptDrainResistancePool(effectiveAttrs)}</strong>
           </p>
         ) : traditionAttribute ? (
           <>
             <p className="hint">
               Spellcasting/Conjuring/Enchanting Drain: Willpower + Tradition Attribute ={" "}
-              <strong>{traditionDrainResistancePool(data.attributes, traditionAttribute)}</strong>
+              <strong>{traditionDrainResistancePool(effectiveAttrs, traditionAttribute)}</strong>
             </p>
             {mysticAdept && (
               <p className="hint">
                 Adept Power Drain: Body + Willpower ={" "}
-                <strong>{adeptDrainResistancePool(data.attributes)}</strong>
+                <strong>{adeptDrainResistancePool(effectiveAttrs)}</strong>
               </p>
             )}
           </>
@@ -120,10 +122,10 @@ export function Astral({ data }: Props) {
         <summary>Astral Combat</summary>
         {traditionAttribute ? (
           <p className="hint">
-            Attack Rating <strong>{astralAttackRating(data.attributes, traditionAttribute)}</strong> |
-            Defense Rating <strong>{astralDefenseRating(data.attributes)}</strong> | Initiative{" "}
-            <strong>{astralInitiative(data.attributes)} + 2D6</strong> | Unarmed Damage Value{" "}
-            <strong>{astralUnarmedDamage(data.attributes, traditionAttribute)}</strong>P/S (+1 per net hit)
+            Attack Rating <strong>{astralAttackRating(effectiveAttrs, traditionAttribute)}</strong> |
+            Defense Rating <strong>{astralDefenseRating(effectiveAttrs)}</strong> | Initiative{" "}
+            <strong>{astralInitiative(effectiveAttrs)} + 2D6</strong> | Unarmed Damage Value{" "}
+            <strong>{astralUnarmedDamage(effectiveAttrs, traditionAttribute)}</strong>P/S (+1 per net hit)
           </p>
         ) : (
           <p className="hint">

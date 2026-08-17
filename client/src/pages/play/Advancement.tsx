@@ -7,6 +7,8 @@ import { useState } from "react";
 import type { AdvancementEntry, CharacterData, InitiationEntry, SpecializationEntry } from "../../character";
 import type { PriorityRulesResponse } from "../../rules";
 import { karmaRemaining } from "../../deriveGear";
+import { effectiveAttributes } from "../../derive";
+import { modifierBonuses } from "../../deriveModifiers";
 import { spellKarmaCost } from "../../deriveSpells";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
 import { metavariantKarmaCost } from "../../deriveMetavariant";
@@ -48,6 +50,7 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const metavariantKarma = metavariantKarmaCost(data, priorityRules.metavariants);
   const advancementKarma = advancementKarmaTotal(data.advancement);
+  const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
   const initiationKarma = initiationKarmaTotal(data.initiations);
   const specializationKarma = specializationKarmaTotal(data.specializationLog);
   const available = karmaRemaining(
@@ -290,13 +293,14 @@ export function Advancement({ data, onChange, priorityRules }: Props) {
       <div className="attribute-editor">
         {CORE_ATTRIBUTE_KEYS.map((key) => {
           const current = data.attributes[key] ?? 1;
+          const effective = effectiveAttrs[key] ?? current;
           const max = attributeMax(data, key, priorityRules.metatypeAttributes, priorityRules.metavariants);
           const atMax = current >= max;
           const cost = attributeAdvanceCost(current + 1);
           const afford = cost <= available;
           return (
             <label key={key}>
-              {key} ({current}/{max})
+              {key} ({current}/{max}{effective !== current ? `, ${effective} w/ augments` : ""})
               <button
                 type="button"
                 className="chip"

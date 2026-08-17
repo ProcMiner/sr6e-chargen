@@ -4,6 +4,8 @@
 // p.174, 178) - self-gates like LivingPersonaPanel does for Resonance.
 import type { CharacterData, DeckerPersonaAllocation } from "../../../character";
 import type { GearRulesResponse } from "../../../rules";
+import { effectiveAttributes } from "../../../derive";
+import { modifierBonuses } from "../../../deriveModifiers";
 import {
   MATRIX_ATTRIBUTE_KEYS,
   MATRIX_ATTRIBUTE_LABELS,
@@ -31,6 +33,7 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
 
   const available = availableMatrixValues(devices);
   const allocation = deckerAllocation(data);
+  const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   function setSlot(key: keyof DeckerPersonaAllocation, value: string) {
     const next = value === "" ? undefined : Number(value);
@@ -86,9 +89,9 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
         Attack Rating {deckerAttackRating(allocation)} | Defense Rating {deckerDefenseRating(allocation)}
       </p>
       <p className="hint">
-        Matrix Initiative - AR: {deckerMatrixInitiativeAR(data.attributes)} + 1D6 | VR (cold-sim):{" "}
-        {deckerMatrixInitiativeVRCold(data.attributes, allocation)} + 1D6 | VR (hot-sim):{" "}
-        {deckerMatrixInitiativeVRHot(data.attributes, allocation)} + 2D6
+        Matrix Initiative - AR: {deckerMatrixInitiativeAR(effectiveAttrs)} + 1D6 | VR (cold-sim):{" "}
+        {deckerMatrixInitiativeVRCold(effectiveAttrs, allocation)} + 1D6 | VR (hot-sim):{" "}
+        {deckerMatrixInitiativeVRHot(effectiveAttrs, allocation)} + 2D6
       </p>
     </div>
   );

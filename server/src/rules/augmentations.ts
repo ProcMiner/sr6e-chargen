@@ -571,6 +571,10 @@ export const augmentationsGear: GearCatalogEntry[] = [
     availability: "3L",
     essenceCost: 0.5,
     stats: { "Body Bonus": "+1", "Defense Bonus": "+1", "Unarmed DV": "3P", "Unarmed AR": "+1" },
+    modifiers: [
+      { target: "body", amount: 1, stackingGroup: "bone-lacing" },
+      { target: "armor", amount: 1, stackingGroup: "bone-lacing" },
+    ],
     summary:
       "Reinforcing lattice chains through your bones. Changes unarmed combat damage to Physical. Incompatible with other bone-altering augmentations (only one lacing type at a time).",
   },

@@ -10,6 +10,8 @@
 // boundary: GM-facing content, not character-build data.
 import type { CharacterData } from "../../character";
 import type { GearRulesResponse } from "../../rules";
+import { effectiveAttributes } from "../../derive";
+import { modifierBonuses } from "../../deriveModifiers";
 import {
   MATRIX_ATTRIBUTE_LABELS,
   livingPersonaAttribute,
@@ -46,6 +48,7 @@ export function Matrix({ data, gearRules }: Props) {
   if (devices.length === 0 && !isTechnomancer) return null;
 
   const allocation = deckerAllocation(data);
+  const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   return (
     <div className="matrix-panel">
@@ -60,9 +63,9 @@ export function Matrix({ data, gearRules }: Props) {
           </p>
         ) : (
           <p className="hint">
-            AR: {deckerMatrixInitiativeAR(data.attributes)} + 1D6 | VR (cold-sim):{" "}
-            {deckerMatrixInitiativeVRCold(data.attributes, allocation)} + {matrixVrInitDice(1, devices)}D6 | VR
-            (hot-sim): {deckerMatrixInitiativeVRHot(data.attributes, allocation)} + {matrixVrInitDice(2, devices)}D6
+            AR: {deckerMatrixInitiativeAR(effectiveAttrs)} + 1D6 | VR (cold-sim):{" "}
+            {deckerMatrixInitiativeVRCold(effectiveAttrs, allocation)} + {matrixVrInitDice(1, devices)}D6 | VR
+            (hot-sim): {deckerMatrixInitiativeVRHot(effectiveAttrs, allocation)} + {matrixVrInitDice(2, devices)}D6
             (dice on top of the usual 1D6, capped at 5D6 total same as physical Initiative - a cyberjack's own VR
             Matrix Init Dice bonus is folded in above)
           </p>

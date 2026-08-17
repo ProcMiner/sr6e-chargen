@@ -12,12 +12,36 @@ export interface DerivedStats {
 }
 
 /**
+ * Natural attributes + modifierBonuses(), merged into an Attributes-shaped
+ * object - the "what the character can currently do" numbers (Attack
+ * Rating, Astral Combat, Matrix Initiative, the Summary/Advancement/PDF
+ * attribute display, etc. all want this, not the raw natural value alone).
+ * `edge`/`magic`/`resonance` pass through unchanged - none are valid
+ * ModifierTarget values (SR6 has no augmentation that boosts them).
+ */
+export function effectiveAttributes(attributes: Attributes, bonuses: Partial<Record<ModifierTarget, number>>): Attributes {
+  return {
+    ...attributes,
+    body: attributes.body + (bonuses.body ?? 0),
+    agility: attributes.agility + (bonuses.agility ?? 0),
+    reaction: attributes.reaction + (bonuses.reaction ?? 0),
+    strength: attributes.strength + (bonuses.strength ?? 0),
+    willpower: attributes.willpower + (bonuses.willpower ?? 0),
+    logic: attributes.logic + (bonuses.logic ?? 0),
+    intuition: attributes.intuition + (bonuses.intuition ?? 0),
+    charisma: attributes.charisma + (bonuses.charisma ?? 0),
+  };
+}
+
+/**
  * `bonuses` is a summed per-target modifier map from deriveModifiers.ts's
  * modifierBonuses (installed cyberware/bioware/adept powers) - omit it for
  * an unmodified read of the raw attributes. Only feeds the fields above;
  * the "Attribute-Only Test" helpers below (composure, defenseTestPool, etc.)
  * intentionally keep using raw `attributes` - see this file's header in the
  * project plan for why that's a deliberate scope boundary, not an oversight.
+ * For a general "current effective attribute" read elsewhere, use
+ * effectiveAttributes() above instead.
  */
 export function deriveStats(attributes: Attributes, bonuses: Partial<Record<ModifierTarget, number>> = {}): DerivedStats {
   const body = attributes.body + (bonuses.body ?? 0);

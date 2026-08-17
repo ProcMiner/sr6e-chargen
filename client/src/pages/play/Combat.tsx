@@ -9,7 +9,7 @@
 // GM-facing minutiae) - same scope boundary as Matrix's Hosts/IC exclusion.
 import type { CharacterData } from "../../character";
 import type { GearRulesResponse } from "../../rules";
-import { deriveStats } from "../../derive";
+import { deriveStats, effectiveAttributes } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
 import {
   COMBAT_OPTIONS,
@@ -29,9 +29,11 @@ interface Props {
 }
 
 export function Combat({ data, gearRules }: Props) {
-  const derived = deriveStats(data.attributes, modifierBonuses(data.gear ?? [], data.adeptPowers ?? []));
+  const bonuses = modifierBonuses(data.gear ?? [], data.adeptPowers ?? []);
+  const derived = deriveStats(data.attributes, bonuses);
+  const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const armor = wornArmorTotal(data, gearRules.gear);
-  const dr = defenseRating(data, gearRules.gear, derived.armor);
+  const dr = defenseRating(data, gearRules.gear, derived.armor, effectiveAttrs.body);
 
   return (
     <div className="combat-panel">
@@ -40,12 +42,12 @@ export function Combat({ data, gearRules }: Props) {
       <section>
         <h3>Attack Rating &amp; Defense Rating</h3>
         <p className="hint">
-          Unarmed Attack Rating <strong>{unarmedAttackRating(data)}</strong> (Strength + Reaction). A melee weapon
-          instead adds your Strength ({data.attributes.strength ?? 0}) directly to its own printed Attack Rating; a
-          ranged weapon uses its own printed Attack Rating/Range table as-is.
+          Unarmed Attack Rating <strong>{unarmedAttackRating(effectiveAttrs)}</strong> (Strength + Reaction). A melee
+          weapon instead adds your Strength ({effectiveAttrs.strength ?? 0}) directly to its own printed Attack
+          Rating; a ranged weapon uses its own printed Attack Rating/Range table as-is.
         </p>
         <p className="hint">
-          Defense Rating <strong>{dr}</strong> (Body {data.attributes.body ?? 0} + worn armor {armor} + augmentation
+          Defense Rating <strong>{dr}</strong> (Body {effectiveAttrs.body ?? 0} + worn armor {armor} + augmentation
           armor {derived.armor}). Worn armor is your single best owned Clothes/Armor item (base suits aren't
           cumulative with each other) plus every Helmet/Shield you own (those do stack).
         </p>

@@ -1,5 +1,5 @@
 import type { CharacterData } from "../../character";
-import { astralInitiative, deriveStats } from "../../derive";
+import { astralInitiative, deriveStats, effectiveAttributes } from "../../derive";
 import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import { gearBondingKarmaTotal, gearCostTotal, karmaRemaining, nuyenRemaining } from "../../deriveGear";
@@ -83,7 +83,9 @@ export function SummarySheet({
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const contactsKarma = contactsKarmaSpent(data.contacts);
-  const derived = deriveStats(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
+  const bonuses = modifierBonuses(data.gear, data.adeptPowers);
+  const derived = deriveStats(data.attributes, bonuses);
+  const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const essence = currentEssence(data);
   const magicRaw = data.attributes.magic;
   const resonanceRaw = data.attributes.resonance;
@@ -107,12 +109,16 @@ export function SummarySheet({
         <h3>Attributes</h3>
         <dl className="attribute-grid">
           {ATTRIBUTE_LABELS.map(([key, label]) => {
-            const value = data.attributes[key];
-            if (value === undefined) return null;
+            const natural = data.attributes[key];
+            if (natural === undefined) return null;
+            const effective = effectiveAttrs[key] ?? natural;
             return (
               <div key={key}>
                 <dt>{label}</dt>
-                <dd>{value}</dd>
+                <dd>
+                  {effective}
+                  {effective !== natural && ` (${natural} natural)`}
+                </dd>
               </div>
             );
           })}
@@ -166,11 +172,11 @@ export function SummarySheet({
           )}
           <div>
             <dt>Attack Rating (unarmed)</dt>
-            <dd>{unarmedAttackRating(data)}</dd>
+            <dd>{unarmedAttackRating(effectiveAttrs)}</dd>
           </div>
           <div>
             <dt>Defense Rating</dt>
-            <dd>{defenseRating(data, gearRules.gear, derived.armor)}</dd>
+            <dd>{defenseRating(data, gearRules.gear, derived.armor, effectiveAttrs.body)}</dd>
           </div>
         </dl>
       </section>
@@ -343,15 +349,15 @@ export function SummarySheet({
             <dl className="attribute-grid">
               <div>
                 <dt>Attack Rating</dt>
-                <dd>{astralAttackRating(data.attributes, data.traditionAttribute)}</dd>
+                <dd>{astralAttackRating(effectiveAttrs, data.traditionAttribute)}</dd>
               </div>
               <div>
                 <dt>Defense Rating</dt>
-                <dd>{astralDefenseRating(data.attributes)}</dd>
+                <dd>{astralDefenseRating(effectiveAttrs)}</dd>
               </div>
               <div>
                 <dt>Initiative</dt>
-                <dd>{astralInitiative(data.attributes)} + 2D6</dd>
+                <dd>{astralInitiative(effectiveAttrs)} + 2D6</dd>
               </div>
             </dl>
           ) : (

@@ -6,7 +6,7 @@
 // attributes/gear (Attack Rating, Defense Rating) becomes a real number,
 // everything else here is reference text/tables.
 import type { CharacterData } from "./character";
-import type { GearCatalogEntry } from "./rules";
+import type { Attributes, GearCatalogEntry } from "./rules";
 import { findGearEntry } from "./deriveGear";
 
 /**
@@ -39,9 +39,13 @@ export function wornArmorTotal(data: CharacterData, catalog: GearCatalogEntry[])
   return bestSuit + helmetsAndShields;
 }
 
-/** Body + augmentation armor bonus (see derive.ts's DerivedStats.armor) + worn armor total. */
-export function defenseRating(data: CharacterData, catalog: GearCatalogEntry[], augmentationArmor: number): number {
-  return (data.attributes.body ?? 0) + augmentationArmor + wornArmorTotal(data, catalog);
+/**
+ * Body + augmentation armor bonus (see derive.ts's DerivedStats.armor) + worn armor total. `effectiveBody` should
+ * already include any Body-boosting cyberware/bioware bonus (see derive.ts's effectiveAttributes) - passed in
+ * rather than read from `data` directly since `data.attributes.body` is always the natural, unboosted value.
+ */
+export function defenseRating(data: CharacterData, catalog: GearCatalogEntry[], augmentationArmor: number, effectiveBody: number): number {
+  return effectiveBody + augmentationArmor + wornArmorTotal(data, catalog);
 }
 
 /**
@@ -51,9 +55,12 @@ export function defenseRating(data: CharacterData, catalog: GearCatalogEntry[], 
  * left as reference text below rather than parsed/added automatically,
  * since weapon Attack Ratings are printed per-range free text
  * (gear.ts's stats.attackRatings), not a single number to add to.
+ * Takes the character's *effective* attributes (see derive.ts's
+ * effectiveAttributes) so Strength/Reaction-boosting cyberware/bioware
+ * (Muscle Augmentation, Wired Reflexes, etc.) is reflected here too.
  */
-export function unarmedAttackRating(data: CharacterData): number {
-  return (data.attributes.strength ?? 0) + (data.attributes.reaction ?? 0);
+export function unarmedAttackRating(attributes: Attributes): number {
+  return (attributes.strength ?? 0) + (attributes.reaction ?? 0);
 }
 
 export const COMBAT_PROCESS_STEPS: { step: string; summary: string }[] = [

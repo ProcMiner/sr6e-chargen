@@ -26,7 +26,7 @@ import type {
   PriorityRulesResponse,
   QualityRulesResponse,
 } from "./rules";
-import { deriveStats, astralInitiative, composure, defenseTestPool, judgeIntentions, liftCarry, memory, minorActions } from "./derive";
+import { deriveStats, astralInitiative, composure, defenseTestPool, effectiveAttributes, judgeIntentions, liftCarry, memory, minorActions } from "./derive";
 import { currentEssence, effectiveMagic, effectiveResonance } from "./deriveEssence";
 import { nuyenRemaining, karmaRemaining } from "./deriveGear";
 import { modifierBonuses } from "./deriveModifiers";
@@ -118,7 +118,9 @@ function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]) {
 
 function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   const { data, priorityRules, metatypeAttributes, qualityRules } = inputs;
-  const derived = deriveStats(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
+  const bonuses = modifierBonuses(data.gear, data.adeptPowers);
+  const derived = deriveStats(data.attributes, bonuses);
+  const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const essence = currentEssence(data);
   const magicEffective = effectiveMagic(data);
   const resonanceEffective = effectiveResonance(data);
@@ -143,15 +145,16 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   draw(page, ctx, essence.toFixed(2).replace(/\.?0+$/, ""), 292, 171, 8);
 
   // --- Attributes (left column, Rtg only - no universal "Pool" formula for a raw attribute alone) ---
+  // Values are the character's *effective* (augmented) attributes - see derive.ts's effectiveAttributes.
   const attrRows: [number | undefined, number][] = [
-    [data.attributes.body, 220],
-    [data.attributes.agility, 232],
-    [data.attributes.reaction, 244],
-    [data.attributes.strength, 256],
-    [data.attributes.willpower, 268],
-    [data.attributes.logic, 280],
-    [data.attributes.intuition, 292],
-    [data.attributes.charisma, 304],
+    [effectiveAttrs.body, 220],
+    [effectiveAttrs.agility, 232],
+    [effectiveAttrs.reaction, 244],
+    [effectiveAttrs.strength, 256],
+    [effectiveAttrs.willpower, 268],
+    [effectiveAttrs.logic, 280],
+    [effectiveAttrs.intuition, 292],
+    [effectiveAttrs.charisma, 304],
     [data.attributes.edge, 316],
     [magicEffective > 0 ? magicEffective : undefined, 328],
   ];
@@ -161,11 +164,11 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   draw(page, ctx, minorActions(derived), 300, 220);
   draw(page, ctx, `${derived.initiative} + ${derived.initiativeDice}d6`, 300, 232);
   if (data.attributes.resonance !== undefined) {
-    const vrInit = data.attributes.intuition + livingPersonaAttribute(data, "dataProcessing");
+    const vrInit = effectiveAttrs.intuition + livingPersonaAttribute(data, "dataProcessing");
     draw(page, ctx, `${vrInit} + 1d6 (cold sim)`, 300, 244);
   }
   if (data.attributes.magic !== undefined) {
-    draw(page, ctx, `${astralInitiative(data.attributes)} + 2d6`, 300, 256);
+    draw(page, ctx, `${astralInitiative(effectiveAttrs)} + 2d6`, 300, 256);
   }
   draw(page, ctx, defenseTestPool(data.attributes), 300, 268);
   draw(page, ctx, composure(data.attributes), 300, 280);
@@ -190,8 +193,8 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   negative.slice(0, 14).forEach((name, i) => draw(page, ctx, truncate(name, 22), 465, 217 + i * 9, 6.5));
 
   // --- Condition Monitor healing formulas ---
-  draw(page, ctx, data.attributes.body + data.attributes.willpower, 92, 366.5, 7);
-  draw(page, ctx, data.attributes.body * 2, 290, 366.5, 7);
+  draw(page, ctx, effectiveAttrs.body + effectiveAttrs.willpower, 92, 366.5, 7);
+  draw(page, ctx, effectiveAttrs.body * 2, 290, 366.5, 7);
 
   // --- Skills (two columns, 9 rows each) ---
   const skillEntries = Object.entries(data.skills).filter(([, rank]) => rank > 0);
@@ -203,7 +206,7 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
     const col = i < 9 ? skillCols[0] : skillCols[1];
     const rowY = col[1] + (i % 9) * 12;
     const attrKey = priorityRules.skillLinkedAttribute[skill];
-    const attrValue = attrKey ? (data.attributes as unknown as Record<string, number | undefined>)[attrKey] : undefined;
+    const attrValue = attrKey ? (effectiveAttrs as unknown as Record<string, number | undefined>)[attrKey] : undefined;
     draw(page, ctx, truncate(skill, 16), col[0], rowY, 6.5);
     if (attrKey) draw(page, ctx, attrKey.slice(0, 3).toUpperCase(), col[0] + 90, rowY, 6.5);
     draw(page, ctx, rank, col[0] + 122, rowY, 6.5);
