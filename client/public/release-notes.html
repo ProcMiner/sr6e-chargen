@@ -225,6 +225,10 @@
         <div><div class="entry-title">Knowledge/Language and specialization suggestion fields</div>
         <div class="entry-body">Two testers reported being unable to type anything into a Life Path module's Knowledge/Language field - the text box just sat there. The one thing that field had that a normal text input doesn't is a native browser autocomplete (an <code>&lt;input list&gt;</code> wired to a <code>&lt;datalist&gt;</code> of suggested topics), which is exactly the kind of thing that behaves inconsistently across browsers. Replaced it, along with the two other spots using the same pattern (skill specialization suggestions in both the Priority builder and LivePlay's Advancement panel), with plain text inputs plus a row of clickable suggestion chips underneath - same suggestions, no native popup involved.</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Exceptional (Attribute) quality now actually raises the attribute max</div>
+        <div class="entry-body">Purchasable for 12 Karma with zero mechanical effect - the quality's own text ("its maximum ... increases by 1") was never wired to the attribute cap anywhere, so buying it (and picking, say, Strength) changed nothing. Now folded into the same attribute-range calculation the metatype and metavariant caps already go through, so the attribute editor's max, Advancement's post-creation cap, and every other consumer of a character's attribute ranges all pick it up automatically.</div></div>
+      </li>
     </ul>
   </div>
 
