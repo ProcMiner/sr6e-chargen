@@ -233,6 +233,10 @@
         <div><div class="entry-title">The real cause of the Knowledge/Language typing bug: crypto.randomUUID() on plain HTTP</div>
         <div class="entry-body"><code>crypto.randomUUID()</code> - used all over the app to mint an id for anything new (a knowledge line, a contact, a gear line, an advancement log entry) - only exists in a "secure context" (HTTPS, or the <code>localhost</code> exemption). This site runs on plain HTTP at a bare IP, so on Firefox and Safari that function is simply undefined, and every one of those call sites threw and silently swallowed the update - explaining both the Knowledge/Language field and the "can't add a second contact" reports as the same underlying bug, not two. Never caught in-house because local dev always tests against <code>localhost</code>, which every browser exempts. Replaced with a small <code>generateId()</code> helper (<code>id.ts</code>) that falls back to a non-cryptographic id when the real one isn't available - these ids are only ever used as list/React keys, never anything security-sensitive. The previous session's datalist removal is still a good simplification and stays in, but wasn't the actual root cause.</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Contact Type missing from the character sheet PDF</div>
+        <div class="entry-body">The Contacts table's Type column (Academic, Corporate, Criminal, etc.) was blank on the exported/previewed PDF even when a contact had one set - Name, Loyalty, and Connection were drawing correctly, but Type was never wired to that column at all. Fixed.</div></div>
+      </li>
     </ul>
   </div>
 

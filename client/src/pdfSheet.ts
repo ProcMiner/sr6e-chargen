@@ -269,6 +269,7 @@ function drawPage2(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   data.contacts.slice(0, 14).forEach((contact, i) => {
     const rowY = 340 + i * 12;
     draw(page, ctx, truncate(contact.name, 18), 24, rowY, 6.5);
+    draw(page, ctx, contact.type, 119.72, rowY, 6.5);
     draw(page, ctx, contact.connection, 255.15, rowY, 6.5);
     draw(page, ctx, contact.loyalty, 231.45, rowY, 6.5);
   });
