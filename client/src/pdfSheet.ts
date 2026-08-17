@@ -332,3 +332,18 @@ export function downloadCharacterSheetPdf(bytes: Uint8Array, characterAlias: str
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Shows the PDF in a browser tab's built-in viewer instead of downloading it.
+ * `target` must come from a `window.open("", "_blank")` called synchronously
+ * on the triggering click, before the (async) PDF generation - opening it
+ * only now, with bytes already in hand, gets treated as a popup by Safari/
+ * iOS and silently blocked. Revoking the blob URL is delayed rather than
+ * immediate so the new tab has time to actually fetch it first.
+ */
+export function showCharacterSheetPreview(bytes: Uint8Array, target: Window | null) {
+  const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  if (target) target.location.href = url;
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}

@@ -32,7 +32,7 @@ import { contactsKarmaSpent } from "../../deriveContacts";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
-import { downloadCharacterSheetPdf, generateCharacterSheetPdf } from "../../pdfSheet";
+import { downloadCharacterSheetPdf, generateCharacterSheetPdf, showCharacterSheetPreview } from "../../pdfSheet";
 
 export function BuilderRoot() {
   const { id } = useParams();
@@ -51,6 +51,7 @@ export function BuilderRoot() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [downloadingSheet, setDownloadingSheet] = useState(false);
+  const [previewingSheet, setPreviewingSheet] = useState(false);
   const [sheetError, setSheetError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,6 +109,35 @@ export function BuilderRoot() {
     }
   }
 
+  async function handlePreviewSheet() {
+    if (!character || !data || !priorityRules || !qualityRules || !gearRules) return;
+    const previewWindow = window.open("", "_blank");
+    setPreviewingSheet(true);
+    setSheetError(null);
+    try {
+      const bytes = await generateCharacterSheetPdf({
+        characterAlias: character.name,
+        data,
+        priorityRules,
+        metatypeAttributes: priorityRules.metatypeAttributes,
+        qualityRules,
+        gearRules,
+        spellKarmaSpent: spellKarmaCost(data, priorityRules),
+        complexFormKarmaSpent: complexFormKarmaCost(data, priorityRules),
+      });
+      if (!previewWindow) {
+        setSheetError("Preview window was blocked - allow pop-ups for this site, or use Download instead.");
+      } else {
+        showCharacterSheetPreview(bytes, previewWindow);
+      }
+    } catch (err) {
+      previewWindow?.close();
+      setSheetError(err instanceof Error ? err.message : "Failed to generate character sheet.");
+    } finally {
+      setPreviewingSheet(false);
+    }
+  }
+
   if (
     !character ||
     !data ||
@@ -135,6 +165,9 @@ export function BuilderRoot() {
         <div className="header-actions">
           <button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save"}
+          </button>
+          <button onClick={handlePreviewSheet} disabled={previewingSheet}>
+            {previewingSheet ? "Generating..." : "Preview Character Sheet"}
           </button>
           <button onClick={handleDownloadSheet} disabled={downloadingSheet}>
             {downloadingSheet ? "Generating..." : "Download Character Sheet"}
