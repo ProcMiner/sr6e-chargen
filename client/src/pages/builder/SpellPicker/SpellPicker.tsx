@@ -78,8 +78,8 @@ export function SpellPicker({ rules, priorityRules, data, onChange }: Props) {
       </p>
       {free === 0 && (
         <p className="hint">
-          No free spell allotment on record (only Priority-built Full, Aspected, or Mystic Adept magicians get one -
-          see core rulebook p. 65-66). Every spell below costs {KARMA_PER_SPELL} Karma.
+          No free spell allotment on record (only Full, Aspected, or Mystic Adept magicians get one - core rulebook
+          p. 65-66, Sixth World Companion p. 31). Every spell below costs {KARMA_PER_SPELL} Karma.
         </p>
       )}
 

@@ -84,8 +84,8 @@ export function ComplexFormPicker({ rules, priorityRules, data, onChange }: Prop
       </p>
       {free === 0 && (
         <p className="hint">
-          No free complex form allotment on record (only Priority-built Technomancers get one - see core rulebook p.
-          68). Every complex form below costs {KARMA_PER_COMPLEX_FORM} Karma.
+          No free complex form allotment on record (only Technomancers get one - core rulebook p. 68, Sixth World
+          Companion p. 31). Every complex form below costs {KARMA_PER_COMPLEX_FORM} Karma.
         </p>
       )}
 
