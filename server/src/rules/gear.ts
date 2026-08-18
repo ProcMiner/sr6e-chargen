@@ -1011,6 +1011,7 @@ export const weaponGear: GearCatalogEntry[] = [
     availability: "1",
     summary: "Projects a targeting dot; +1 Attack Rating, not cumulative with smartlink.",
     stats: { mount: "Top or Underbarrel" },
+    modifiers: [{ target: "attackRating", amount: 1, stackingGroup: "ranged-sight" }],
   },
   {
     id: "accessory-periscope",
@@ -1071,6 +1072,7 @@ export const weaponGear: GearCatalogEntry[] = [
     availability: "1(L)",
     summary: "Built into the weapon at manufacture; +2 Attack Rating with a smartlink across all ranges.",
     stats: { mount: "—" },
+    modifiers: [{ target: "attackRating", amount: 2, stackingGroup: "ranged-sight" }],
   },
   {
     id: "accessory-smartgun-external",
@@ -1081,6 +1083,7 @@ export const weaponGear: GearCatalogEntry[] = [
     availability: "2(L)",
     summary: "Attached after the fact via an Engineering + Logic (4, 1 hour) Extended Test; +2 Attack Rating with a smartlink across all ranges.",
     stats: { mount: "Top or Underbarrel" },
+    modifiers: [{ target: "attackRating", amount: 2, stackingGroup: "ranged-sight" }],
   },
   {
     id: "accessory-spare-clip",

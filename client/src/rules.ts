@@ -150,6 +150,8 @@ export type ModifierTarget =
   | "charisma"
   | "initiativeDice"
   | "armor"
+  /** Weapon-scoped, not character-wide - only applies to the specific weapon line a Weapon Accessory is attached to, resolved by deriveCombat.ts's weaponAttackRatings(), not deriveModifiers.ts. */
+  | "attackRating"
   /** Player picks the actual target at purchase time - see the owning line's `notes` field. */
   | "choice";
 

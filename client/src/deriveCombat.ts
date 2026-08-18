@@ -5,9 +5,10 @@
 // simulated - only what's directly computable from the character's own
 // attributes/gear (Attack Rating, Defense Rating) becomes a real number,
 // everything else here is reference text/tables.
-import type { CharacterData } from "./character";
+import type { CharacterData, GearLine } from "./character";
 import type { Attributes, GearCatalogEntry } from "./rules";
-import { findGearEntry } from "./deriveGear";
+import { findGearEntry, gearLineKey, isWeapon, isWeaponAccessory } from "./deriveGear";
+import { modifierBonuses } from "./deriveModifiers";
 
 /**
  * Body + worn armor + augmentation armor bonus (core rulebook p. 108).
@@ -61,6 +62,102 @@ export function defenseRating(data: CharacterData, catalog: GearCatalogEntry[], 
  */
 export function unarmedAttackRating(attributes: Attributes): number {
   return (attributes.strength ?? 0) + (attributes.reaction ?? 0);
+}
+
+/**
+ * Weapon Accessories whose bonus depends on a temporary state this app
+ * doesn't track (deployed or not, which firing mode is used) rather than
+ * being always-on once mounted - shown as reference notes per attached
+ * weapon instead of folded into weaponAttackRatings()'s computed number,
+ * same "no dice-rolling engine" boundary as FIRING_MODES above. Keyed by
+ * gear.ts/krimeKatalog.ts catalog id.
+ */
+const MELEE_SUBCATEGORIES = new Set(["Blades", "Clubs", "Melee (Other)"]);
+
+const FIRING_MODE_ACCESSORY_NOTES: Record<string, string> = {
+  "accessory-bipod": "Bipod: +2 Attack Rating once deployed.",
+  "accessory-gas-vent-system": "Gas-Vent System: removes the Attack Rating penalty for Semi-Auto fire, reduces Burst Fire's to -2.",
+  "accessory-gyro-mount": "Gyro Mount: negates Semi-Auto/Burst Fire penalties; +3 Attack Rating for Full-Auto.",
+  "accessory-shock-pad": "Shock Pad: reduces Semi-Auto/Burst Fire Attack Rating penalties by 1.",
+  "accessory-tripod": "Tripod: negates Semi-Auto/Burst Fire penalties once deployed; +3 Attack Rating for Full-Auto.",
+  "krime-explosive-securing-tripod":
+    "Krime Explosive Securing Tripod: functions as a Tripod (negates Semi-Auto/Burst Fire penalties, +3 Attack Rating for Full-Auto) whether or not its pitons are deployed.",
+};
+
+export interface WeaponAttackRating {
+  line: GearLine;
+  entry: GearCatalogEntry;
+  /** The catalog's printed Close/Near/Medium/Far/Extreme string, e.g. "10/10/8/—/—". */
+  baseAttackRatings: string;
+  /** Same shape as baseAttackRatings, with `bonus` added to every populated range band. Equal to baseAttackRatings when bonus is 0. */
+  effectiveAttackRatings: string;
+  /** Summed always-on Attack Rating bonus: Strength for a melee weapon (core rulebook p. 39) plus any attached accessory's bonus (Smartgun System, Laser Sight - mutually exclusive, only the higher applies). */
+  bonus: number;
+  /** e.g. ["Strength (+4)", "Smartgun System, Internal (+2)"] - what contributed to `bonus`. */
+  bonusSources: string[];
+  /** Reference-only notes for attached accessories with a firing-mode/deployed-state-conditional effect - see FIRING_MODE_ACCESSORY_NOTES. */
+  modeNotes: string[];
+}
+
+function applyAttackRatingBonus(baseAttackRatings: string, bonus: number): string {
+  if (!bonus) return baseAttackRatings;
+  return baseAttackRatings
+    .split("/")
+    .map((band) => {
+      const value = Number(band.trim());
+      return Number.isFinite(value) ? String(value + bonus) : band.trim();
+    })
+    .join("/");
+}
+
+/**
+ * Every owned weapon (melee or ranged) with a printed Attack Ratings string,
+ * plus its Attack Ratings recomputed with any attached Weapon Accessory's
+ * always-on bonus applied - see ModifierTarget's "attackRating" case for why
+ * this is a separate resolution path from deriveModifiers.ts's
+ * character-wide modifierBonuses(). Mount-slot compatibility (a Smartgun
+ * mounted on a melee weapon, multiple accessories sharing one mount) isn't
+ * enforced, same "player self-enforces" simplification as everywhere else
+ * mount/slot capacity comes up in this app (see vehicleUpgrades.ts's own
+ * note on mod-slot budgets).
+ */
+export function weaponAttackRatings(
+  data: CharacterData,
+  catalog: GearCatalogEntry[],
+  effectiveAttrs: Attributes
+): WeaponAttackRating[] {
+  const results: WeaponAttackRating[] = [];
+  for (const line of data.gear) {
+    const entry = line.itemId ? findGearEntry(line.itemId, catalog) : undefined;
+    if (!isWeapon(entry) || !entry?.stats?.attackRatings) continue;
+
+    const attached = data.gear.filter((l) => l.attachedTo === gearLineKey(line));
+    const accessoryAttached = attached.filter((l) => isWeaponAccessory(l.itemId ? findGearEntry(l.itemId, catalog) : undefined));
+    const accessoryBonus = modifierBonuses(accessoryAttached, []).attackRating ?? 0;
+    const strengthBonus = entry.subcategory && MELEE_SUBCATEGORIES.has(entry.subcategory) ? effectiveAttrs.strength ?? 0 : 0;
+    const bonus = strengthBonus + accessoryBonus;
+
+    const bonusSources: string[] = [];
+    if (strengthBonus) bonusSources.push(`Strength (+${strengthBonus})`);
+    for (const l of accessoryAttached) {
+      const amount = (l.modifiers ?? []).find((m) => m.target === "attackRating")?.amount;
+      if (amount) bonusSources.push(`${l.name} (+${amount})`);
+    }
+    const modeNotes = accessoryAttached
+      .map((l) => (l.itemId ? FIRING_MODE_ACCESSORY_NOTES[l.itemId] : undefined))
+      .filter((note): note is string => !!note);
+
+    results.push({
+      line,
+      entry,
+      baseAttackRatings: entry.stats.attackRatings,
+      effectiveAttackRatings: applyAttackRatingBonus(entry.stats.attackRatings, bonus),
+      bonus,
+      bonusSources,
+      modeNotes,
+    });
+  }
+  return results;
 }
 
 export const COMBAT_PROCESS_STEPS: { step: string; summary: string }[] = [

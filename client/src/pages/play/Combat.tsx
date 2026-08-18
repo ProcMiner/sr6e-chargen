@@ -20,6 +20,7 @@ import {
   RANGE_CATEGORIES,
   defenseRating,
   unarmedAttackRating,
+  weaponAttackRatings,
   wornArmorTotal,
 } from "../../deriveCombat";
 
@@ -34,6 +35,7 @@ export function Combat({ data, gearRules }: Props) {
   const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const armor = wornArmorTotal(data, gearRules.gear);
   const dr = defenseRating(data, gearRules.gear, derived.armor, effectiveAttrs.body);
+  const weaponRatings = weaponAttackRatings(data, gearRules.gear, effectiveAttrs);
 
   return (
     <div className="combat-panel">
@@ -43,14 +45,39 @@ export function Combat({ data, gearRules }: Props) {
         <h3>Attack Rating &amp; Defense Rating</h3>
         <p className="hint">
           Unarmed Attack Rating <strong>{unarmedAttackRating(effectiveAttrs)}</strong> (Strength + Reaction). A melee
-          weapon instead adds your Strength ({effectiveAttrs.strength ?? 0}) directly to its own printed Attack
-          Rating; a ranged weapon uses its own printed Attack Rating/Range table as-is.
+          weapon instead adds your Strength directly to its own printed Attack Rating; both are shown per owned
+          weapon below, including any bonus from an attached Weapon Accessory (see Gear's "Mounted on" picker).
         </p>
         <p className="hint">
           Defense Rating <strong>{dr}</strong> (Body {effectiveAttrs.body ?? 0} + worn armor {armor} + augmentation
           armor {derived.armor}). Worn armor is your single best owned Clothes/Armor item (base suits aren't
           cumulative with each other) plus every Helmet/Shield you own (those do stack).
         </p>
+        {weaponRatings.length > 0 && (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Weapon</th>
+                <th>Attack Ratings (Close/Near/Medium/Far/Extreme)</th>
+                <th>Bonus</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weaponRatings.map((w, i) => (
+                <tr key={i}>
+                  <td>{w.line.name}</td>
+                  <td>
+                    {w.effectiveAttackRatings}
+                    {w.bonus !== 0 && ` (base ${w.baseAttackRatings})`}
+                  </td>
+                  <td>{w.bonusSources.length > 0 ? w.bonusSources.join(", ") : "-"}</td>
+                  <td>{w.modeNotes.length > 0 ? w.modeNotes.join(" ") : "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <details className="quality-section">

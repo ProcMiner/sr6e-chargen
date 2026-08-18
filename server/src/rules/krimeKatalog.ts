@@ -242,8 +242,9 @@ export const krimeKatalogGear: GearCatalogEntry[] = [
     cost: 500,
     availability: "2(L)",
     summary:
-      "Functions as either a laser sight or a smartgun system, selected via a physical switch (so a decker can't just brick the smartgun with the safety on). Device Rating 1.",
+      "Functions as either a laser sight or a smartgun system, selected via a physical switch (so a decker can't just brick the smartgun with the safety on). Device Rating 1. Modeled here at its smartgun-mode bonus (+2), the better of its two switchable modes - this app has no way to represent which mode is currently selected.",
     stats: { mount: "Top or Underbarrel", deviceRating: "1" },
+    modifiers: [{ target: "attackRating", amount: 2, stackingGroup: "ranged-sight" }],
   },
   {
     id: "krime-offline-support-solutions",
