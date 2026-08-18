@@ -1,4 +1,5 @@
-import type { CharacterData } from "../../character";
+import type { CharacterData, PrioritySystemState } from "../../character";
+import { deriveAdjustmentPoints } from "../../deriveAdjustmentPoints";
 import { astralInitiative, deriveStats, effectiveAttributes } from "../../derive";
 import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
@@ -93,6 +94,10 @@ export function SummarySheet({
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const contactsKarma = contactsKarmaSpent(data.contacts);
+  // Life Path characters have no PrioritySystemState.priorities, so Adjustment
+  // Points (a Priority-system-only concept) simply don't apply to them.
+  const isPrioritySystem = !!(data.systemState as PrioritySystemState)?.priorities;
+  const adjustmentPoints = isPrioritySystem ? deriveAdjustmentPoints(data, priorityRules) : null;
   const bonuses = modifierBonuses(data.gear, data.adeptPowers);
   const derived = deriveStats(data.attributes, bonuses);
   const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
@@ -452,6 +457,12 @@ export function SummarySheet({
           ).toLocaleString()}{" "}
           Karma remaining
         </p>
+        {adjustmentPoints && (
+          <p>
+            {adjustmentPoints.remaining.toLocaleString()} / {adjustmentPoints.total.toLocaleString()} Adjustment
+            Points remaining
+          </p>
+        )}
       </section>
     </div>
   );

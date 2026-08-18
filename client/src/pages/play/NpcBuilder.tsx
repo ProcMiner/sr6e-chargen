@@ -24,7 +24,8 @@ import type {
   LifestyleRulesResponse,
   ComplexFormRulesResponse,
 } from "../../rules";
-import { PriorityBuilder } from "../builder/PriorityBuilder/PriorityBuilder";
+import { getPrioritySteps } from "../builder/PriorityBuilder/prioritySteps";
+import { StepWizard } from "../../components/StepWizard";
 import { LifepathBuilder } from "../builder/LifepathBuilder/LifepathBuilder";
 import { QualityPicker } from "../builder/QualityPicker/QualityPicker";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
@@ -48,6 +49,7 @@ export function NpcBuilder() {
   const { id } = useParams();
   const [npc, setNpc] = useState<NpcSummary | null>(null);
   const [system, setSystem] = useState<"priority" | "lifepath" | null>(null);
+  const [activeStepId, setActiveStepId] = useState("power-level");
   const [data, setData] = useState<CharacterData | null>(null);
   const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
   const [lifepathRules, setLifepathRules] = useState<LifepathRulesResponse | null>(null);
@@ -228,51 +230,68 @@ export function NpcBuilder() {
       <div className="builder-layout">
         <div className="builder-main">
           {system === "priority" ? (
-            <PriorityBuilder rules={priorityRules} data={data} onChange={setData} />
-          ) : (
-            <LifepathBuilder
-              rules={lifepathRules}
-              metatypeAttributes={priorityRules.metatypeAttributes}
-              metavariants={priorityRules.metavariants}
-              skillList={priorityRules.skillList}
-              data={data}
-              onChange={setData}
+            <StepWizard
+              steps={getPrioritySteps({
+                priorityRules,
+                qualityRules,
+                gearRules,
+                packRules,
+                spellRules,
+                adeptPowerRules,
+                lifestyleRules,
+                complexFormRules,
+                data,
+                onChange: setData,
+              })}
+              activeId={activeStepId}
+              onSelect={setActiveStepId}
             />
+          ) : (
+            <>
+              <LifepathBuilder
+                rules={lifepathRules}
+                metatypeAttributes={priorityRules.metatypeAttributes}
+                metavariants={priorityRules.metavariants}
+                skillList={priorityRules.skillList}
+                data={data}
+                onChange={setData}
+              />
+              <QualityPicker
+                rules={qualityRules}
+                metatypeAttributes={priorityRules.metatypeAttributes}
+                metavariants={priorityRules.metavariants}
+                skillList={priorityRules.skillList}
+                data={data}
+                onChange={setData}
+              />
+              <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
+              <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={setData} />
+              <ComplexFormPicker rules={complexFormRules} priorityRules={priorityRules} data={data} onChange={setData} />
+              <LivingPersonaPanel data={data} onChange={setData} />
+              <LifestylePicker rules={lifestyleRules} data={data} onChange={setData} />
+              <PackPicker
+                packRules={packRules}
+                gearRules={gearRules}
+                lifestyleRules={lifestyleRules}
+                data={data}
+                onChange={setData}
+                extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
+              />
+              <GearPicker
+                rules={gearRules}
+                data={data}
+                onChange={setData}
+                extraKarmaSpent={
+                  spellKarmaCost(data, priorityRules) +
+                  complexFormKarmaCost(data, priorityRules) +
+                  metavariantKarmaCost(data, priorityRules.metavariants) +
+                  contactsKarmaSpent(data.contacts)
+                }
+                extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
+              />
+              <DeckerPersonaPanel data={data} gearRules={gearRules} onChange={setData} />
+            </>
           )}
-          <QualityPicker
-            rules={qualityRules}
-            metatypeAttributes={priorityRules.metatypeAttributes}
-            metavariants={priorityRules.metavariants}
-            skillList={priorityRules.skillList}
-            data={data}
-            onChange={setData}
-          />
-          <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={setData} />
-          <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={setData} />
-          <ComplexFormPicker rules={complexFormRules} priorityRules={priorityRules} data={data} onChange={setData} />
-          <LivingPersonaPanel data={data} onChange={setData} />
-          <LifestylePicker rules={lifestyleRules} data={data} onChange={setData} />
-          <PackPicker
-            packRules={packRules}
-            gearRules={gearRules}
-            lifestyleRules={lifestyleRules}
-            data={data}
-            onChange={setData}
-            extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
-          />
-          <GearPicker
-            rules={gearRules}
-            data={data}
-            onChange={setData}
-            extraKarmaSpent={
-              spellKarmaCost(data, priorityRules) +
-              complexFormKarmaCost(data, priorityRules) +
-              metavariantKarmaCost(data, priorityRules.metavariants) +
-              contactsKarmaSpent(data.contacts)
-            }
-            extraNuyenSpent={lifestyleCostTotal(data.lifestyles)}
-          />
-          <DeckerPersonaPanel data={data} gearRules={gearRules} onChange={setData} />
         </div>
         <aside className="builder-sidebar">
           <SummarySheet
