@@ -5,6 +5,21 @@
 // as printed), not simulated. Hosts and IC are deliberately excluded, same
 // as the existing Rules Coverage boundary: they're GM-facing NPC/location
 // content, not character-build data.
+//
+// hackingDicePools() below is the one exception - unlike everything else in
+// this file it's a real computed number (skill rank + attribute), same
+// treatment deriveCombat.ts gives unarmedAttackRating()/defenseRating()
+// alongside its own reference tables. The five {skill, attribute} pairings
+// are every combo Electronics/Cracking actually appear with across
+// MATRIX_ACTIONS below (Cracking+Logic, Cracking+Intuition for Hide,
+// Electronics+Logic, Electronics+Intuition for Matrix
+// Perception/Search/Trace Icon, Electronics+Willpower for Jack Out) -
+// Specialization/Expertise bonuses are listed alongside each pool rather
+// than folded into it, since (per core rulebook p.92) they only apply when
+// the test actually falls within that narrow focus, not to every use of
+// the skill.
+import type { CharacterData, SkillSpecialization } from "./character";
+import type { Attributes } from "./rules";
 
 export interface MatrixActionEntry {
   name: string;
@@ -393,3 +408,86 @@ export const OVERWATCH_SCORE_SOURCES: string[] = [
   "Maintaining illegal access: +1 OS/round per host with illegal User-level access, +3 OS/round per host with illegal Admin-level access",
   "Performing illegal actions: +1 OS per hit on the opposing roll, win or lose",
 ];
+
+export interface HackingDicePool {
+  label: string;
+  skill: string;
+  skillRank: number;
+  attributeLabel: string;
+  attributeValue: number;
+  pool: number;
+  focusBonuses: { focus: string; tier: "specialization" | "expertise"; bonus: number }[];
+  usedFor: string;
+}
+
+function focusBonusesFor(specializations: SkillSpecialization[] | undefined, skill: string) {
+  return (specializations ?? [])
+    .filter((s) => s.skill === skill)
+    .map((s) => ({ focus: s.focus, tier: s.tier, bonus: s.tier === "expertise" ? 3 : 2 }));
+}
+
+/**
+ * A decker/technomancer's hacking-relevant dice pools - Electronics and
+ * Cracking (both Logic-linked) plus their Intuition/Willpower-linked
+ * pairings for Matrix Perception-style and exit actions. `effectiveAttrs`
+ * should already have gear/adept modifiers folded in (see
+ * effectiveAttributes() in derive.ts) so an augmentation like a Cerebral
+ * Booster is reflected here the same way it is everywhere else this app
+ * shows a derived number.
+ */
+export function hackingDicePools(data: CharacterData, effectiveAttrs: Attributes): HackingDicePool[] {
+  const electronics = data.skills["Electronics"] ?? 0;
+  const cracking = data.skills["Cracking"] ?? 0;
+
+  const pools: Omit<HackingDicePool, "pool">[] = [
+    {
+      label: "Electronics + Logic",
+      skill: "Electronics",
+      skillRank: electronics,
+      attributeLabel: "Logic",
+      attributeValue: effectiveAttrs.logic,
+      focusBonuses: focusBonusesFor(data.specializations, "Electronics"),
+      usedFor:
+        "Control Device, Crack File (defense), Edit File, Encrypt File, Format Device, Hash Check, Reboot Device, Set Data Bomb, and most other Electronics-linked Matrix actions",
+    },
+    {
+      label: "Cracking + Logic",
+      skill: "Cracking",
+      skillRank: cracking,
+      attributeLabel: "Logic",
+      attributeValue: effectiveAttrs.logic,
+      focusBonuses: focusBonusesFor(data.specializations, "Cracking"),
+      usedFor:
+        "Backdoor Entry, Brute Force, Check OS, Crack File, Crash Program, Data Spike, Disarm Data Bomb, Jam Signals, Probe, Snoop, Spoof Command, Tarpit, and most other Cracking-linked Matrix actions",
+    },
+    {
+      label: "Electronics + Intuition",
+      skill: "Electronics",
+      skillRank: electronics,
+      attributeLabel: "Intuition",
+      attributeValue: effectiveAttrs.intuition,
+      focusBonuses: [],
+      usedFor: "Matrix Perception, Matrix Search, Trace Icon",
+    },
+    {
+      label: "Cracking + Intuition",
+      skill: "Cracking",
+      skillRank: cracking,
+      attributeLabel: "Intuition",
+      attributeValue: effectiveAttrs.intuition,
+      focusBonuses: [],
+      usedFor: "Hide",
+    },
+    {
+      label: "Electronics + Willpower",
+      skill: "Electronics",
+      skillRank: electronics,
+      attributeLabel: "Willpower",
+      attributeValue: effectiveAttrs.willpower,
+      focusBonuses: [],
+      usedFor: "Jack Out",
+    },
+  ];
+
+  return pools.map((p) => ({ ...p, pool: p.skillRank + p.attributeValue }));
+}

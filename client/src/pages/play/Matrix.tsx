@@ -35,6 +35,7 @@ import {
   MATRIX_PROGRAMS,
   NOISE_TABLE,
   OVERWATCH_SCORE_SOURCES,
+  hackingDicePools,
 } from "../../deriveMatrix";
 
 interface Props {
@@ -210,6 +211,43 @@ export function Matrix({ data, gearRules }: Props) {
                 <td>{a.actionType}</td>
                 <td>{a.test}</td>
                 <td>{a.summary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+
+      <details className="quality-section" open>
+        <summary>Dice Pools</summary>
+        <p className="hint">
+          Skill rank + attribute, using your current effective attributes (augmentations included). A
+          Specialization/Expertise column bonus only applies when the test actually falls within that narrow
+          focus (core rulebook p.92) - it's not added to the base pool shown here.
+        </p>
+        <table className="rules-table">
+          <thead>
+            <tr>
+              <th>Dice Pool</th>
+              <th>Rating</th>
+              <th>Specialization / Expertise</th>
+              <th>Used For</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hackingDicePools(data, effectiveAttrs).map((p) => (
+              <tr key={p.label}>
+                <td>{p.label}</td>
+                <td>
+                  {p.pool} ({p.skill} {p.skillRank} + {p.attributeLabel} {p.attributeValue})
+                </td>
+                <td>
+                  {p.focusBonuses.length === 0
+                    ? "-"
+                    : p.focusBonuses
+                        .map((f) => `${f.focus} +${f.bonus}${f.tier === "expertise" ? " (Expertise)" : ""}`)
+                        .join(", ")}
+                </td>
+                <td>{p.usedFor}</td>
               </tr>
             ))}
           </tbody>
