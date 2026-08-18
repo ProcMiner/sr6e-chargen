@@ -5,9 +5,12 @@ import {
   findGearEntry,
   gearBondingKarmaTotal,
   gearCostTotal,
+  gearLineKey,
   gearUnitBondingKarma,
   gearUnitCost,
   gearUnitEssenceCost,
+  isWeapon,
+  isWeaponAccessory,
   karmaRemaining,
   karmaToNuyenRate,
   nuyenFromKarmaConversion,
@@ -16,6 +19,7 @@ import {
 } from "../../../deriveGear";
 import { resolveGearModifiers } from "../../../deriveModifiers";
 import { NumberStepper } from "../../../components/NumberStepper";
+import { generateId } from "../../../id";
 
 interface Props {
   rules: GearRulesResponse;
@@ -91,6 +95,7 @@ export function GearPicker({
     applyGear([
       ...selected,
       {
+        id: generateId(),
         itemId: entry.id,
         name: entry.name,
         qty: 1,
@@ -107,6 +112,14 @@ export function GearPicker({
   function removeAt(index: number) {
     const next = [...selected];
     next.splice(index, 1);
+    applyGear(next);
+  }
+
+  /** Sets/clears which weapon line (by gearLineKey) a Weapon Accessory line is mounted on. */
+  function updateAttachment(index: number, targetKey: string) {
+    const line = selected[index];
+    const next = [...selected];
+    next[index] = { ...line, attachedTo: targetKey || undefined };
     applyGear(next);
   }
 
@@ -169,6 +182,7 @@ export function GearPicker({
     applyGear([
       ...selected,
       {
+        id: generateId(),
         name,
         qty: customQty,
         unitCost: customCost,
@@ -182,6 +196,72 @@ export function GearPicker({
     setCustomCost(0);
     setCustomEssenceCost(0);
     setCustomBondingKarma(0);
+  }
+
+  const indexedSelected = selected.map((line, i) => ({
+    line,
+    i,
+    entry: line.itemId ? findGearEntry(line.itemId, catalog) : undefined,
+  }));
+  const weaponLines = indexedSelected.filter((x) => isWeapon(x.entry));
+  const accessoriesByTarget = new Map<string, typeof indexedSelected>();
+  const attachedIndexes = new Set<number>();
+  for (const acc of indexedSelected) {
+    if (!isWeaponAccessory(acc.entry) || !acc.line.attachedTo) continue;
+    const list = accessoriesByTarget.get(acc.line.attachedTo) ?? [];
+    list.push(acc);
+    accessoriesByTarget.set(acc.line.attachedTo, list);
+    attachedIndexes.add(acc.i);
+  }
+  const weaponIndexes = new Set(weaponLines.map((w) => w.i));
+  const unattachedLines = indexedSelected.filter((x) => !weaponIndexes.has(x.i) && !attachedIndexes.has(x.i));
+
+  function renderOwnedLine({ line, i, entry }: (typeof indexedSelected)[number]) {
+    return (
+      <div className="module-instance">
+        <div className="module-instance-header">
+          <strong>
+            {line.name} ({line.free ? "Free" : `${(line.qty * line.unitCost).toLocaleString()}¥`}
+            {line.bondingKarma ? `, ${(line.qty * line.bondingKarma).toLocaleString()} Karma` : ""})
+          </strong>
+          <button className="danger" onClick={() => removeAt(i)}>
+            Remove
+          </button>
+        </div>
+        {entry && <p className="hint">{entry.summary}</p>}
+        <label className="inline-field">
+          Qty
+          <input type="number" min={1} value={line.qty} onChange={(e) => updateQty(i, Number(e.target.value))} />
+        </label>
+        {entry?.levels && (
+          <label className="inline-field">
+            Rating
+            <select value={line.rating ?? entry.levels.min} onChange={(e) => updateRating(i, Number(e.target.value))}>
+              {Array.from({ length: entry.levels.max - entry.levels.min + 1 }, (_, n) => entry.levels!.min + n).map(
+                (level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                )
+              )}
+            </select>
+          </label>
+        )}
+        {isWeaponAccessory(entry) && (
+          <label className="inline-field">
+            Mounted on
+            <select value={line.attachedTo ?? ""} onChange={(e) => updateAttachment(i, e.target.value)}>
+              <option value="">— unattached —</option>
+              {weaponLines.map((w) => (
+                <option key={w.i} value={gearLineKey(w.line)}>
+                  {w.line.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -215,54 +295,28 @@ export function GearPicker({
         </label>
       )}
 
-      {selected.length > 0 && (
+      {weaponLines.length > 0 && (
         <ul className="module-slots">
-          {selected.map((line, i) => {
-            const entry = line.itemId ? findGearEntry(line.itemId, catalog) : undefined;
-            return (
-              <li key={i}>
-                <div className="module-instance">
-                  <div className="module-instance-header">
-                    <strong>
-                      {line.name} ({line.free ? "Free" : `${(line.qty * line.unitCost).toLocaleString()}¥`}
-                      {line.bondingKarma ? `, ${(line.qty * line.bondingKarma).toLocaleString()} Karma` : ""})
-                    </strong>
-                    <button className="danger" onClick={() => removeAt(i)}>
-                      Remove
-                    </button>
-                  </div>
-                  {entry && <p className="hint">{entry.summary}</p>}
-                  <label className="inline-field">
-                    Qty
-                    <input
-                      type="number"
-                      min={1}
-                      value={line.qty}
-                      onChange={(e) => updateQty(i, Number(e.target.value))}
-                    />
-                  </label>
-                  {entry?.levels && (
-                    <label className="inline-field">
-                      Rating
-                      <select
-                        value={line.rating ?? entry.levels.min}
-                        onChange={(e) => updateRating(i, Number(e.target.value))}
-                      >
-                        {Array.from(
-                          { length: entry.levels.max - entry.levels.min + 1 },
-                          (_, n) => entry.levels!.min + n
-                        ).map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
-                </div>
-              </li>
-            );
-          })}
+          {weaponLines.map((w) => (
+            <li key={w.line.id ?? w.i}>
+              {renderOwnedLine(w)}
+              {(accessoriesByTarget.get(gearLineKey(w.line)) ?? []).length > 0 && (
+                <ul className="module-slots">
+                  {accessoriesByTarget.get(gearLineKey(w.line))!.map((acc) => (
+                    <li key={acc.line.id ?? acc.i}>{renderOwnedLine(acc)}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {unattachedLines.length > 0 && (
+        <ul className="module-slots">
+          {unattachedLines.map((x) => (
+            <li key={x.line.id ?? x.i}>{renderOwnedLine(x)}</li>
+          ))}
         </ul>
       )}
 

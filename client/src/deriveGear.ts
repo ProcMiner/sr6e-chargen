@@ -35,6 +35,30 @@ export function findGearEntry(id: string, catalog: GearCatalogEntry[]): GearCata
   return catalog.find((g) => g.id === id);
 }
 
+const NON_WEAPON_ITEM_SUBCATEGORIES = new Set(["Weapon Accessories", "Ammunition", "Explosives"]);
+
+/** A wieldable weapon (melee or ranged) a Weapon Accessory could plausibly be mounted on - the weapon catalog's "weapon" category minus its own accessories/ammo/explosives subcategories. */
+export function isWeapon(entry: GearCatalogEntry | undefined): boolean {
+  return !!entry && entry.category === "weapon" && !NON_WEAPON_ITEM_SUBCATEGORIES.has(entry.subcategory ?? "");
+}
+
+export function isWeaponAccessory(entry: GearCatalogEntry | undefined): boolean {
+  return !!entry && entry.category === "weapon" && entry.subcategory === "Weapon Accessories";
+}
+
+/**
+ * Stable reference for one gear line, used by a Weapon Accessory's
+ * `attachedTo` to point at the weapon it's mounted on. Prefers the line's
+ * own `id` (every line created after attachment shipped has one - see
+ * GearPicker.tsx's addFromCatalog/addCustom), falling back to itemId/name
+ * for older saved lines that predate it - stable enough for this purpose
+ * since neither changes after purchase, though it can't tell apart two
+ * older lines that are exact duplicates (same itemId, no id yet).
+ */
+export function gearLineKey(line: GearLine): string {
+  return line.id ?? line.itemId ?? line.name;
+}
+
 export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }

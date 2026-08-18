@@ -3,8 +3,12 @@ import { astralInitiative, deriveStats, effectiveAttributes } from "../../derive
 import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import {
+  findGearEntry,
   gearBondingKarmaTotal,
   gearCostTotal,
+  gearLineKey,
+  isWeapon,
+  isWeaponAccessory,
   karmaRemaining,
   nuyenFromKarmaConversion,
   nuyenRemaining,
@@ -100,6 +104,16 @@ export function SummarySheet({
   const skillEntries = Object.entries(data.skills).filter(([, rank]) => rank > 0);
   const qualityCatalog = combineQualityCatalog(qualityRules);
   const racialQualities = combinedRacialQualities(data, metatypeAttributes, priorityRules.metavariants);
+  const accessoriesByTarget = new Map<string, typeof data.gear>();
+  for (const line of data.gear) {
+    const entry = line.itemId ? findGearEntry(line.itemId, gearRules.gear) : undefined;
+    if (!isWeaponAccessory(entry) || !line.attachedTo) continue;
+    accessoriesByTarget.set(line.attachedTo, [...(accessoriesByTarget.get(line.attachedTo) ?? []), line]);
+  }
+  const gearForSummary = data.gear.filter((line) => {
+    const entry = line.itemId ? findGearEntry(line.itemId, gearRules.gear) : undefined;
+    return !(isWeaponAccessory(entry) && line.attachedTo);
+  });
 
   return (
     <div className="summary-sheet">
@@ -390,12 +404,25 @@ export function SummarySheet({
         <section>
           <h3>Gear</h3>
           <ul>
-            {data.gear.map((g, i) => (
-              <li key={i}>
-                {g.name} x{g.qty}
-                {g.bondingKarma ? ` (${g.bondingKarma * g.qty} Karma bonding)` : ""}
-              </li>
-            ))}
+            {gearForSummary.map((g, i) => {
+              const entry = g.itemId ? findGearEntry(g.itemId, gearRules.gear) : undefined;
+              const attached = isWeapon(entry) ? accessoriesByTarget.get(gearLineKey(g)) : undefined;
+              return (
+                <li key={i}>
+                  {g.name} x{g.qty}
+                  {g.bondingKarma ? ` (${g.bondingKarma * g.qty} Karma bonding)` : ""}
+                  {attached && attached.length > 0 && (
+                    <ul>
+                      {attached.map((acc, j) => (
+                        <li key={j}>
+                          {acc.name} x{acc.qty}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

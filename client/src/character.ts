@@ -25,6 +25,8 @@ export interface Contact {
 }
 
 export interface GearLine {
+  /** Stable per-line id, generated for every line created after weapon-accessory attachment shipped - see GearPicker.tsx's gearLineKey(). Absent on older saved lines; deriveGear.ts falls back to itemId/name for those instead of migrating them. */
+  id?: string;
   /** Catalog entry id; absent for freeform/custom items not in any catalog. */
   itemId?: string;
   name: string;
@@ -42,6 +44,8 @@ export interface GearLine {
   /** True if this item was acquired for free during play (loot/payment-in-kind from a run) rather than bought with the nuyen pool. `unitCost` still holds the item's normal market value for reference; `gearCostTotal` (deriveGear.ts) just excludes free lines from the spend total. Undefined (falsy) for everything bought normally, including at chargen. */
   free?: boolean;
   notes?: string;
+  /** For a Weapon Accessory line (gear.ts subcategory "Weapon Accessories"): the owned weapon line it's mounted on - see GearPicker.tsx's gearLineKey() for what value this holds. Undefined if unattached. Meaningless for non-accessory gear. */
+  attachedTo?: string;
 }
 
 export interface LifestyleLine {
