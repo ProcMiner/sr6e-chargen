@@ -14,11 +14,20 @@
 //   attribute"). Life Path characters also get the same free Native
 //   language, tracked the same way.
 //
-// Post-chargen ("career mode") purchases of new Knowledge/Language skills
-// (3 Karma each per the Advancement Costs table, p.71) aren't built yet -
-// same deferred-scope precedent as Contacts' in-play advancement.
-import type { KnowledgeSkillLine, LanguageLevel } from "./character";
+// Post-chargen ("career mode") purchases of new Knowledge/Language skills:
+// 3 Karma flat per the Advancement Costs table, p.71 - "New Knowledge skills
+// cost 3 Karma." Covers a brand-new knowledge topic or a new language at its
+// Basic level; the book doesn't give a separate rate for raising an
+// already-known language's level further during play, so that's not
+// modeled here (see pages/play/Advancement.tsx).
+import type { KnowledgePurchaseEntry, KnowledgeSkillLine, LanguageLevel } from "./character";
 import { generateId } from "./id";
+
+export const KNOWLEDGE_PURCHASE_KARMA_COST = 3;
+
+export function knowledgePurchaseKarmaTotal(entries: KnowledgePurchaseEntry[] | undefined): number {
+  return (entries ?? []).reduce((sum, e) => sum + e.karmaCost, 0);
+}
 
 /** Slots consumed by one line - a knowledge topic or a language's first (Basic) level costs 1; each further language level costs 1 more. Native (level 4) never appears here - see CharacterData.nativeLanguage. */
 export function knowledgeSkillSlotCost(line: KnowledgeSkillLine): number {

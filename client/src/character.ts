@@ -150,6 +150,14 @@ export interface SelectedQuality {
   rating?: number;
   /** Chosen skill/attribute/custom target, for catalog entries with `requiresParam`. */
   param?: string;
+  /**
+   * Stable per-selection id, only set for qualities purchased post-creation
+   * (see QualityPurchaseEntry) so a purchase's undo can find the exact
+   * selection it added back out of `qualities`, the same way GearLine.id
+   * disambiguates gear lines. Absent on chargen-selected qualities, which
+   * have no undo concept to begin with.
+   */
+  instanceId?: string;
 }
 
 export interface AdeptPowerLine {
@@ -266,6 +274,58 @@ export interface SpecializationEntry {
   date: string;
 }
 
+/**
+ * One post-chargen ("career mode") purchase of a brand-new Knowledge topic
+ * or Language (at its Basic level) - core rulebook "Improvement Cost" table,
+ * p. 71: "New Knowledge skills cost 3 Karma." See deriveKnowledge.ts.
+ * References the KnowledgeSkillLine it created (by id) so undo can remove
+ * exactly that line.
+ */
+export interface KnowledgePurchaseEntry {
+  id: string;
+  knowledgeLineId: string;
+  name: string;
+  type: "knowledge" | "language";
+  karmaCost: number;
+  date: string;
+}
+
+/**
+ * One post-chargen Qualities action - core rulebook "Improvement Cost"
+ * table, p. 71: purchasing a new positive quality or eliminating an
+ * existing negative one both cost 2x the quality's normal Karma amount.
+ * New negative qualities can't be purchased after character creation. See
+ * deriveQualities.ts. `quality` is a full snapshot so "eliminated" can be
+ * undone by re-adding the exact selection that was removed.
+ */
+export interface QualityPurchaseEntry {
+  id: string;
+  action: "purchased" | "eliminated";
+  quality: SelectedQuality;
+  name: string;
+  karmaCost: number;
+  date: string;
+}
+
+/**
+ * One post-chargen Contact improvement - Connection or Loyalty raised by a
+ * single point, 1 Karma each, reusing the same rate the Life Path build
+ * system already uses for Karma-funded contact points at chargen
+ * (deriveContacts.ts's withKarmaFundedPoint, Companion p.31) since the core
+ * rulebook's own Improvement Cost table doesn't tabulate Contacts. Both
+ * ratings cap at 12 in play (core p.51), not at Charisma - that narrower cap
+ * is chargen-only.
+ */
+export interface ContactAdvancementEntry {
+  id: string;
+  contactId: string;
+  field: "connection" | "loyalty";
+  fromRating: number;
+  toRating: number;
+  karmaCost: number;
+  date: string;
+}
+
 export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
@@ -336,6 +396,12 @@ export interface CharacterData {
   karmaSpentOnNuyen?: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
+  /** Itemized post-creation Knowledge/Language purchase log - see KnowledgePurchaseEntry. Empty/undefined for a character still in chargen. */
+  knowledgePurchases?: KnowledgePurchaseEntry[];
+  /** Itemized post-creation Qualities purchase/elimination log - see QualityPurchaseEntry. Empty/undefined for a character still in chargen. */
+  qualityPurchases?: QualityPurchaseEntry[];
+  /** Itemized post-creation Contact improvement log - see ContactAdvancementEntry. Empty/undefined for a character still in chargen. */
+  contactAdvancement?: ContactAdvancementEntry[];
   /** Initiate Grade (Magic side) - 0/undefined until first initiation. Raises Magic's natural maximum; see deriveEssence.ts. */
   initiateGrade?: number;
   /** Submersion Grade (Resonance side), same shape as initiateGrade. */
@@ -402,6 +468,9 @@ export function emptyCharacterData(): CharacterData {
     nuyen: 0,
     karma: 0,
     advancement: [],
+    knowledgePurchases: [],
+    qualityPurchases: [],
+    contactAdvancement: [],
     initiations: [],
     systemState: {},
   };

@@ -4,7 +4,13 @@
 // negative qualities would grant more than that after subtracting positive
 // quality costs, the excess bonus simply isn't granted (the quality itself
 // is still valid to take).
-import type { SelectedQuality } from "./character";
+//
+// Post-chargen ("career mode") Qualities actions - core rulebook
+// "Improvement Cost" table, p. 71: "Purchasing a positive quality requires
+// spending twice the normal Karma cost. New negative qualities cannot be
+// 'purchased'... but negative qualities the character already has can be
+// eliminated by paying twice the base Karma bonus." See pages/play/Advancement.tsx.
+import type { QualityPurchaseEntry, SelectedQuality } from "./character";
 import type { QualityCatalogEntry, QualityRulesResponse } from "./rules";
 
 const NET_BONUS_CAP = 20;
@@ -43,6 +49,15 @@ export function qualityKarmaTotal(selected: SelectedQuality[], catalog: QualityC
     return entry ? sum + signedKarma(sel, entry) : sum;
   }, 0);
   return Math.min(net, NET_BONUS_CAP);
+}
+
+/** Post-creation cost to purchase a new positive quality: 2x its normal Karma amount. Not meaningful for negative qualities (can't be purchased) or leveled qualities beyond their chosen rating. */
+export function qualityPurchaseCost(sel: SelectedQuality, entry: QualityCatalogEntry): number {
+  return qualityKarmaAmount(sel, entry) * 2;
+}
+
+export function qualityPurchaseKarmaTotal(entries: QualityPurchaseEntry[] | undefined): number {
+  return (entries ?? []).reduce((sum, e) => sum + e.karmaCost, 0);
 }
 
 export function qualityDisplayName(sel: SelectedQuality, catalog: QualityCatalogEntry[]): string {

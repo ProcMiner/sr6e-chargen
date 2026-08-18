@@ -2,7 +2,11 @@ import { useState } from "react";
 import type { CharacterData, PrioritySystemState, SkillSpecialization } from "../../../../character";
 import type { PriorityRulesResponse } from "../../../../rules";
 import { NumberStepper } from "../../../../components/NumberStepper";
-import { SKILL_SPECIALIZATION_SUGGESTIONS } from "../../../../deriveSpecializations";
+import {
+  EXOTIC_WEAPONS_SKILL,
+  SKILL_SPECIALIZATION_SUGGESTIONS,
+  exoticWeaponsNeedsSpecialization,
+} from "../../../../deriveSpecializations";
 import { effectivePriorityLetter } from "../../../../derivePriorityVariant";
 import { generateId } from "../../../../id";
 
@@ -76,6 +80,11 @@ export function SkillsStep({ rules, data, onChange }: Props) {
                 value={data.skills[skill] ?? 0}
                 onChange={(next) => onChange({ ...data, skills: { ...data.skills, [skill]: next } })}
               />
+              {skill === EXOTIC_WEAPONS_SKILL && exoticWeaponsNeedsSpecialization(data) && (
+                <span className="hint danger-text">
+                  Needs a specialization below to be usable (p. 95) - ranks alone can't be rolled with any weapon.
+                </span>
+              )}
             </label>
           ))}
         </div>

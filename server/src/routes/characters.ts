@@ -132,6 +132,41 @@ function isValidCharacterData(data: unknown): boolean {
     }
   }
 
+  if (Array.isArray(d.knowledgePurchases)) {
+    for (const line of d.knowledgePurchases as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const k = line as Record<string, unknown>;
+      if (typeof k.knowledgeLineId !== "string" || !k.knowledgeLineId) return false;
+      if (typeof k.name !== "string" || !k.name) return false;
+      if (k.type !== "knowledge" && k.type !== "language") return false;
+      if (!isFiniteInRange(k.karmaCost, 0, Infinity)) return false;
+    }
+  }
+
+  if (Array.isArray(d.qualityPurchases)) {
+    for (const line of d.qualityPurchases as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const q = line as Record<string, unknown>;
+      if (q.action !== "purchased" && q.action !== "eliminated") return false;
+      if (typeof q.name !== "string" || !q.name) return false;
+      if (q.quality === null || typeof q.quality !== "object") return false;
+      if (typeof (q.quality as Record<string, unknown>).id !== "string") return false;
+      if (!isFiniteInRange(q.karmaCost, 0, Infinity)) return false;
+    }
+  }
+
+  if (Array.isArray(d.contactAdvancement)) {
+    for (const line of d.contactAdvancement as unknown[]) {
+      if (line === null || typeof line !== "object") return false;
+      const c = line as Record<string, unknown>;
+      if (typeof c.contactId !== "string" || !c.contactId) return false;
+      if (c.field !== "connection" && c.field !== "loyalty") return false;
+      if (!isFiniteInRange(c.fromRating, 0, 12)) return false;
+      if (!isFiniteInRange(c.toRating, 0, 12)) return false;
+      if (!isFiniteInRange(c.karmaCost, 0, Infinity)) return false;
+    }
+  }
+
   return true;
 }
 

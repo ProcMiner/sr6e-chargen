@@ -12,9 +12,11 @@ interface Props {
   max: number;
   onChange: (value: number) => void;
   label?: string;
+  /** Amount the +/- buttons and the native step add/subtract - defaults to 1. Only needed for fractional fields like gear Essence cost. */
+  step?: number;
 }
 
-export function NumberStepper({ value, min, max, onChange, label }: Props) {
+export function NumberStepper({ value, min, max, onChange, label, step = 1 }: Props) {
   function clamp(n: number) {
     return Math.min(max, Math.max(min, n));
   }
@@ -24,7 +26,7 @@ export function NumberStepper({ value, min, max, onChange, label }: Props) {
       <button
         type="button"
         className="number-stepper-button"
-        onClick={() => onChange(clamp(value - 1))}
+        onClick={() => onChange(clamp(value - step))}
         disabled={value <= min}
         aria-label={label ? `Decrease ${label}` : "Decrease"}
       >
@@ -34,6 +36,7 @@ export function NumberStepper({ value, min, max, onChange, label }: Props) {
         type="number"
         min={min}
         max={max}
+        step={step}
         value={value}
         onFocus={(e) => e.currentTarget.select()}
         onChange={(e) => {
@@ -45,7 +48,7 @@ export function NumberStepper({ value, min, max, onChange, label }: Props) {
       <button
         type="button"
         className="number-stepper-button"
-        onClick={() => onChange(clamp(value + 1))}
+        onClick={() => onChange(clamp(value + step))}
         disabled={value >= max}
         aria-label={label ? `Increase ${label}` : "Increase"}
       >

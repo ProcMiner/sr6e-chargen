@@ -10,8 +10,25 @@
 //   ratings are not limited by your Charisma attribute" (Companion p.31).
 //   Each rating caps at 8 instead. Customization Karma can optionally push a
 //   rating further, 1 Karma per point, but never above Charisma.
-import type { Contact } from "./character";
+import type { Contact, ContactAdvancementEntry } from "./character";
 import type { LifeModule } from "./rules";
+
+// Post-chargen ("career mode") Contact improvement: 1 Karma per point of
+// Connection or Loyalty, reusing the same rate this app's Life Path build
+// already charges for Karma-funded contact points at chargen
+// (withKarmaFundedPoint below, Companion p.31) - the core rulebook's own
+// Improvement Cost table (p.68-69) doesn't tabulate Contacts at all, so this
+// is the only concrete Karma-per-point rate on record for this app rather
+// than a fresh guess. Both ratings cap at 12 in play (core p.51, "Both
+// ratings range from 1 to 12"), not at Charisma - that narrower cap is
+// chargen-only ("at this point [creation], neither rating can be higher
+// than the character's Charisma").
+export const CONTACT_ADVANCEMENT_KARMA_PER_POINT = 1;
+export const CONTACT_RATING_MAX = 12;
+
+export function contactAdvancementKarmaTotal(entries: ContactAdvancementEntry[] | undefined): number {
+  return (entries ?? []).reduce((sum, e) => sum + e.karmaCost, 0);
+}
 
 /** Every concrete contact type in the book's fixed list (Companion p.31/33-46) - a module's `contactTypes: ["Any"]` grant expands to all of these. */
 export const ALL_CONTACT_TYPES = [

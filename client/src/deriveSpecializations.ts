@@ -81,6 +81,20 @@ function entriesFor(data: CharacterData, skill: string): SkillSpecialization[] {
   return (data.specializations ?? []).filter((s) => s.skill === skill);
 }
 
+/**
+ * Exotic Weapons (p. 95): "You must select a specialization to use this
+ * skill, and you can only use this skill with weapons for which you have a
+ * specialization." Ranks themselves are bought normally and apply to every
+ * specialization the character has, but ranks with zero specializations are
+ * unusable - flagged here so the skill picker UI can warn about it instead
+ * of silently letting a player invest ranks that can't be rolled with
+ * anything.
+ */
+export function exoticWeaponsNeedsSpecialization(data: CharacterData): boolean {
+  const rank = data.skills[EXOTIC_WEAPONS_SKILL] ?? 0;
+  return rank >= 1 && entriesFor(data, EXOTIC_WEAPONS_SKILL).length === 0;
+}
+
 /** Whether `skill` can take a brand-new specialization (post-creation): must have a rank, and not already carry any specialization/expertise. */
 export function canAddSpecialization(data: CharacterData, skill: string): boolean {
   const rank = data.skills[skill] ?? 0;

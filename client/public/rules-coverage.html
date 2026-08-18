@@ -503,7 +503,7 @@
         </li>
         <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">Specializations &amp; Expertise</span>
-          <div class="item-note">See Character Advancement above for the full chargen/in-play picture. Exotic Weapons' special rule (a specialization is mandatory just to use the skill at all, and it can never take an expertise) is documented in code but not yet enforced by the picker UI — a player can still raise Exotic Weapons without one today.</div></div>
+          <div class="item-note">See Character Advancement above for the full chargen/in-play picture. Exotic Weapons' special rule (p. 95: "you can only use this skill with weapons for which you have a specialization," and it can never take an expertise) is documented in code and now surfaced in both skill pickers — a warning appears next to Exotic Weapons whenever its rank is above 0 with no specialization, since ranks with zero specializations can't be rolled with anything. Ranks themselves still aren't blocked (the book explicitly lets you buy them independently of specializations), matching this app's general no-hard-locking philosophy elsewhere in the wizard.</div></div>
         </li>
         <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">Knowledge and Language Skills</span><span class="item-cite">pp. 97–99</span>
@@ -746,9 +746,9 @@
           <div><span class="item-name">Specializations &amp; Expertise</span>
           <div class="item-note">See Character Advancement above.</div></div>
         </li>
-        <li class="item"><span class="item-status"><span class="status status-missing">Missing</span></span>
+        <li class="item"><span class="item-status"><span class="status status-done">Done</span></span>
           <div><span class="item-name">New Qualities, new Contacts, new Knowledge/Language skills during play</span>
-          <div class="item-note">The Improvement Cost table also covers buying qualities, improving contacts (1 Karma/point), and buying new Knowledge/Language skills (3 Karma each, core rulebook p. 71) post-creation — none of these exist yet in LivePlay/Advancement. All three are now built at chargen (see Finishing Steps above); this gap is only about extending them further during a career.</div></div>
+          <div class="item-note">All three built into LivePlay/Advancement, itemized and undoable like every other advancement purchase. Knowledge/Language: a new topic or a new language at Basic level costs 3 Karma flat (p. 71) — raising an already-known language's level further during play isn't in the book's table, so it's not modeled. Qualities: purchasing a new positive quality or eliminating an existing negative one both cost 2x the quality's normal Karma amount (p. 71); new negative qualities still can't be purchased, per the book. Contacts: Connection/Loyalty raise 1 Karma per point, reusing the same rate the Life Path build already charges for Karma-funded contact points at chargen (Companion p.31) since the core table doesn't tabulate Contacts on its own — capped at 12 in play (p. 51) rather than at Charisma, since that narrower cap is chargen-only. Adding a brand-new contact during play (as opposed to raising an existing one) isn't covered here.</div></div>
         </li>
       </ul>
     </section>
@@ -782,7 +782,7 @@
     </section>
 
     <footer>
-      Built from the SR6e core rulebook's own table of contents, cross-checked against the live codebase (rules files, data model, builder components) rather than project notes alone. Updated whenever a rules feature ships or a gap closes — last touched when Specializations &amp; Expertise shipped and the skill Karma-cost formula was corrected.
+      Built from the SR6e core rulebook's own table of contents, cross-checked against the live codebase (rules files, data model, builder components) rather than project notes alone. Updated whenever a rules feature ships or a gap closes — last touched when career-mode Knowledge/Quality/Contact advancement shipped and Exotic Weapons' specialization requirement was surfaced in the skill pickers.
     </footer>
   </main>
 </div>

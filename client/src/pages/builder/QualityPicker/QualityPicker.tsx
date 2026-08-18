@@ -17,7 +17,7 @@ const NET_KARMA_CAP = 20;
 // SR6e's "Exceptional (Attribute)" applies to any Physical or Mental
 // attribute; Edge is included here too since the picker doesn't otherwise
 // distinguish attribute categories.
-const ATTRIBUTE_NAMES = [
+export const ATTRIBUTE_NAMES = [
   "body",
   "agility",
   "reaction",

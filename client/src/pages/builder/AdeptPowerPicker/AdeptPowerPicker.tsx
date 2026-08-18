@@ -12,6 +12,7 @@ import {
 } from "../../../deriveAdeptPowers";
 import { effectiveMagic } from "../../../deriveEssence";
 import { resolveAdeptPowerModifiers } from "../../../deriveModifiers";
+import { NumberStepper } from "../../../components/NumberStepper";
 
 interface Props {
   rules: AdeptPowerRulesResponse;
@@ -105,12 +106,12 @@ export function AdeptPowerPicker({ rules, data, onChange }: Props) {
         <p className="hint">
           <label className="inline-field">
             Power Points dedicated to the adept side (0-{magic})
-            <input
-              type="number"
+            <NumberStepper
+              label="Power Points dedicated to the adept side"
               min={0}
               max={magic}
               value={data.mysticAdeptPowerPoints ?? 0}
-              onChange={(e) => updateMysticAdeptPoints(Number(e.target.value))}
+              onChange={updateMysticAdeptPoints}
             />
           </label>{" "}
           - the rest of your Magic doubles into free spells (see Spells).

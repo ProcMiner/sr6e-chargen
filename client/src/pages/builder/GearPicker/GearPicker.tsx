@@ -231,7 +231,13 @@ export function GearPicker({
         {entry && <p className="hint">{entry.summary}</p>}
         <label className="inline-field">
           Qty
-          <input type="number" min={1} value={line.qty} onChange={(e) => updateQty(i, Number(e.target.value))} />
+          <NumberStepper
+            label={`${line.name} quantity`}
+            min={1}
+            max={Math.max(1, maxAffordableQty(i, line.unitCost, line.bondingKarma, !!line.free))}
+            value={line.qty}
+            onChange={(next) => updateQty(i, next)}
+          />
         </label>
         {entry?.levels && (
           <label className="inline-field">
@@ -368,39 +374,37 @@ export function GearPicker({
           />
           <label className="inline-field">
             Qty
-            <input
-              type="number"
-              min={1}
-              value={customQty}
-              onChange={(e) => setCustomQty(Math.max(1, Number(e.target.value)))}
-            />
+            <NumberStepper label="Custom item quantity" min={1} max={999} value={customQty} onChange={setCustomQty} />
           </label>
           <label className="inline-field">
             Unit cost (¥)
-            <input
-              type="number"
+            <NumberStepper
+              label="Custom item unit cost"
               min={0}
+              max={999999}
               value={customCost}
-              onChange={(e) => setCustomCost(Math.max(0, Number(e.target.value)))}
+              onChange={setCustomCost}
             />
           </label>
           <label className="inline-field">
             Essence cost
-            <input
-              type="number"
+            <NumberStepper
+              label="Custom item Essence cost"
               min={0}
+              max={6}
               step={0.1}
               value={customEssenceCost}
-              onChange={(e) => setCustomEssenceCost(Math.max(0, Number(e.target.value)))}
+              onChange={setCustomEssenceCost}
             />
           </label>
           <label className="inline-field">
             Bonding Karma
-            <input
-              type="number"
+            <NumberStepper
+              label="Custom item bonding Karma"
               min={0}
+              max={999}
               value={customBondingKarma}
-              onChange={(e) => setCustomBondingKarma(Math.max(0, Number(e.target.value)))}
+              onChange={setCustomBondingKarma}
             />
           </label>
           <button
