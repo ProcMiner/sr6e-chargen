@@ -14,6 +14,7 @@ import { vehiclesGear } from "../rules/vehicles.js";
 import { vehicleUpgradesGear } from "../rules/vehicleUpgrades.js";
 import { vehicleModsDoubleClutchGear } from "../rules/vehicleModsDoubleClutch.js";
 import { dronesGear } from "../rules/drones.js";
+import { krimeKatalogGear } from "../rules/krimeKatalog.js";
 import { packs } from "../rules/packs.js";
 import { coreSpells } from "../rules/spells.js";
 import { streetWyrdSpells } from "../rules/spellsStreetWyrd.js";
@@ -59,6 +60,7 @@ rulesRouter.get("/gear", (_req, res) => {
       ...vehicleUpgradesGear,
       ...vehicleModsDoubleClutchGear,
       ...dronesGear,
+      ...krimeKatalogGear,
     ],
   });
 });
