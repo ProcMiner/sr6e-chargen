@@ -36,6 +36,8 @@ import { combineQualityCatalog, qualityDisplayName } from "./deriveQualities";
 import { livingPersonaAttribute } from "./deriveLivingPersona";
 import { initiationKarmaTotal } from "./deriveInitiation";
 import { customCyberdeckKarmaTotal } from "./deriveCustomCyberdeck";
+import { advancementKarmaTotal } from "./deriveAdvancement";
+import { specializationKarmaTotal } from "./deriveSpecializations";
 
 const PAGE_HEIGHT = 842;
 
@@ -132,7 +134,9 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
     inputs.complexFormKarmaSpent +
     metavariantKarmaCost(data, priorityRules.metavariants) +
     initiationKarmaTotal(data.initiations) +
-    customCyberdeckKarmaTotal(data.gear);
+    customCyberdeckKarmaTotal(data.gear) +
+    advancementKarmaTotal(data.advancement) +
+    specializationKarmaTotal(data.specializationLog);
   const karmaSpendable = karmaRemaining(data, extraKarmaSpent);
   const nuyenSpendable = nuyenRemaining(data, lifestyleCostTotal(data.lifestyles));
 

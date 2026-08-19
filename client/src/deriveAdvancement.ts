@@ -72,3 +72,21 @@ export function skillMax(data: CharacterData, skill: string): number {
   const hasAptitude = data.qualities.some((q) => q.id === "aptitude" && q.param === skill);
   return hasAptitude ? 10 : 9;
 }
+
+/**
+ * Chargen-specific skill ceiling (core p. 65): "During character creation,
+ * skills can be purchased up to rank 6 (7 with the Aptitude Quality)...
+ * During gameplay, those skills can reach 9 (10 with the Aptitude
+ * Quality)." A stricter cap than skillMax() above, which is explicitly the
+ * post-creation ceiling - reusing skillMax() for a chargen-time Karma
+ * purchase would let a rating-9 skill through before play has even
+ * started. The book's further sentence ("Only one skill can be put at that
+ * maximum level") isn't enforced here, matching this app's pre-existing
+ * Priority Skills step (SkillsStep.tsx), which already lets every skill
+ * independently reach 6 with no such cross-skill check - self-adjudicate
+ * if you want to respect that stricter reading. See [[skill_karma_at_chargen]].
+ */
+export function chargenSkillMax(data: CharacterData, skill: string): number {
+  const hasAptitude = data.qualities.some((q) => q.id === "aptitude" && q.param === skill);
+  return hasAptitude ? 7 : 6;
+}

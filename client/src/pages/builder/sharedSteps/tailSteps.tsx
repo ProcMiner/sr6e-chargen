@@ -26,11 +26,14 @@ import { lifestyleCostTotal } from "../../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../../deriveComplexForms";
 import { initiationKarmaTotal } from "../../../deriveInitiation";
 import { customCyberdeckKarmaTotal } from "../../../deriveCustomCyberdeck";
+import { advancementKarmaTotal } from "../../../deriveAdvancement";
+import { specializationKarmaTotal } from "../../../deriveSpecializations";
 import { QualityPicker } from "../QualityPicker/QualityPicker";
 import { SpellPicker } from "../SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "../AdeptPowerPicker/AdeptPowerPicker";
 import { ComplexFormPicker } from "../ComplexFormPicker/ComplexFormPicker";
 import { InitiationPicker } from "../InitiationPicker/InitiationPicker";
+import { SkillAdvancementPicker } from "../SkillAdvancementPicker/SkillAdvancementPicker";
 import { LifestylePicker } from "../LifestylePicker/LifestylePicker";
 import { PackPicker } from "../PackPicker/PackPicker";
 import { GearPicker } from "../GearPicker/GearPicker";
@@ -75,7 +78,9 @@ export function getSharedTailSteps({
     metavariantKarmaCost(data, priorityRules.metavariants) +
     contactsKarmaSpent(data.contacts) +
     initiationKarmaTotal(data.initiations) +
-    customCyberdeckKarmaTotal(data.gear);
+    customCyberdeckKarmaTotal(data.gear) +
+    advancementKarmaTotal(data.advancement) +
+    specializationKarmaTotal(data.specializationLog);
   const extraNuyenSpent = lifestyleCostTotal(data.lifestyles);
 
   return [
@@ -102,6 +107,12 @@ export function getSharedTailSteps({
           <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={onChange} />
           <ComplexFormPicker rules={complexFormRules} priorityRules={priorityRules} data={data} onChange={onChange} />
           <InitiationPicker rules={metamagicRules} priorityRules={priorityRules} data={data} onChange={onChange} />
+          <SkillAdvancementPicker
+            priorityRules={priorityRules}
+            data={data}
+            onChange={onChange}
+            extraKarmaSpent={extraKarmaSpent}
+          />
         </>
       ),
     },

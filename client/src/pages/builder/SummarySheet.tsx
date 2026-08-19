@@ -35,6 +35,8 @@ import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost, freeComplexFormAllotment } from "../../deriveComplexForms";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { customCyberdeckKarmaTotal } from "../../deriveCustomCyberdeck";
+import { advancementKarmaTotal } from "../../deriveAdvancement";
+import { specializationKarmaTotal } from "../../deriveSpecializations";
 import {
   MATRIX_ATTRIBUTE_KEYS,
   MATRIX_ATTRIBUTE_LABELS,
@@ -99,6 +101,8 @@ export function SummarySheet({
   const contactsKarma = contactsKarmaSpent(data.contacts);
   const initiationKarma = initiationKarmaTotal(data.initiations);
   const customCyberdeckKarma = customCyberdeckKarmaTotal(data.gear);
+  const skillAdvancementKarma = advancementKarmaTotal(data.advancement);
+  const specializationKarma = specializationKarmaTotal(data.specializationLog);
   const matrixDeviceList = matrixDevices(data, gearRules);
   const deckerResolvedAllocation = resolveDeckerAllocation(matrixDeviceList, deckerAllocation(data));
   // Life Path characters have no PrioritySystemState.priorities, so Adjustment
@@ -461,10 +465,19 @@ export function SummarySheet({
         {customCyberdeckKarma > 0 && (
           <p>{customCyberdeckKarma.toLocaleString()} Karma spent DIY-building a custom cyberdeck</p>
         )}
+        {skillAdvancementKarma > 0 && <p>{skillAdvancementKarma.toLocaleString()} Karma spent on skill ranks</p>}
+        {specializationKarma > 0 && <p>{specializationKarma.toLocaleString()} Karma spent on specializations</p>}
         <p>
           {karmaRemaining(
             data,
-            spellKarma + complexFormKarma + metavariantKarma + contactsKarma + initiationKarma + customCyberdeckKarma
+            spellKarma +
+              complexFormKarma +
+              metavariantKarma +
+              contactsKarma +
+              initiationKarma +
+              customCyberdeckKarma +
+              skillAdvancementKarma +
+              specializationKarma
           ).toLocaleString()}{" "}
           Karma remaining
         </p>
