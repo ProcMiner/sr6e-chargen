@@ -943,7 +943,7 @@ export function Advancement({ data, onChange, priorityRules, qualityRules, metam
                 <div className="module-instance-header">
                   <strong>{c.name}</strong>
                 </div>
-                <div className="attribute-editor">
+                <div className="contact-rating-editor">
                   <label>
                     Connection ({c.connection})
                     <button

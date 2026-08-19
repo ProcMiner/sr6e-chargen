@@ -102,7 +102,7 @@ export function FinishingStepsStep({ rules, data, onChange }: Props) {
                     ))}
                   </select>
                 </label>
-                <div className="attribute-editor">
+                <div className="contact-rating-editor">
                   {(["connection", "loyalty"] as const).map((field) => (
                     <label key={field} className="inline-field">
                       {field === "connection" ? "Connection" : "Loyalty"}

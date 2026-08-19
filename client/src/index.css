@@ -407,8 +407,27 @@ a {
   gap: 0.5rem;
 }
 
+/*
+ * Same look as .attribute-editor, but flex-wrap instead of a fixed-width
+ * grid: a contact's Connection/Loyalty row can carry a NumberStepper plus
+ * an optional "+1 (Karma)" chip and "N Karma-funded" hint, which routinely
+ * overflows .attribute-editor's 160px grid track and gets visually
+ * clipped/overlapped by the next track's opaque background. Content here
+ * just wraps to its own line instead of overlapping. Used by the Contacts
+ * section in both builders' Finishing Steps and LivePlay's Advancement
+ * panel - not attribute-editor's simple single-stepper rows (Attributes,
+ * Metatype's Edge, Magic/Resonance), which fit 160px fine and stay on the
+ * grid layout.
+ */
+.contact-rating-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .attribute-editor label,
-.skill-editor label {
+.skill-editor label,
+.contact-rating-editor label {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -422,7 +441,8 @@ a {
 }
 
 .attribute-editor input,
-.skill-editor input {
+.skill-editor input,
+.contact-rating-editor input {
   width: 3rem;
 }
 

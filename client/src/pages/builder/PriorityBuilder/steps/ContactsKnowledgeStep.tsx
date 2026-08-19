@@ -106,7 +106,7 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
                       Remove
                     </button>
                   </div>
-                  <div className="attribute-editor">
+                  <div className="contact-rating-editor">
                     <label>
                       Connection
                       <NumberStepper
