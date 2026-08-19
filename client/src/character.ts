@@ -118,6 +118,19 @@ export interface LifepathSystemState {
    * leftover +1 to a different attribute of their choice.
    */
   comingOfAgeRedirectAttribute?: string;
+  /**
+   * "Elite" alternate power level (Sixth World Companion p.16, "Alternate
+   * Power Levels"): "choose ten adult life modules instead of eight...
+   * there are no availability restrictions on any gear for elite
+   * characters." Only the module-count half is real work here - this app
+   * has never enforced gear Availability as a chargen restriction for
+   * anyone (Availability only governs finding a seller via Contacts in
+   * play, which this app doesn't simulate), so that half is already true
+   * by default. Undefined = standard 8 modules. The Companion's other
+   * variant for Life Path (Street-level, six modules) isn't implemented -
+   * don't assume it exists from this field's shape alone.
+   */
+  powerLevel?: "elite";
 }
 
 export type LanguageLevel = 1 | 2 | 3 | 4;

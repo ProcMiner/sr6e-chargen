@@ -36,7 +36,14 @@ export const AWAKENED_TYPES = [
   "Emerged",
 ] as const;
 
-export const ADULT_SLOTS = 8;
+export const STANDARD_ADULT_SLOTS = 8;
+/** Sixth World Companion p.16, "Elite": "choose ten adult life modules instead of eight." */
+export const ELITE_ADULT_SLOTS = 10;
+
+/** Number of adult life module slots available - 10 under the Elite power level, 8 otherwise. */
+export function adultSlots(state: LifepathSystemState): number {
+  return state.powerLevel === "elite" ? ELITE_ADULT_SLOTS : STANDARD_ADULT_SLOTS;
+}
 
 export function isBlank(state: LifepathSystemState) {
   return !state.selectedModuleIds;

@@ -3,7 +3,7 @@ import type { CharacterData, KnowledgeSkillLine, LifepathSystemState } from "../
 import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes, MetavariantCatalogEntry } from "../../../../rules";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL } from "../../../../deriveKnowledge";
 import {
-  ADULT_SLOTS,
+  adultSlots,
   deriveLifepathState,
   instanceKey,
   magicResonancePresence,
@@ -30,7 +30,12 @@ export function AdultLifeModulesStep({ rules, metatypeAttributes, metavariants, 
   }
 
   const selected = state.selectedModuleIds;
-  const canAddMore = selected.length < ADULT_SLOTS;
+  const slots = adultSlots(state);
+  const canAddMore = selected.length < slots;
+
+  function setPowerLevel(next: LifepathSystemState["powerLevel"]) {
+    recompute({ ...state, powerLevel: next });
+  }
 
   const moduleSearchTerm = moduleSearch.trim().toLowerCase();
   function matchesModuleSearch(mod: LifeModule) {
@@ -74,8 +79,23 @@ export function AdultLifeModulesStep({ rules, metatypeAttributes, metavariants, 
   return (
     <div className="lifepath-builder">
       <h2>
-        Adult Life Modules ({selected.length} / {ADULT_SLOTS})
+        Adult Life Modules ({selected.length} / {slots})
       </h2>
+      <p className="hint">
+        Optional power level (Sixth World Companion p.16, "Elite"): choose ten adult life modules instead of
+        eight, representing high-level corporate operatives, celebrities, and executives. The book also lifts
+        gear Availability restrictions for elite characters, but this app has never enforced Availability as a
+        chargen restriction for anyone (it only governs finding a seller via Contacts once play has started,
+        which this app doesn't simulate) - so there's nothing further to unlock there.
+      </p>
+      <div className="chip-row">
+        <button className={!state.powerLevel ? "chip selected" : "chip"} onClick={() => setPowerLevel(undefined)}>
+          Standard (8 modules)
+        </button>
+        <button className={state.powerLevel === "elite" ? "chip selected" : "chip"} onClick={() => setPowerLevel("elite")}>
+          Elite (10 modules)
+        </button>
+      </div>
       <ol className="module-slots">
         {selected.map((id, i) => {
           const mod = allAdult.find((m) => m.id === id)!;
