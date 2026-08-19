@@ -65,6 +65,17 @@ export interface GearLine {
     sleazeRating: number;
     /** Internal Program Slots bought beyond the free allotment (equal to Core Rating) - Dedicated Program Slots aren't modeled, see deriveCustomCyberdeck.ts's header comment. */
     extraProgramSlots: number;
+    /**
+     * The "Building Your Own" DIY path (Hack & Slash p.35): "each Karma you
+     * spend covers 4,000 nuyen of the component's cost." `unitCost` on this
+     * line is the nuyen actually still owed after this many Karma covered
+     * part of the build - see deriveCustomCyberdeck.ts's karmaFundedCost().
+     * The book's own extended Matrix Search + Electronics tests that gate
+     * this in play aren't modeled at chargen - "the building happens behind
+     * the scenes and the time taken doesn't matter" (this app's own house
+     * simplification, confirmed with the user rather than assumed).
+     */
+    karmaSpent: number;
   };
 }
 

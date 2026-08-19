@@ -34,6 +34,7 @@ import { combinedRacialQualities, findMetavariant, metavariantKarmaCost } from "
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost, freeComplexFormAllotment } from "../../deriveComplexForms";
 import { initiationKarmaTotal } from "../../deriveInitiation";
+import { customCyberdeckKarmaTotal } from "../../deriveCustomCyberdeck";
 import {
   MATRIX_ATTRIBUTE_KEYS,
   MATRIX_ATTRIBUTE_LABELS,
@@ -97,6 +98,7 @@ export function SummarySheet({
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const contactsKarma = contactsKarmaSpent(data.contacts);
   const initiationKarma = initiationKarmaTotal(data.initiations);
+  const customCyberdeckKarma = customCyberdeckKarmaTotal(data.gear);
   const matrixDeviceList = matrixDevices(data, gearRules);
   const deckerResolvedAllocation = resolveDeckerAllocation(matrixDeviceList, deckerAllocation(data));
   // Life Path characters have no PrioritySystemState.priorities, so Adjustment
@@ -456,10 +458,13 @@ export function SummarySheet({
         {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}
         {contactsKarma > 0 && <p>{contactsKarma.toLocaleString()} Karma spent on contacts</p>}
         {initiationKarma > 0 && <p>{initiationKarma.toLocaleString()} Karma spent on Initiation/Submersion</p>}
+        {customCyberdeckKarma > 0 && (
+          <p>{customCyberdeckKarma.toLocaleString()} Karma spent DIY-building a custom cyberdeck</p>
+        )}
         <p>
           {karmaRemaining(
             data,
-            spellKarma + complexFormKarma + metavariantKarma + contactsKarma + initiationKarma
+            spellKarma + complexFormKarma + metavariantKarma + contactsKarma + initiationKarma + customCyberdeckKarma
           ).toLocaleString()}{" "}
           Karma remaining
         </p>

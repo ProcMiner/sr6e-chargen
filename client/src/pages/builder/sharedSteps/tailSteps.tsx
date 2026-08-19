@@ -25,6 +25,7 @@ import { contactsKarmaSpent } from "../../../deriveContacts";
 import { lifestyleCostTotal } from "../../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../../deriveComplexForms";
 import { initiationKarmaTotal } from "../../../deriveInitiation";
+import { customCyberdeckKarmaTotal } from "../../../deriveCustomCyberdeck";
 import { QualityPicker } from "../QualityPicker/QualityPicker";
 import { SpellPicker } from "../SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "../AdeptPowerPicker/AdeptPowerPicker";
@@ -73,7 +74,8 @@ export function getSharedTailSteps({
     complexFormKarmaCost(data, priorityRules) +
     metavariantKarmaCost(data, priorityRules.metavariants) +
     contactsKarmaSpent(data.contacts) +
-    initiationKarmaTotal(data.initiations);
+    initiationKarmaTotal(data.initiations) +
+    customCyberdeckKarmaTotal(data.gear);
   const extraNuyenSpent = lifestyleCostTotal(data.lifestyles);
 
   return [
@@ -124,7 +126,12 @@ export function getSharedTailSteps({
             extraKarmaSpent={extraKarmaSpent}
             extraNuyenSpent={extraNuyenSpent}
           />
-          <CyberdeckBuilder data={data} onChange={onChange} extraNuyenSpent={extraNuyenSpent} />
+          <CyberdeckBuilder
+            data={data}
+            onChange={onChange}
+            extraKarmaSpent={extraKarmaSpent}
+            extraNuyenSpent={extraNuyenSpent}
+          />
           <DeckerPersonaPanel data={data} gearRules={gearRules} onChange={onChange} />
         </>
       ),

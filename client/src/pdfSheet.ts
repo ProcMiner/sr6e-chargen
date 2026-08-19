@@ -35,6 +35,7 @@ import { metavariantKarmaCost, combinedRacialQualities, findMetavariant } from "
 import { combineQualityCatalog, qualityDisplayName } from "./deriveQualities";
 import { livingPersonaAttribute } from "./deriveLivingPersona";
 import { initiationKarmaTotal } from "./deriveInitiation";
+import { customCyberdeckKarmaTotal } from "./deriveCustomCyberdeck";
 
 const PAGE_HEIGHT = 842;
 
@@ -130,7 +131,8 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
     inputs.spellKarmaSpent +
     inputs.complexFormKarmaSpent +
     metavariantKarmaCost(data, priorityRules.metavariants) +
-    initiationKarmaTotal(data.initiations);
+    initiationKarmaTotal(data.initiations) +
+    customCyberdeckKarmaTotal(data.gear);
   const karmaSpendable = karmaRemaining(data, extraKarmaSpent);
   const nuyenSpendable = nuyenRemaining(data, lifestyleCostTotal(data.lifestyles));
 
