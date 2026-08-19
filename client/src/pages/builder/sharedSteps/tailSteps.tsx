@@ -33,6 +33,7 @@ import { InitiationPicker } from "../InitiationPicker/InitiationPicker";
 import { LifestylePicker } from "../LifestylePicker/LifestylePicker";
 import { PackPicker } from "../PackPicker/PackPicker";
 import { GearPicker } from "../GearPicker/GearPicker";
+import { CyberdeckBuilder } from "../CyberdeckBuilder/CyberdeckBuilder";
 import { DeckerPersonaPanel } from "../DeckerPersonaPanel/DeckerPersonaPanel";
 import { SummarySheet } from "../SummarySheet";
 
@@ -123,6 +124,7 @@ export function getSharedTailSteps({
             extraKarmaSpent={extraKarmaSpent}
             extraNuyenSpent={extraNuyenSpent}
           />
+          <CyberdeckBuilder data={data} onChange={onChange} extraNuyenSpent={extraNuyenSpent} />
           <DeckerPersonaPanel data={data} gearRules={gearRules} onChange={onChange} />
         </>
       ),

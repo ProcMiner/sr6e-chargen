@@ -46,6 +46,26 @@ export interface GearLine {
   notes?: string;
   /** For a Weapon Accessory line (gear.ts subcategory "Weapon Accessories"): the owned weapon line it's mounted on - see GearPicker.tsx's gearLineKey() for what value this holds. Undefined if unattached. Meaningless for non-accessory gear. */
   attachedTo?: string;
+  /**
+   * Set only for a custom-built cyberdeck (Hack & Slash pp.34-39, "Custom
+   * Cyberdecks") - the four numbers a deckmeister-built deck is assembled
+   * from. Everything else (cost, Core Slot budget, active program slots,
+   * Availability) is derived from these, never stored redundantly - see
+   * deriveCustomCyberdeck.ts. A line with this field has no `itemId` (no
+   * catalog SKU exists for a one-off build) and is excluded from
+   * deriveDeckerPersona.ts's free ASDF-reassignment pool: the book states
+   * explicitly "you may not rotate out your Attack and Sleaze attributes"
+   * for a custom deck, unlike stock gear (core p.174/178's "rotate any
+   * non-zero attributes... even if they originated from different
+   * devices" only applies to factory decks).
+   */
+  customCyberdeck?: {
+    coreRating: number;
+    attackRating: number;
+    sleazeRating: number;
+    /** Internal Program Slots bought beyond the free allotment (equal to Core Rating) - Dedicated Program Slots aren't modeled, see deriveCustomCyberdeck.ts's header comment. */
+    extraProgramSlots: number;
+  };
 }
 
 export interface LifestyleLine {

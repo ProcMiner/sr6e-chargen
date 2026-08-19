@@ -45,6 +45,7 @@ import {
   deckerAttribute,
   deckerDefenseRating,
   matrixDevices,
+  resolveDeckerAllocation,
 } from "../../deriveDeckerPersona";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
@@ -96,6 +97,8 @@ export function SummarySheet({
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const contactsKarma = contactsKarmaSpent(data.contacts);
   const initiationKarma = initiationKarmaTotal(data.initiations);
+  const matrixDeviceList = matrixDevices(data, gearRules);
+  const deckerResolvedAllocation = resolveDeckerAllocation(matrixDeviceList, deckerAllocation(data));
   // Life Path characters have no PrioritySystemState.priorities, so Adjustment
   // Points (a Priority-system-only concept) simply don't apply to them.
   const isPrioritySystem = !!(data.systemState as PrioritySystemState)?.priorities;
@@ -347,23 +350,23 @@ export function SummarySheet({
         </section>
       )}
 
-      {matrixDevices(data, gearRules).length > 0 && (
+      {matrixDeviceList.length > 0 && (
         <section>
           <h3>Decker Persona</h3>
           <dl className="attribute-grid">
             {MATRIX_ATTRIBUTE_KEYS.map((key) => (
               <div key={key}>
                 <dt>{MATRIX_ATTRIBUTE_LABELS[key]}</dt>
-                <dd>{deckerAttribute(deckerAllocation(data), key)}</dd>
+                <dd>{deckerAttribute(deckerResolvedAllocation, key)}</dd>
               </div>
             ))}
             <div>
               <dt>Attack Rating</dt>
-              <dd>{deckerAttackRating(deckerAllocation(data))}</dd>
+              <dd>{deckerAttackRating(deckerResolvedAllocation)}</dd>
             </div>
             <div>
               <dt>Defense Rating</dt>
-              <dd>{deckerDefenseRating(deckerAllocation(data))}</dd>
+              <dd>{deckerDefenseRating(deckerResolvedAllocation)}</dd>
             </div>
           </dl>
         </section>

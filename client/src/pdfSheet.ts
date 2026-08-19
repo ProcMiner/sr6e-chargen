@@ -81,7 +81,7 @@ function findGearEntry(line: GearLine, catalog: GearCatalogEntry[]): GearCatalog
 
 const MELEE_SUBCATEGORIES = new Set(["Blades", "Clubs", "Melee (Other)"]);
 const WEAPON_EXCLUDED_SUBCATEGORIES = new Set(["Ammunition", "Weapon Accessories", "Explosives"]);
-const MATRIX_DEVICE_SUBCATEGORIES = new Set(["Commlinks", "Cyberdecks"]);
+const MATRIX_DEVICE_SUBCATEGORIES = new Set(["Commlinks", "Cyberdecks", "Cyberhacks"]);
 
 function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]) {
   const ranged: { line: GearLine; entry?: GearCatalogEntry }[] = [];
@@ -104,7 +104,7 @@ function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]) {
       armor.push({ line, entry });
     } else if (category === "augmentation" || (line.essenceCost ?? 0) > 0) {
       augmentations.push({ line, entry });
-    } else if (category === "electronics" && subcategory && MATRIX_DEVICE_SUBCATEGORIES.has(subcategory)) {
+    } else if (line.customCyberdeck || (category === "electronics" && subcategory && MATRIX_DEVICE_SUBCATEGORIES.has(subcategory))) {
       matrixDevices.push({ line, entry });
     } else if (category === "vehicle" && subcategory && /drone/i.test(subcategory)) {
       drones.push({ line, entry });

@@ -16,9 +16,11 @@ import {
   deckerMatrixInitiativeAR,
   deckerMatrixInitiativeVRCold,
   deckerMatrixInitiativeVRHot,
+  lockedAttackSleaze,
   matrixConditionMonitor,
   matrixDevices,
   remainingMatrixValues,
+  resolveDeckerAllocation,
 } from "../../../deriveDeckerPersona";
 
 interface Props {
@@ -32,7 +34,8 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
   if (devices.length === 0) return null;
 
   const available = availableMatrixValues(devices);
-  const allocation = deckerAllocation(data);
+  const allocation = resolveDeckerAllocation(devices, deckerAllocation(data));
+  const locked = lockedAttackSleaze(devices);
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   function setSlot(key: keyof DeckerPersonaAllocation, value: string) {
@@ -47,6 +50,14 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
         Assign each device's printed Attack/Sleaze or Data Processing/Firewall numbers to whichever named
         Matrix attribute you want - the book confirms these can be freely recombined across devices (core
         rulebook p.174, 178). Unassigned slots are 0.
+        {locked && (
+          <>
+            {" "}
+            A custom cyberdeck's Attack/Sleaze are locked to that device and can't join this pool (Hack &amp;
+            Slash p.34, "you may not rotate out your Attack and Sleaze attributes") - only Data
+            Processing/Firewall stay freely assignable below.
+          </>
+        )}
       </p>
       <ul className="module-slots">
         {devices.map((d) => (
@@ -65,6 +76,17 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
 
       <dl className="attribute-grid">
         {MATRIX_ATTRIBUTE_KEYS.map((key) => {
+          const isLockedSlot = !!locked && (key === "attack" || key === "sleaze");
+          if (isLockedSlot) {
+            return (
+              <div key={key}>
+                <dt>{MATRIX_ATTRIBUTE_LABELS[key]}</dt>
+                <dd>
+                  {allocation[key]} <span className="hint">(locked to custom cyberdeck)</span>
+                </dd>
+              </div>
+            );
+          }
           const options = remainingMatrixValues(available, allocation, key);
           const current = allocation[key];
           return (

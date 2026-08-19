@@ -27,6 +27,7 @@ import {
   matrixConditionMonitor,
   matrixDevices,
   matrixVrInitDice,
+  resolveDeckerAllocation,
 } from "../../deriveDeckerPersona";
 import {
   CONVERGENCE_OS,
@@ -48,7 +49,7 @@ export function Matrix({ data, gearRules }: Props) {
   const isTechnomancer = data.attributes.resonance !== undefined;
   if (devices.length === 0 && !isTechnomancer) return null;
 
-  const allocation = deckerAllocation(data);
+  const allocation = resolveDeckerAllocation(devices, deckerAllocation(data));
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   return (

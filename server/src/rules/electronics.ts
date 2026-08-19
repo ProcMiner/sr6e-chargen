@@ -173,6 +173,52 @@ export const electronicsGear: GearCatalogEntry[] = [
     stats: { deviceRating: "6", attributesAS: "9/8", activeProgramSlots: "12" },
   },
 
+  // --- Cyberhacks (Hack & Slash p.34) - external black-market devices that provide a
+  // decker's Data Processing/Firewall pair without cyberjack surgery, for pairing with
+  // a custom cyberdeck's Attack/Sleaze (or as a standalone budget option). Illegal;
+  // incompatible with legally manufactured cyberdecks per the book, though this app
+  // doesn't enforce Availability restrictions anywhere so that's flavor text only. ---
+  {
+    id: "cyberhack-rating-1",
+    name: "Cyberhack (Rating 1)",
+    category: "electronics",
+    subcategory: "Cyberhacks",
+    cost: 20000,
+    availability: "3(I)",
+    summary: "Entry-level black-market Data Processing/Firewall device; requires a wired connection to an implanted datajack.",
+    stats: { deviceRating: "1", attributesDF: "1/3" },
+  },
+  {
+    id: "cyberhack-rating-2",
+    name: "Cyberhack (Rating 2)",
+    category: "electronics",
+    subcategory: "Cyberhacks",
+    cost: 40000,
+    availability: "4(I)",
+    summary: "A step-up cyberhack.",
+    stats: { deviceRating: "2", attributesDF: "2/4" },
+  },
+  {
+    id: "cyberhack-rating-3",
+    name: "Cyberhack (Rating 3)",
+    category: "electronics",
+    subcategory: "Cyberhacks",
+    cost: 60000,
+    availability: "5(I)",
+    summary: "A solid mid-tier cyberhack.",
+    stats: { deviceRating: "3", attributesDF: "3/5" },
+  },
+  {
+    id: "cyberhack-rating-4",
+    name: "Cyberhack (Rating 4)",
+    category: "electronics",
+    subcategory: "Cyberhacks",
+    cost: 80000,
+    availability: "6(I)",
+    summary: "The top-of-the-line cyberhack.",
+    stats: { deviceRating: "4", attributesDF: "3/6" },
+  },
+
   // --- Accessories (book pp. 268-269) ---
   {
     id: "accessory-ar-gloves",

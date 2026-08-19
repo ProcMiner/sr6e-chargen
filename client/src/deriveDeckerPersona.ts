@@ -12,6 +12,16 @@
 // Living Persona gets, rather than the live turn-by-turn Reconfigure
 // Matrix Attribute action (which stays reference text in Matrix.tsx, like
 // every other test in this app).
+//
+// One device is the exception to all of the above: a custom cyberdeck
+// (Hack & Slash pp.34-39 - see deriveCustomCyberdeck.ts). Its rule is the
+// opposite of the stock-gear quote above - "you may not rotate out your
+// Attack and Sleaze attributes." A custom deck's two values are marked
+// `locked` below and excluded from the poolable multiset entirely;
+// resolveDeckerAllocation() force-assigns them straight to the Attack/
+// Sleaze slots instead, leaving Data Processing/Firewall (from whatever
+// separate cyberjack/cyberhack the character owns) as the only slots still
+// freely poolable.
 import type { CharacterData, DeckerPersonaAllocation } from "./character";
 import type { GearRulesResponse } from "./rules";
 import { MATRIX_ATTRIBUTE_KEYS, type MatrixAttributeKey } from "./deriveLivingPersona";
@@ -21,10 +31,12 @@ export { MATRIX_ATTRIBUTE_KEYS, MATRIX_ATTRIBUTE_LABELS, type MatrixAttributeKey
 export interface MatrixDevice {
   name: string;
   deviceRating: number;
-  /** The device's two printed non-zero Matrix-attribute values (a cyberdeck's Attack/Sleaze pair, or a commlink/cyberjack's Data Processing/Firewall pair) - order doesn't carry meaning once pooled, since either number can go to either matching slot. */
+  /** The device's two printed non-zero Matrix-attribute values (a cyberdeck's Attack/Sleaze pair, or a commlink/cyberjack's Data Processing/Firewall pair) - order doesn't carry meaning once pooled, since either number can go to either matching slot (except a locked device - see below). */
   values: number[];
   /** A cyberjack's printed "VR Matrix Init Dice" bonus (e.g. Rating 6's +2) - 0 for devices without one. */
   vrInitBonus: number;
+  /** True only for a custom cyberdeck: `values` is always `[attack, sleaze]` in that order, force-assigned rather than pooled - see this file's header comment. */
+  locked?: boolean;
 }
 
 function parsePair(raw: string | undefined): number[] {
@@ -41,10 +53,21 @@ function parseBonus(raw: string | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Every gear line the character owns that grants Matrix attributes (cyberdecks, commlinks, cyberjacks) - core rulebook p.174, 177-178. */
+/** Every gear line the character owns that grants Matrix attributes (cyberdecks, commlinks, cyberjacks, custom cyberdecks) - core rulebook p.174, 177-178; Hack & Slash pp.34-39 for custom decks. */
 export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse): MatrixDevice[] {
   const devices: MatrixDevice[] = [];
   for (const line of data.gear) {
+    if (line.customCyberdeck) {
+      const { coreRating, attackRating, sleazeRating } = line.customCyberdeck;
+      devices.push({
+        name: line.name,
+        deviceRating: coreRating,
+        values: [attackRating, sleazeRating],
+        vrInitBonus: 0,
+        locked: true,
+      });
+      continue;
+    }
     const entry = gearRules.gear.find((g) => g.id === line.itemId);
     const asPair = parsePair(entry?.stats?.attributesAS);
     const pair = asPair.length ? asPair : parsePair(entry?.stats?.attributesDF);
@@ -59,13 +82,29 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
   return devices;
 }
 
-/** The full multiset of numbers available to distribute across the four named Matrix attributes - every non-zero value from every owned Matrix-capable device. */
+/** The full multiset of numbers available to distribute across the four named Matrix attributes - every non-zero value from every owned Matrix-capable device, excluding any locked (custom cyberdeck) device. */
 export function availableMatrixValues(devices: MatrixDevice[]): number[] {
-  return devices.flatMap((d) => d.values);
+  return devices
+    .filter((d) => !d.locked)
+    .flatMap((d) => d.values);
+}
+
+/** The fixed Attack/Sleaze pair from an owned custom cyberdeck, if any - only the first one counts (a decker uses one deck at a time). Undefined if no locked device is owned. */
+export function lockedAttackSleaze(devices: MatrixDevice[]): { attack: number; sleaze: number } | undefined {
+  const locked = devices.find((d) => d.locked);
+  if (!locked) return undefined;
+  return { attack: locked.values[0] ?? 0, sleaze: locked.values[1] ?? 0 };
 }
 
 export function deckerAllocation(data: CharacterData): DeckerPersonaAllocation {
   return data.deckerPersonaAllocation ?? {};
+}
+
+/** Overlays a custom cyberdeck's locked Attack/Sleaze (if any) onto the player's stored pool allocation - callers should always pass this resolved allocation to deckerAttribute/deckerAttackRating/etc. below, never the raw stored one, so a custom deck's numbers can't be edited away. */
+export function resolveDeckerAllocation(devices: MatrixDevice[], allocation: DeckerPersonaAllocation): DeckerPersonaAllocation {
+  const locked = lockedAttackSleaze(devices);
+  if (!locked) return allocation;
+  return { ...allocation, attack: locked.attack, sleaze: locked.sleaze };
 }
 
 /** Values still available for a given slot: the full pool minus whatever's already assigned to every OTHER slot (so each physical number is only ever used once). Pass the slot being edited as `excludeKey` so its own current value doesn't count against itself. */
