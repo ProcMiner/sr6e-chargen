@@ -12,6 +12,7 @@ import type {
   ComplexFormRulesResponse,
   GearRulesResponse,
   LifestyleRulesResponse,
+  MetamagicRulesResponse,
   PackRulesResponse,
   PriorityRulesResponse,
   QualityRulesResponse,
@@ -23,10 +24,12 @@ import { metavariantKarmaCost } from "../../../deriveMetavariant";
 import { contactsKarmaSpent } from "../../../deriveContacts";
 import { lifestyleCostTotal } from "../../../deriveLifestyle";
 import { complexFormKarmaCost } from "../../../deriveComplexForms";
+import { initiationKarmaTotal } from "../../../deriveInitiation";
 import { QualityPicker } from "../QualityPicker/QualityPicker";
 import { SpellPicker } from "../SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "../AdeptPowerPicker/AdeptPowerPicker";
 import { ComplexFormPicker } from "../ComplexFormPicker/ComplexFormPicker";
+import { InitiationPicker } from "../InitiationPicker/InitiationPicker";
 import { LifestylePicker } from "../LifestylePicker/LifestylePicker";
 import { PackPicker } from "../PackPicker/PackPicker";
 import { GearPicker } from "../GearPicker/GearPicker";
@@ -42,6 +45,7 @@ interface SharedTailStepsProps {
   adeptPowerRules: AdeptPowerRulesResponse;
   lifestyleRules: LifestyleRulesResponse;
   complexFormRules: ComplexFormRulesResponse;
+  metamagicRules: MetamagicRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
   finishingStepsLabel: string;
@@ -57,6 +61,7 @@ export function getSharedTailSteps({
   adeptPowerRules,
   lifestyleRules,
   complexFormRules,
+  metamagicRules,
   data,
   onChange,
   finishingStepsLabel,
@@ -66,7 +71,8 @@ export function getSharedTailSteps({
     spellKarmaCost(data, priorityRules) +
     complexFormKarmaCost(data, priorityRules) +
     metavariantKarmaCost(data, priorityRules.metavariants) +
-    contactsKarmaSpent(data.contacts);
+    contactsKarmaSpent(data.contacts) +
+    initiationKarmaTotal(data.initiations);
   const extraNuyenSpent = lifestyleCostTotal(data.lifestyles);
 
   return [
@@ -92,6 +98,7 @@ export function getSharedTailSteps({
           <SpellPicker rules={spellRules} priorityRules={priorityRules} data={data} onChange={onChange} />
           <AdeptPowerPicker rules={adeptPowerRules} data={data} onChange={onChange} />
           <ComplexFormPicker rules={complexFormRules} priorityRules={priorityRules} data={data} onChange={onChange} />
+          <InitiationPicker rules={metamagicRules} priorityRules={priorityRules} data={data} onChange={onChange} />
         </>
       ),
     },

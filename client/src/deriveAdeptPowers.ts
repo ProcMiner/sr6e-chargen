@@ -18,6 +18,7 @@
 import type { AdeptPowerLine, CharacterData } from "./character";
 import type { AdeptPowerCatalogEntry } from "./rules";
 import { effectiveMagic } from "./deriveEssence";
+import { countMetamagic } from "./deriveInitiation";
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -52,12 +53,18 @@ export function adeptPowerUnitCost(entry: AdeptPowerCatalogEntry, level: number 
   return entry.levels ? round2(entry.cost * ratingFor(entry, level)) : entry.cost;
 }
 
-/** Total Power Point pool: current effective Magic for a pure Adept, the allocated (and Magic-capped) share for a Mystic Adept, 0 otherwise. */
+/** Extra Power Points from the "Power Point (Adepts Only)" metamagic (core p. 168, "you can take this as many times as you like") - added on top of the Magic-derived pool below. */
+export function powerPointMetamagicBonus(data: CharacterData): number {
+  return countMetamagic(data.initiations, "power-point");
+}
+
+/** Total Power Point pool: current effective Magic for a pure Adept, the allocated (and Magic-capped) share for a Mystic Adept, plus the Power Point metamagic bonus either way; 0 for neither. */
 export function adeptPowerPointPool(data: CharacterData): number {
   const type = getMagicOrAwakenedType(data);
   const magic = effectiveMagic(data);
-  if (type === "Adept") return magic;
-  if (type === "Mystic Adept") return Math.max(0, Math.min(data.mysticAdeptPowerPoints ?? 0, magic));
+  const bonus = powerPointMetamagicBonus(data);
+  if (type === "Adept") return magic + bonus;
+  if (type === "Mystic Adept") return Math.max(0, Math.min(data.mysticAdeptPowerPoints ?? 0, magic)) + bonus;
   return 0;
 }
 

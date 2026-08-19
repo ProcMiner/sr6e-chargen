@@ -32,6 +32,7 @@ import { firingSquadTemplates } from "../rules/firingSquadCritters.js";
 import { collapsingNowTemplates } from "../rules/collapsingNowCritters.js";
 import { spirits } from "../rules/spirits.js";
 import { spiritPowers } from "../rules/spiritPowers.js";
+import { metamagics, echoes } from "../rules/metamagics.js";
 
 export const rulesRouter = Router();
 
@@ -101,4 +102,8 @@ rulesRouter.get("/npc-templates", (_req, res) => {
 
 rulesRouter.get("/spirits", (_req, res) => {
   res.json({ spirits, spiritPowers });
+});
+
+rulesRouter.get("/metamagics", (_req, res) => {
+  res.json({ metamagics, echoes });
 });

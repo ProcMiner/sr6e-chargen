@@ -13,6 +13,7 @@ import type {
   GearRulesResponse,
   LifepathRulesResponse,
   LifestyleRulesResponse,
+  MetamagicRulesResponse,
   PackRulesResponse,
   PriorityRulesResponse,
   QualityRulesResponse,
@@ -36,6 +37,7 @@ interface LifepathStepsProps {
   adeptPowerRules: AdeptPowerRulesResponse;
   lifestyleRules: LifestyleRulesResponse;
   complexFormRules: ComplexFormRulesResponse;
+  metamagicRules: MetamagicRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
 }

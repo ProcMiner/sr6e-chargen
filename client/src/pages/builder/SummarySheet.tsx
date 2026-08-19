@@ -33,6 +33,7 @@ import { adeptPowerPointPool, adeptPowerPointsSpent, findAdeptPowerEntry } from 
 import { combinedRacialQualities, findMetavariant, metavariantKarmaCost } from "../../deriveMetavariant";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { complexFormKarmaCost, freeComplexFormAllotment } from "../../deriveComplexForms";
+import { initiationKarmaTotal } from "../../deriveInitiation";
 import {
   MATRIX_ATTRIBUTE_KEYS,
   MATRIX_ATTRIBUTE_LABELS,
@@ -94,6 +95,7 @@ export function SummarySheet({
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
   const complexFormsFree = freeComplexFormAllotment(data, priorityRules);
   const contactsKarma = contactsKarmaSpent(data.contacts);
+  const initiationKarma = initiationKarmaTotal(data.initiations);
   // Life Path characters have no PrioritySystemState.priorities, so Adjustment
   // Points (a Priority-system-only concept) simply don't apply to them.
   const isPrioritySystem = !!(data.systemState as PrioritySystemState)?.priorities;
@@ -450,10 +452,11 @@ export function SummarySheet({
         {complexFormKarma > 0 && <p>{complexFormKarma.toLocaleString()} Karma spent on complex forms</p>}
         {metavariantKarma > 0 && <p>{metavariantKarma.toLocaleString()} Karma spent on metavariant</p>}
         {contactsKarma > 0 && <p>{contactsKarma.toLocaleString()} Karma spent on contacts</p>}
+        {initiationKarma > 0 && <p>{initiationKarma.toLocaleString()} Karma spent on Initiation/Submersion</p>}
         <p>
           {karmaRemaining(
             data,
-            spellKarma + complexFormKarma + metavariantKarma + contactsKarma
+            spellKarma + complexFormKarma + metavariantKarma + contactsKarma + initiationKarma
           ).toLocaleString()}{" "}
           Karma remaining
         </p>

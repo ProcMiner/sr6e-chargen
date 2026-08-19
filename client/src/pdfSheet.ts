@@ -34,6 +34,7 @@ import { lifestyleCostTotal } from "./deriveLifestyle";
 import { metavariantKarmaCost, combinedRacialQualities, findMetavariant } from "./deriveMetavariant";
 import { combineQualityCatalog, qualityDisplayName } from "./deriveQualities";
 import { livingPersonaAttribute } from "./deriveLivingPersona";
+import { initiationKarmaTotal } from "./deriveInitiation";
 
 const PAGE_HEIGHT = 842;
 
@@ -125,7 +126,11 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   const magicEffective = effectiveMagic(data);
   const resonanceEffective = effectiveResonance(data);
   const selectedMetavariant = findMetavariant(data, priorityRules.metavariants);
-  const extraKarmaSpent = inputs.spellKarmaSpent + inputs.complexFormKarmaSpent + metavariantKarmaCost(data, priorityRules.metavariants);
+  const extraKarmaSpent =
+    inputs.spellKarmaSpent +
+    inputs.complexFormKarmaSpent +
+    metavariantKarmaCost(data, priorityRules.metavariants) +
+    initiationKarmaTotal(data.initiations);
   const karmaSpendable = karmaRemaining(data, extraKarmaSpent);
   const nuyenSpendable = nuyenRemaining(data, lifestyleCostTotal(data.lifestyles));
 

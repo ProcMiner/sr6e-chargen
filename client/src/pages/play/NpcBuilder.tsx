@@ -23,6 +23,7 @@ import type {
   AdeptPowerRulesResponse,
   LifestyleRulesResponse,
   ComplexFormRulesResponse,
+  MetamagicRulesResponse,
 } from "../../rules";
 import { getPrioritySteps } from "../builder/PriorityBuilder/prioritySteps";
 import { getLifepathSteps } from "../builder/LifepathBuilder/lifepathSteps";
@@ -48,6 +49,7 @@ export function NpcBuilder() {
   const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
   const [lifestyleRules, setLifestyleRules] = useState<LifestyleRulesResponse | null>(null);
   const [complexFormRules, setComplexFormRules] = useState<ComplexFormRulesResponse | null>(null);
+  const [metamagicRules, setMetamagicRules] = useState<MetamagicRulesResponse | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -77,6 +79,7 @@ export function NpcBuilder() {
     api.adeptPowers().then(setAdeptPowerRules);
     api.lifestyles().then(setLifestyleRules);
     api.complexForms().then(setComplexFormRules);
+    api.metamagics().then(setMetamagicRules);
   }, [id]);
 
   function startBuild(chosenSystem: "priority" | "lifepath") {
@@ -161,7 +164,8 @@ export function NpcBuilder() {
     !spellRules ||
     !adeptPowerRules ||
     !lifestyleRules ||
-    !complexFormRules
+    !complexFormRules ||
+    !metamagicRules
   ) {
     return (
       <div className="page">
@@ -228,6 +232,7 @@ export function NpcBuilder() {
                 adeptPowerRules,
                 lifestyleRules,
                 complexFormRules,
+                metamagicRules,
                 data,
                 onChange: setData,
               })}
@@ -246,6 +251,7 @@ export function NpcBuilder() {
                 adeptPowerRules,
                 lifestyleRules,
                 complexFormRules,
+                metamagicRules,
                 data,
                 onChange: setData,
               })}

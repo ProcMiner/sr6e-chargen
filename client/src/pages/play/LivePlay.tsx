@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes, emptyCharacterData, type CharacterData } from "../../character";
-import type { GearRulesResponse, PriorityRulesResponse, QualityRulesResponse, SpiritRulesResponse } from "../../rules";
+import type {
+  GearRulesResponse,
+  MetamagicRulesResponse,
+  PriorityRulesResponse,
+  QualityRulesResponse,
+  SpiritRulesResponse,
+} from "../../rules";
 import { deriveStats } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
@@ -44,6 +50,7 @@ export function LivePlay() {
   const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
   const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [spiritRules, setSpiritRules] = useState<SpiritRulesResponse | null>(null);
+  const [metamagicRules, setMetamagicRules] = useState<MetamagicRulesResponse | null>(null);
   const [playState, setPlayState] = useState<PlayState | null>(null);
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [joinCode, setJoinCode] = useState("");
@@ -79,6 +86,7 @@ export function LivePlay() {
     api.priorityTables().then(setPriorityRules);
     api.qualities().then(setQualityRules);
     api.spirits().then(setSpiritRules);
+    api.metamagics().then(setMetamagicRules);
     refreshSessions();
   }, [id]);
 
@@ -388,13 +396,14 @@ export function LivePlay() {
         </div>
       </section>
 
-      {priorityRules && qualityRules && (
+      {priorityRules && qualityRules && metamagicRules && (
         <section>
           <Advancement
             data={characterData}
             onChange={scheduleDataSave}
             priorityRules={priorityRules}
             qualityRules={qualityRules}
+            metamagicRules={metamagicRules}
           />
         </section>
       )}

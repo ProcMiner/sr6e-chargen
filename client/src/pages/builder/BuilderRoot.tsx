@@ -13,6 +13,7 @@ import type {
   AdeptPowerRulesResponse,
   LifestyleRulesResponse,
   ComplexFormRulesResponse,
+  MetamagicRulesResponse,
 } from "../../rules";
 import { getPrioritySteps } from "./PriorityBuilder/prioritySteps";
 import { getLifepathSteps } from "./LifepathBuilder/lifepathSteps";
@@ -36,6 +37,7 @@ export function BuilderRoot() {
   const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
   const [lifestyleRules, setLifestyleRules] = useState<LifestyleRulesResponse | null>(null);
   const [complexFormRules, setComplexFormRules] = useState<ComplexFormRulesResponse | null>(null);
+  const [metamagicRules, setMetamagicRules] = useState<MetamagicRulesResponse | null>(null);
   const [activeStepId, setActiveStepId] = useState("power-level");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -60,6 +62,7 @@ export function BuilderRoot() {
     api.adeptPowers().then(setAdeptPowerRules);
     api.lifestyles().then(setLifestyleRules);
     api.complexForms().then(setComplexFormRules);
+    api.metamagics().then(setMetamagicRules);
   }, [id]);
 
   async function handleSave() {
@@ -139,7 +142,8 @@ export function BuilderRoot() {
     !spellRules ||
     !adeptPowerRules ||
     !lifestyleRules ||
-    !complexFormRules
+    !complexFormRules ||
+    !metamagicRules
   ) {
     return (
       <div className="page">
@@ -183,6 +187,7 @@ export function BuilderRoot() {
                 adeptPowerRules,
                 lifestyleRules,
                 complexFormRules,
+                metamagicRules,
                 data,
                 onChange: setData,
               })}
@@ -201,6 +206,7 @@ export function BuilderRoot() {
                 adeptPowerRules,
                 lifestyleRules,
                 complexFormRules,
+                metamagicRules,
                 data,
                 onChange: setData,
               })}

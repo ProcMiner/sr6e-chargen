@@ -17,7 +17,7 @@ import type {
   SelectedQuality,
   SpecializationEntry,
 } from "../../character";
-import type { PriorityRulesResponse, QualityCatalogEntry, QualityRulesResponse } from "../../rules";
+import type { MetamagicRulesResponse, PriorityRulesResponse, QualityCatalogEntry, QualityRulesResponse } from "../../rules";
 import { karmaRemaining } from "../../deriveGear";
 import { effectiveAttributes } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
@@ -35,7 +35,9 @@ import {
   type CoreAttributeKey,
 } from "../../deriveAdvancement";
 import { canInitiate, canSubmerge, initiationCost, initiationKarmaTotal } from "../../deriveInitiation";
+import { isAdept, isMysticAdept } from "../../deriveAdeptPowers";
 import { generateId } from "../../id";
+import { MetamagicPicker } from "../../components/MetamagicPicker";
 import {
   EXOTIC_WEAPONS_SKILL,
   EXPERTISE_KARMA_COST,
@@ -69,12 +71,15 @@ interface Props {
   onChange: (next: CharacterData) => void;
   priorityRules: PriorityRulesResponse;
   qualityRules: QualityRulesResponse;
+  metamagicRules: MetamagicRulesResponse;
 }
 
-export function Advancement({ data, onChange, priorityRules, qualityRules }: Props) {
+export function Advancement({ data, onChange, priorityRules, qualityRules, metamagicRules }: Props) {
   const [karmaAward, setKarmaAward] = useState("");
   const [metamagicName, setMetamagicName] = useState("");
+  const [metamagicId, setMetamagicId] = useState<string | undefined>(undefined);
   const [echoName, setEchoName] = useState("");
+  const [echoId, setEchoId] = useState<string | undefined>(undefined);
   const [specSkill, setSpecSkill] = useState(priorityRules.skillList[0] ?? "");
   const [specFocus, setSpecFocus] = useState("");
   const [knowledgeName, setKnowledgeName] = useState("");
@@ -107,6 +112,12 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
 
   const log = [...(data.advancement ?? [])].reverse();
   const initiationLog = [...(data.initiations ?? [])].reverse();
+  const knownMetamagicIds = (data.initiations ?? [])
+    .filter((e) => e.type === "initiation" && e.metamagicId)
+    .map((e) => e.metamagicId!);
+  const knownEchoIds = (data.initiations ?? [])
+    .filter((e) => e.type === "submersion" && e.metamagicId)
+    .map((e) => e.metamagicId!);
   const specializations = data.specializations ?? [];
   const specializationLog = [...(data.specializationLog ?? [])].reverse();
   const knowledgeLog = [...(data.knowledgePurchases ?? [])].reverse();
@@ -189,10 +200,19 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
       initiateGrade: grade,
       initiations: [
         ...(data.initiations ?? []),
-        { id: generateId(), type: "initiation", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
+        {
+          id: generateId(),
+          type: "initiation",
+          grade,
+          metamagicName: name,
+          metamagicId,
+          karmaCost: cost,
+          date: new Date().toISOString(),
+        },
       ],
     });
     setMetamagicName("");
+    setMetamagicId(undefined);
   }
 
   function submerge() {
@@ -206,10 +226,19 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
       submersionGrade: grade,
       initiations: [
         ...(data.initiations ?? []),
-        { id: generateId(), type: "submersion", grade, metamagicName: name, karmaCost: cost, date: new Date().toISOString() },
+        {
+          id: generateId(),
+          type: "submersion",
+          grade,
+          metamagicName: name,
+          metamagicId: echoId,
+          karmaCost: cost,
+          date: new Date().toISOString(),
+        },
       ],
     });
     setEchoName("");
+    setEchoId(undefined);
   }
 
   function canUndoInitiation(entry: InitiationEntry): boolean {
@@ -673,6 +702,16 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
             Magic {nextInitiateGrade}+ to reach Grade {nextInitiateGrade} ("Initiate Grade can never exceed Magic
             rating").
           </p>
+          <MetamagicPicker
+            catalog={metamagicRules.metamagics}
+            isAdept={isAdept(data) || isMysticAdept(data)}
+            knownOnceIds={knownMetamagicIds}
+            selectedId={metamagicId}
+            onSelect={({ id, name }) => {
+              setMetamagicId(id);
+              setMetamagicName(name);
+            }}
+          />
           <form
             className="inline-field"
             onSubmit={(e) => {
@@ -682,9 +721,12 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
           >
             <input
               type="text"
-              placeholder="Metamagic learned"
+              placeholder="Metamagic learned (or type a custom/homebrew name)"
               value={metamagicName}
-              onChange={(e) => setMetamagicName(e.target.value)}
+              onChange={(e) => {
+                setMetamagicName(e.target.value);
+                setMetamagicId(undefined);
+              }}
             />
             <button
               type="submit"
@@ -708,6 +750,16 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
             Submersion Grade {data.submersionGrade ?? 0}. Raises Resonance's natural maximum to {resonanceCeiling}.
             Requires Resonance {nextSubmersionGrade}+ to reach Grade {nextSubmersionGrade}.
           </p>
+          <MetamagicPicker
+            catalog={metamagicRules.echoes}
+            isAdept={false}
+            knownOnceIds={knownEchoIds}
+            selectedId={echoId}
+            onSelect={({ id, name }) => {
+              setEchoId(id);
+              setEchoName(name);
+            }}
+          />
           <form
             className="inline-field"
             onSubmit={(e) => {
@@ -715,7 +767,15 @@ export function Advancement({ data, onChange, priorityRules, qualityRules }: Pro
               submerge();
             }}
           >
-            <input type="text" placeholder="Echo learned" value={echoName} onChange={(e) => setEchoName(e.target.value)} />
+            <input
+              type="text"
+              placeholder="Echo learned (or type a custom/homebrew name)"
+              value={echoName}
+              onChange={(e) => {
+                setEchoName(e.target.value);
+                setEchoId(undefined);
+              }}
+            />
             <button
               type="submit"
               disabled={!echoName.trim() || !canSubmerge(data) || submergeCost > available}

@@ -385,6 +385,30 @@ export interface SpiritRulesResponse {
   spiritPowers: SpiritPowerEntry[];
 }
 
+/** Mirrors server/src/rules/metamagics.ts. */
+export interface MetamagicCatalogEntry {
+  id: string;
+  name: string;
+  adeptOnly?: boolean;
+  prerequisite?: string;
+  repeatable?: boolean;
+  summary: string;
+  book: string;
+}
+
+export interface EchoCatalogEntry {
+  id: string;
+  name: string;
+  maxRepeats?: number;
+  summary: string;
+  book: string;
+}
+
+export interface MetamagicRulesResponse {
+  metamagics: MetamagicCatalogEntry[];
+  echoes: EchoCatalogEntry[];
+}
+
 export interface Attributes {
   body: number;
   agility: number;

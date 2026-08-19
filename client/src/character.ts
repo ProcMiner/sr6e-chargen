@@ -225,10 +225,15 @@ export interface AdvancementEntry {
 
 /**
  * One Initiation (Magic) or Submersion (Resonance) grade purchase - see
- * deriveInitiation.ts. `metamagicName`/`echoName` is freeform (this app
- * doesn't have a mechanical Metamagic/Echo catalog yet, same "pick via
- * notes, effect text points to the book" precedent as Mentor Spirits and
- * Adept Ways in qualities.ts).
+ * deriveInitiation.ts. `metamagicName` is the display name, normally
+ * auto-filled by picking a catalog entry (see rules.ts's
+ * MetamagicCatalogEntry/EchoCatalogEntry, server/src/rules/metamagics.ts)
+ * but left freely editable for a homebrew/GM-approved name - `metamagicId`
+ * is undefined in that case, and for any entry saved before the catalog
+ * shipped. Only `metamagicId === "power-point"` and `"centering"`/
+ * `"adept-centering"` are read back out anywhere (deriveAdeptPowers.ts's PP
+ * pool, deriveAstral.ts's Drain Resistance) - everything else is display
+ * only, same "no dice-rolling engine" boundary as the rest of this app.
  */
 export interface InitiationEntry {
   id: string;
@@ -236,6 +241,8 @@ export interface InitiationEntry {
   grade: number;
   /** Metamagic name (initiation) or Echo name (submersion) chosen for this grade. */
   metamagicName: string;
+  /** Catalog id backing `metamagicName`, if chosen from the catalog rather than typed freeform. */
+  metamagicId?: string;
   karmaCost: number;
   date: string;
 }

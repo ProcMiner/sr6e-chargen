@@ -17,6 +17,8 @@
 // power - a Mystic Adept needs both, a pure Adept only the second, a
 // Full/Aspected Magician only the first.
 import type { Attributes } from "./rules";
+import type { CharacterData } from "./character";
+import { countMetamagic } from "./deriveInitiation";
 
 export type TraditionAttribute = "logic" | "charisma";
 
@@ -48,6 +50,19 @@ export function traditionDrainResistancePool(attributes: Attributes, traditionAt
 /** Drain resistance for activating an adept power: Body + Willpower (p.163) - a different formula from the tradition-based one above, since adepts channel mana internally rather than through a tradition. */
 export function adeptDrainResistancePool(attributes: Attributes): number {
   return attributes.body + attributes.willpower;
+}
+
+/**
+ * Bonus dice from the Centering metamagic (p. 168): "add a number of dice
+ * equal to your Initiate Grade to all your Drain Resistance tests." Note
+ * this is Centering specifically, not Adept Centering - that's a distinct
+ * metamagic about denying opponents Edge from environmental/Illusion
+ * advantages, unrelated to Drain. Kept as a separate addend (not folded
+ * into the pool functions above) so those stay pure Attributes math, same
+ * as every other "core formula, then note the modifier" split in this file.
+ */
+export function centeringDrainBonus(data: CharacterData): number {
+  return countMetamagic(data.initiations, "centering") > 0 ? data.initiateGrade ?? 0 : 0;
 }
 
 export const ASSENSING_TABLE: { hits: string; info: string[] }[] = [

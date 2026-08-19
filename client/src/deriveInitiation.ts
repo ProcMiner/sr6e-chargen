@@ -31,3 +31,8 @@ export function canSubmerge(data: CharacterData): boolean {
   const nextGrade = (data.submersionGrade ?? 0) + 1;
   return (data.attributes.resonance ?? 0) >= nextGrade;
 }
+
+/** How many Initiation/Submersion entries picked a given catalog metamagic/echo id - Power Point's "as many times as you like" repeatability, and lookups like "does this character know Centering". */
+export function countMetamagic(entries: InitiationEntry[] | undefined, id: string): number {
+  return (entries ?? []).filter((e) => e.metamagicId === id).length;
+}

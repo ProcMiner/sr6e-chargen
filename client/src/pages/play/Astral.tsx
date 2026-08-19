@@ -19,6 +19,7 @@ import {
   astralDefenseRating,
   astralProjectionMaxHours,
   astralUnarmedDamage,
+  centeringDrainBonus,
   traditionDrainResistancePool,
 } from "../../deriveAstral";
 
@@ -33,6 +34,7 @@ export function Astral({ data }: Props) {
   const pureAdept = isAdept(data);
   const mysticAdept = isMysticAdept(data);
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
+  const centeringBonus = centeringDrainBonus(data);
 
   return (
     <div className="astral-panel">
@@ -53,8 +55,8 @@ export function Astral({ data }: Props) {
         ) : traditionAttribute ? (
           <>
             <p className="hint">
-              Spellcasting/Conjuring/Enchanting Drain: Willpower + Tradition Attribute ={" "}
-              <strong>{traditionDrainResistancePool(effectiveAttrs, traditionAttribute)}</strong>
+              Spellcasting/Conjuring/Enchanting Drain: Willpower + Tradition Attribute{centeringBonus > 0 && " + Centering"} ={" "}
+              <strong>{traditionDrainResistancePool(effectiveAttrs, traditionAttribute) + centeringBonus}</strong>
             </p>
             {mysticAdept && (
               <p className="hint">

@@ -9,6 +9,7 @@ import type {
   ComplexFormRulesResponse,
   GearRulesResponse,
   LifestyleRulesResponse,
+  MetamagicRulesResponse,
   PackRulesResponse,
   PriorityRulesResponse,
   QualityRulesResponse,
@@ -33,6 +34,7 @@ interface PriorityStepsProps {
   adeptPowerRules: AdeptPowerRulesResponse;
   lifestyleRules: LifestyleRulesResponse;
   complexFormRules: ComplexFormRulesResponse;
+  metamagicRules: MetamagicRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
 }
