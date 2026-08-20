@@ -83,6 +83,7 @@ export const api = {
   complexForms: () => request<import("./rules").ComplexFormRulesResponse>("/rules/complex-forms"),
   npcTemplates: () => request<import("./rules").NpcTemplateRulesResponse>("/rules/npc-templates"),
   spirits: () => request<import("./rules").SpiritRulesResponse>("/rules/spirits"),
+  sprites: () => request<import("./rules").SpriteRulesResponse>("/rules/sprites"),
   metamagics: () => request<import("./rules").MetamagicRulesResponse>("/rules/metamagics"),
 
   createSession: (name: string) =>

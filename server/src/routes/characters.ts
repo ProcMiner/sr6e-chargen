@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { db } from "../db.js";
 import { requireAuth } from "../auth.js";
-import type { BoundSpirit, CharacterPlayStateRow, CharacterRow, ChargenSystem, StatusEffect } from "../types.js";
+import type { BoundSpirit, CharacterPlayStateRow, CharacterRow, ChargenSystem, CompiledSprite, StatusEffect } from "../types.js";
 
 export const charactersRouter = Router();
 
@@ -253,6 +253,7 @@ export interface PlayStateClient {
   edgeAvailable: number;
   statusEffects: StatusEffect[];
   boundSpirits: BoundSpirit[];
+  compiledSprites: CompiledSprite[];
 }
 
 function ownedCharacter(id: string, userId: number | undefined): CharacterRow | undefined {
@@ -274,6 +275,7 @@ export function playStateFromRow(row: CharacterPlayStateRow): PlayStateClient {
     edgeAvailable: row.edge_available,
     statusEffects: JSON.parse(row.status_effects) as StatusEffect[],
     boundSpirits: JSON.parse(row.bound_spirits) as BoundSpirit[],
+    compiledSprites: JSON.parse(row.compiled_sprites) as CompiledSprite[],
   };
 }
 
@@ -293,6 +295,7 @@ charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
     edgeAvailable: maxEdgeFor(character),
     statusEffects: [],
     boundSpirits: [],
+    compiledSprites: [],
   });
 });
 
@@ -306,7 +309,7 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     .get(character.id) as CharacterPlayStateRow | undefined;
   const current: PlayStateClient = existingRow
     ? playStateFromRow(existingRow)
-    : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, statusEffects: [], boundSpirits: [] };
+    : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, statusEffects: [], boundSpirits: [], compiledSprites: [] };
 
   const body = (req.body ?? {}) as Partial<PlayStateClient>;
 
@@ -370,15 +373,42 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     boundSpirits = body.boundSpirits;
   }
 
+  let compiledSprites = current.compiledSprites;
+  if (body.compiledSprites !== undefined) {
+    if (
+      !Array.isArray(body.compiledSprites) ||
+      body.compiledSprites.some((s) => {
+        if (s === null || typeof s !== "object") return true;
+        if (typeof s.id !== "string" || typeof s.spriteTypeId !== "string" || typeof s.name !== "string") return true;
+        if (typeof s.level !== "number" || !Number.isFinite(s.level) || s.level < 1) return true;
+        if (typeof s.tasksRemaining !== "number" || !Number.isFinite(s.tasksRemaining)) return true;
+        if (typeof s.registered !== "boolean") return true;
+        if (typeof s.overwatchScore !== "number" || !Number.isFinite(s.overwatchScore) || s.overwatchScore < 0) {
+          return true;
+        }
+        if (typeof s.matrixDamage !== "number" || !Number.isFinite(s.matrixDamage) || s.matrixDamage < 0) return true;
+        if (typeof s.compiledAt !== "string") return true;
+        return false;
+      })
+    ) {
+      return res.status(400).json({
+        error:
+          "compiledSprites must be an array of { id, spriteTypeId, name, level, tasksRemaining, registered, overwatchScore, matrixDamage, compiledAt }",
+      });
+    }
+    compiledSprites = body.compiledSprites;
+  }
+
   db.prepare(
-    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(character_id) DO UPDATE SET
        physical_damage = excluded.physical_damage,
        stun_damage = excluded.stun_damage,
        edge_available = excluded.edge_available,
        status_effects = excluded.status_effects,
        bound_spirits = excluded.bound_spirits,
+       compiled_sprites = excluded.compiled_sprites,
        updated_at = excluded.updated_at`
   ).run(
     character.id,
@@ -386,10 +416,11 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     stunDamage,
     edgeAvailable,
     JSON.stringify(statusEffects),
-    JSON.stringify(boundSpirits)
+    JSON.stringify(boundSpirits),
+    JSON.stringify(compiledSprites)
   );
 
-  res.json({ physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits });
+  res.json({ physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits, compiledSprites });
 });
 
 charactersRouter.get("/:id/sessions", (req: Request, res: Response) => {

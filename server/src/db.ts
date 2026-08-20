@@ -65,6 +65,7 @@ db.exec(`
     edge_available INTEGER NOT NULL DEFAULT 0,
     status_effects TEXT NOT NULL DEFAULT '[]',
     bound_spirits TEXT NOT NULL DEFAULT '[]',
+    compiled_sprites TEXT NOT NULL DEFAULT '[]',
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -79,6 +80,11 @@ db.exec(`
 // column error on later runs is caught and ignored.
 try {
   db.exec(`ALTER TABLE character_play_state ADD COLUMN bound_spirits TEXT NOT NULL DEFAULT '[]'`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN compiled_sprites TEXT NOT NULL DEFAULT '[]'`);
 } catch {
   // column already exists
 }

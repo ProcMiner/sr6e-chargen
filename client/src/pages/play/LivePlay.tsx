@@ -8,6 +8,7 @@ import type {
   PriorityRulesResponse,
   QualityRulesResponse,
   SpiritRulesResponse,
+  SpriteRulesResponse,
 } from "../../rules";
 import { deriveStats } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
@@ -24,6 +25,7 @@ import { Advancement } from "./Advancement";
 import { Combat } from "./Combat";
 import { ReputationHeat } from "./ReputationHeat";
 import { Spirits } from "./Spirits";
+import { Sprites } from "./Sprites";
 import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
@@ -50,6 +52,7 @@ export function LivePlay() {
   const [priorityRules, setPriorityRules] = useState<PriorityRulesResponse | null>(null);
   const [qualityRules, setQualityRules] = useState<QualityRulesResponse | null>(null);
   const [spiritRules, setSpiritRules] = useState<SpiritRulesResponse | null>(null);
+  const [spriteRules, setSpriteRules] = useState<SpriteRulesResponse | null>(null);
   const [metamagicRules, setMetamagicRules] = useState<MetamagicRulesResponse | null>(null);
   const [playState, setPlayState] = useState<PlayState | null>(null);
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
@@ -86,6 +89,7 @@ export function LivePlay() {
     api.priorityTables().then(setPriorityRules);
     api.qualities().then(setQualityRules);
     api.spirits().then(setSpiritRules);
+    api.sprites().then(setSpriteRules);
     api.metamagics().then(setMetamagicRules);
     refreshSessions();
   }, [id]);
@@ -421,6 +425,12 @@ export function LivePlay() {
             onChange={scheduleSave}
             spiritRules={spiritRules}
           />
+        </section>
+      )}
+
+      {spriteRules && (
+        <section>
+          <Sprites data={characterData} playState={playState} onChange={scheduleSave} spriteRules={spriteRules} />
         </section>
       )}
 

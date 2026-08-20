@@ -75,6 +75,18 @@ export interface BoundSpirit {
   summonedAt: string;
 }
 
+export interface CompiledSprite {
+  id: string;
+  spriteTypeId: string;
+  name: string;
+  level: number;
+  tasksRemaining: number;
+  registered: boolean;
+  overwatchScore: number;
+  matrixDamage: number;
+  compiledAt: string;
+}
+
 export interface CharacterPlayStateRow {
   character_id: number;
   physical_damage: number;
@@ -82,6 +94,7 @@ export interface CharacterPlayStateRow {
   edge_available: number;
   status_effects: string;
   bound_spirits: string;
+  compiled_sprites: string;
   updated_at: string;
 }
 

@@ -385,6 +385,37 @@ export interface SpiritRulesResponse {
   spiritPowers: SpiritPowerEntry[];
 }
 
+/** Mirrors server/src/rules/spritePowers.ts's SpritePowerEntry. */
+export interface SpritePowerEntry {
+  id: string;
+  name: string;
+  summary: string;
+}
+
+/** Mirrors server/src/rules/sprites.ts's SpriteCatalogEntry. */
+export interface SpriteMatrixMods {
+  attack: number;
+  sleaze: number;
+  dataProcessing: number;
+  firewall: number;
+}
+
+export interface SpriteCatalogEntry {
+  id: string;
+  name: string;
+  book: string;
+  summary: string;
+  matrixMods: SpriteMatrixMods;
+  initiative: string;
+  skills: string[];
+  powers: string[];
+}
+
+export interface SpriteRulesResponse {
+  sprites: SpriteCatalogEntry[];
+  spritePowers: SpritePowerEntry[];
+}
+
 /** Mirrors server/src/rules/metamagics.ts. */
 export interface MetamagicCatalogEntry {
   id: string;

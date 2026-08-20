@@ -34,12 +34,42 @@ export interface BoundSpirit {
   summonedAt: string;
 }
 
+/**
+ * A currently-compiled sprite (core rulebook "Technomancers," p. 191-195 -
+ * see server/src/rules/sprites.ts for the catalog). Lives in PlayState, not
+ * CharacterData, same reasoning as BoundSpirit: session-transient, not a
+ * permanent part of the character sheet. Unlike a bound spirit, a sprite
+ * has no fixed lifespan tracked here - an unregistered one's "(Level x 2)
+ * hours unless registered" clock (p. 192) is reference text the player
+ * self-tracks, same "no dice-rolling engine, no clock" treatment as every
+ * other timed effect in this app (see StatusEffect.roundsRemaining, which
+ * is also just a manually-counted-down number, not an automatic timer).
+ */
+export interface CompiledSprite {
+  id: string;
+  /** server/src/rules/sprites.ts id. */
+  spriteTypeId: string;
+  /** Player-given label, e.g. "Static" - distinct from the type name so a technomancer can tell two same-type sprites apart. */
+  name: string;
+  level: number;
+  /** Net hits from the compiling test - what the sprite "owes" (p. 191). Registered Sprite Tasks (Loaned/Remote/Re-register/Standby/Sustain Complex Form, p. 193) all spend from this same pool - see Sprites.tsx's reference text for what each spends it on. */
+  tasksRemaining: number;
+  /** False until a successful Registering test (p. 192) - gates the five Registered Sprite Tasks and lifts the unregistered existence time limit. */
+  registered: boolean;
+  /** Accumulates like any Matrix entity's OS (p. 192) - Standby resets it to 0 (p. 193). */
+  overwatchScore: number;
+  /** Damage marked against the sprite's Matrix Condition Monitor ((Level/2 rounded up) + 8 - p. 192). */
+  matrixDamage: number;
+  compiledAt: string;
+}
+
 export interface PlayState {
   physicalDamage: number;
   stunDamage: number;
   edgeAvailable: number;
   statusEffects: StatusEffect[];
   boundSpirits: BoundSpirit[];
+  compiledSprites: CompiledSprite[];
 }
 
 export interface PlaySessionSummary {
