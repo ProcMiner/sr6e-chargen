@@ -97,8 +97,11 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
   }
 
   return (
-    <div className="cyberdeck-builder">
-      <h2>Custom Cyberdeck</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Custom Cyberdeck</h2>
+      </summary>
+      <div className="cyberdeck-builder">
       <p className="hint">
         Deckmeister-built decks (Hack &amp; Slash pp.34-39): Core sets the Device Rating, Attack/Sleaze Modules
         provide those two attributes (each capped at Core Rating x2), all drawing from a Core Slot budget of
@@ -225,6 +228,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
       <button onClick={build} disabled={!canBuild}>
         Build Custom Cyberdeck ({draftNuyenCost.toLocaleString()}¥{karmaSpent > 0 && ` + ${karmaSpent} Karma`})
       </button>
-    </div>
+      </div>
+    </details>
   );
 }

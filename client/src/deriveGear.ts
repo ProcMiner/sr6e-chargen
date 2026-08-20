@@ -47,6 +47,21 @@ export function isWeaponAccessory(entry: GearCatalogEntry | undefined): boolean 
 }
 
 /**
+ * Whether a gear line can be mounted on a weapon via `GearLine.attachedTo`.
+ * Catalog Weapon Accessories always qualify; a custom/freeform item (no
+ * catalog `entry` at all, since findGearEntry only resolves `itemId`) also
+ * qualifies, since a homebrewed accessory a player types in by name (e.g. a
+ * house-ruled scope or a joke item like "the Enloudener") has no catalog
+ * subcategory to check but is just as legitimate to mount as a cataloged
+ * one. Any other cataloged item (armor, drugs, cyberware, etc.) doesn't
+ * qualify - only weapons themselves are excluded implicitly, since a
+ * cataloged weapon entry is never classified "Weapon Accessories".
+ */
+export function canAttachToWeapon(entry: GearCatalogEntry | undefined): boolean {
+  return !entry || isWeaponAccessory(entry);
+}
+
+/**
  * Stable reference for one gear line, used by a Weapon Accessory's
  * `attachedTo` to point at the weapon it's mounted on. Prefers the line's
  * own `id` (every line created after attachment shipped has one - see

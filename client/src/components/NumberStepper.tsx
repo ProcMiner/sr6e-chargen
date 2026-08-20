@@ -1,11 +1,19 @@
-// Plain <input type="number"> has two problems on iOS Safari: it never
-// renders the native up/down spinner, and tapping into a field that already
-// shows a digit (e.g. an attribute starting at 1) positions the cursor
-// without selecting the existing text, so typing a new digit gets appended
-// instead of replacing it ("1" + "3" -> "13", which then clamps down to
-// max). Selecting the field's contents on focus fixes typed entry on every
-// platform; the +/- buttons give touch users a way to change the value
-// without typing at all, mirroring what desktop's spinner arrows already do.
+// Plain <input type="number"> has real problems here. On iOS Safari it
+// never renders the native up/down spinner, and - the one that actually
+// matters - selectionStart/selectionEnd/select()/setSelectionRange() are
+// all defined by the HTML spec to apply ONLY to text/search/url/tel/
+// password inputs, never to type="number". Confirmed directly (not just
+// from docs): even in a plain Chromium tab, calling .select() on a
+// type="number" input leaves selectionStart/selectionEnd both null - it's
+// a silent no-op everywhere, not just a Safari quirk. A prior pass here
+// tried to fix "tapping a field that already shows a digit appends instead
+// of replacing" by calling .select() onFocus, but that call never actually
+// selected anything on any browser, so the underlying bug was never fixed -
+// it just happened not to throw. Real fix: use type="text" with
+// inputMode="numeric" (or "decimal" for fractional-step fields like gear
+// Essence cost) so the field gets a numeric keyboard on mobile while still
+// being a type that genuinely supports selection, then sanitize/parse the
+// typed string by hand instead of relying on the browser's number parsing.
 interface Props {
   value: number;
   min: number;
@@ -17,6 +25,8 @@ interface Props {
 }
 
 export function NumberStepper({ value, min, max, onChange, label, step = 1 }: Props) {
+  const allowsDecimal = step < 1;
+
   function clamp(n: number) {
     return Math.min(max, Math.max(min, n));
   }
@@ -33,14 +43,21 @@ export function NumberStepper({ value, min, max, onChange, label, step = 1 }: Pr
         −
       </button>
       <input
-        type="number"
-        min={min}
-        max={max}
-        step={step}
+        type="text"
+        inputMode={allowsDecimal ? "decimal" : "numeric"}
         value={value}
         onFocus={(e) => e.currentTarget.select()}
         onChange={(e) => {
-          const next = Number(e.target.value);
+          const raw = e.target.value;
+          // Reject anything that isn't (part of) a plain non-negative number
+          // while the user is mid-typing, rather than forcing the field back
+          // to its old value - lets "1" become "12" one keystroke at a time,
+          // and lets a decimal field pass through a bare "0." while the
+          // fractional digits are still being typed.
+          const pattern = allowsDecimal ? /^\d*\.?\d*$/ : /^\d*$/;
+          if (!pattern.test(raw)) return;
+          if (raw === "" || raw === ".") return;
+          const next = Number(raw);
           if (Number.isNaN(next)) return;
           onChange(clamp(next));
         }}

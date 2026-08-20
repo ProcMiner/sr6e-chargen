@@ -68,8 +68,11 @@ export function SpellPicker({ rules, priorityRules, data, onChange }: Props) {
   }
 
   return (
-    <div className="spell-picker">
-      <h2>Spells</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Spells</h2>
+      </summary>
+      <div className="spell-picker">
       <p className="hint">
         {Math.min(known.length, free)} / {free} free spells used
         {known.length > free ? ` - ${known.length - free} extra x ${KARMA_PER_SPELL} Karma` : ""} -{" "}
@@ -141,6 +144,7 @@ export function SpellPicker({ rules, priorityRules, data, onChange }: Props) {
         );
       })}
       {searchTerm && byCategory.size === 0 && <p className="hint">No spells match "{search}".</p>}
-    </div>
+      </div>
+    </details>
   );
 }

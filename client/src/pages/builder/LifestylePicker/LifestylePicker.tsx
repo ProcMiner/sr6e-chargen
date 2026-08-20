@@ -76,8 +76,11 @@ export function LifestylePicker({ rules, data, onChange }: Props) {
   }
 
   return (
-    <div className="lifestyle-picker">
-      <h2>Lifestyle</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Lifestyle</h2>
+      </summary>
+      <div className="lifestyle-picker">
       <p className="hint">
         {data.nuyen.toLocaleString()}¥ earned - {spent.toLocaleString()}¥ spent on lifestyle ={" "}
         {remaining.toLocaleString()}¥ remaining
@@ -141,20 +144,22 @@ export function LifestylePicker({ rules, data, onChange }: Props) {
           />
           <label className="inline-field">
             Cost/month (¥)
-            <input
-              type="number"
+            <NumberStepper
+              label="Custom lifestyle cost per month"
               min={0}
+              max={999999}
               value={customCostPerMonth}
-              onChange={(e) => setCustomCostPerMonth(Math.max(0, Number(e.target.value)))}
+              onChange={setCustomCostPerMonth}
             />
           </label>
           <label className="inline-field">
             Months prepaid
-            <input
-              type="number"
+            <NumberStepper
+              label="Custom lifestyle months prepaid"
               min={1}
+              max={MAX_MONTHS_PREPAID}
               value={customMonths}
-              onChange={(e) => setCustomMonths(Math.max(1, Number(e.target.value)))}
+              onChange={setCustomMonths}
             />
           </label>
           <button
@@ -165,6 +170,7 @@ export function LifestylePicker({ rules, data, onChange }: Props) {
           </button>
         </div>
       </details>
-    </div>
+      </div>
+    </details>
   );
 }

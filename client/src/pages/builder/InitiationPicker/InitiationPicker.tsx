@@ -110,8 +110,11 @@ export function InitiationPicker({ rules, priorityRules, data, onChange }: Props
   }
 
   return (
-    <div className="initiation-picker">
-      <h2>Initiation / Submersion</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Initiation / Submersion</h2>
+      </summary>
+      <div className="initiation-picker">
       <p className="hint">
         Optional "experienced character" starting Grade, not a printed core-rulebook chargen rule - it reuses the
         same in-play Initiation/Submersion formula (10 + desired Grade Karma, Grade can never exceed
@@ -232,6 +235,7 @@ export function InitiationPicker({ rules, priorityRules, data, onChange }: Props
           ))}
         </ul>
       )}
-    </div>
+      </div>
+    </details>
   );
 }

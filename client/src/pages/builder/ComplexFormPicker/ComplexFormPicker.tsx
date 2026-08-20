@@ -74,8 +74,11 @@ export function ComplexFormPicker({ rules, priorityRules, data, onChange }: Prop
   }
 
   return (
-    <div className="complex-form-picker">
-      <h2>Complex Forms</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Complex Forms</h2>
+      </summary>
+      <div className="complex-form-picker">
       <p className="hint">
         {Math.min(known.length, free)} / {free} free complex forms used
         {known.length > free ? ` - ${known.length - free} extra x ${KARMA_PER_COMPLEX_FORM} Karma` : ""} -{" "}
@@ -151,6 +154,7 @@ export function ComplexFormPicker({ rules, priorityRules, data, onChange }: Prop
         </details>
       ))}
       {searchTerm && byBook.size === 0 && <p className="hint">No complex forms match "{search}".</p>}
-    </div>
+      </div>
+    </details>
   );
 }

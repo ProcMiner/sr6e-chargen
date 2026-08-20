@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CharacterData, GearLine } from "../../../character";
 import type { GearCatalogEntry, GearRulesResponse } from "../../../rules";
 import {
+  canAttachToWeapon,
   findGearEntry,
   gearBondingKarmaTotal,
   gearCostTotal,
@@ -10,7 +11,6 @@ import {
   gearUnitCost,
   gearUnitEssenceCost,
   isWeapon,
-  isWeaponAccessory,
   karmaRemaining,
   karmaToNuyenRate,
   nuyenFromKarmaConversion,
@@ -92,6 +92,25 @@ export function GearPicker({
     const free = allowFree && addFree;
     if (!canAdd(entry, free)) return;
     const rating = entry.levels?.min;
+    // If an identical line (same catalog item, same rating, same free
+    // status) is already owned, bump its Qty instead of adding a second
+    // line for the same purchase - clicking "Add" on a catalog chip twice
+    // used to always create two separate one-off lines, so getting "2x
+    // Ruger Super Warhawk" meant two identically-named rows instead of one
+    // row with Qty 2. A line that's had its rating changed via the Rating
+    // dropdown deliberately won't match here (different rating = a
+    // genuinely different variant, not a duplicate).
+    const existingIndex = selected.findIndex(
+      (line) => line.itemId === entry.id && line.rating === rating && !!line.free === free
+    );
+    if (existingIndex !== -1) {
+      const line = selected[existingIndex];
+      const maxQty = maxAffordableQty(existingIndex, line.unitCost, line.bondingKarma, !!line.free);
+      const next = [...selected];
+      next[existingIndex] = { ...line, qty: Math.min(line.qty + 1, Math.max(line.qty, maxQty)) };
+      applyGear(next);
+      return;
+    }
     applyGear([
       ...selected,
       {
@@ -207,7 +226,7 @@ export function GearPicker({
   const accessoriesByTarget = new Map<string, typeof indexedSelected>();
   const attachedIndexes = new Set<number>();
   for (const acc of indexedSelected) {
-    if (!isWeaponAccessory(acc.entry) || !acc.line.attachedTo) continue;
+    if (!canAttachToWeapon(acc.entry) || !acc.line.attachedTo) continue;
     const list = accessoriesByTarget.get(acc.line.attachedTo) ?? [];
     list.push(acc);
     accessoriesByTarget.set(acc.line.attachedTo, list);
@@ -253,7 +272,7 @@ export function GearPicker({
             </select>
           </label>
         )}
-        {isWeaponAccessory(entry) && (
+        {canAttachToWeapon(entry) && !isWeapon(entry) && weaponLines.length > 0 && (
           <label className="inline-field">
             Mounted on
             <select value={line.attachedTo ?? ""} onChange={(e) => updateAttachment(i, e.target.value)}>
@@ -271,8 +290,11 @@ export function GearPicker({
   }
 
   return (
-    <div className="gear-picker">
-      <h2>Gear</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Gear</h2>
+      </summary>
+      <div className="gear-picker">
       <p className="hint">
         {data.nuyen.toLocaleString()}¥ earned
         {karmaSpentOnNuyen > 0 && ` + ${nuyenFromKarmaConversion(data).toLocaleString()}¥ from Karma`} -{" "}
@@ -419,6 +441,7 @@ export function GearPicker({
           </button>
         </div>
       </details>
-    </div>
+      </div>
+    </details>
   );
 }

@@ -4,12 +4,12 @@ import { astralInitiative, deriveStats, effectiveAttributes } from "../../derive
 import { astralAttackRating, astralDefenseRating } from "../../deriveAstral";
 import { combineQualityCatalog, findQualityEntry, qualityDisplayName, qualityKarmaAmount } from "../../deriveQualities";
 import {
+  canAttachToWeapon,
   findGearEntry,
   gearBondingKarmaTotal,
   gearCostTotal,
   gearLineKey,
   isWeapon,
-  isWeaponAccessory,
   karmaRemaining,
   nuyenFromKarmaConversion,
   nuyenRemaining,
@@ -123,12 +123,12 @@ export function SummarySheet({
   const accessoriesByTarget = new Map<string, typeof data.gear>();
   for (const line of data.gear) {
     const entry = line.itemId ? findGearEntry(line.itemId, gearRules.gear) : undefined;
-    if (!isWeaponAccessory(entry) || !line.attachedTo) continue;
+    if (!canAttachToWeapon(entry) || !line.attachedTo) continue;
     accessoriesByTarget.set(line.attachedTo, [...(accessoriesByTarget.get(line.attachedTo) ?? []), line]);
   }
   const gearForSummary = data.gear.filter((line) => {
     const entry = line.itemId ? findGearEntry(line.itemId, gearRules.gear) : undefined;
-    return !(isWeaponAccessory(entry) && line.attachedTo);
+    return !(canAttachToWeapon(entry) && line.attachedTo);
   });
 
   return (

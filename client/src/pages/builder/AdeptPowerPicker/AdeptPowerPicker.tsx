@@ -100,8 +100,11 @@ export function AdeptPowerPicker({ rules, data, onChange }: Props) {
   if (!adept && !mysticAdept) return null;
 
   return (
-    <div className="adept-power-picker">
-      <h2>Adept Powers</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Adept Powers</h2>
+      </summary>
+      <div className="adept-power-picker">
       {mysticAdept && (
         <p className="hint">
           <label className="inline-field">
@@ -203,6 +206,7 @@ export function AdeptPowerPicker({ rules, data, onChange }: Props) {
         </details>
       ))}
       {searchTerm && byBook.size === 0 && <p className="hint">No adept powers match "{search}".</p>}
-    </div>
+      </div>
+    </details>
   );
 }

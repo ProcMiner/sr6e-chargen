@@ -1,16 +1,26 @@
-// Chargen Skill/Specialization Karma spend - core rulebook p.66, "Spend
-// Customization Karma": Step Four's 50-point pool is explicitly for
+// Chargen Attribute/Skill/Specialization Karma spend - core rulebook p.66,
+// "Spend Customization Karma": Step Four's 50-point pool is explicitly for
 // "skills, attributes, qualities, and additional funds... See Character
-// Advancement (p. 68) for the price of buying these advances." This picker
-// covers the "skills" half (Attributes/Qualities already have their own
-// chargen-native pickers; see [[skill_karma_at_chargen]] for why Attributes
-// wasn't added here too). Reuses the exact same Character Advancement
-// table (skillAdvanceCost, same x5 formula) and deriveSpecializations.ts's
-// rules that pages/play/Advancement.tsx already uses in career mode,
-// writing to the SAME data.advancement/data.specializations/
-// data.specializationLog fields - a chargen-time purchase just becomes
-// part of the same itemized history, same "one log spans chargen and
-// career mode" precedent as deriveInitiation.ts's InitiationEntry.
+// Advancement (p. 68) for the price of buying these advances." Qualities
+// already have their own chargen-native picker; this one covers the other
+// two. Reuses the exact same Character Advancement table
+// (attributeAdvanceCost/skillAdvanceCost, same x5 formula) and
+// deriveSpecializations.ts's rules that pages/play/Advancement.tsx already
+// uses in career mode, writing to the SAME data.advancement/
+// data.specializations/data.specializationLog fields - a chargen-time
+// purchase just becomes part of the same itemized history, same "one log
+// spans chargen and career mode" precedent as deriveInitiation.ts's
+// InitiationEntry.
+//
+// Attributes deliberately use the SAME ceiling as career mode's core (non-
+// Magic/Resonance) attributes: attributeMax() is already the metatype's
+// natural maximum, the same cap Priority's Adjustment Points funding uses -
+// there's no separate "chargen ceiling" the way skills have one, since the
+// book never states a lower in-creation cap for attributes the way it does
+// for skills (p.65's rank-6 language is skill-specific). Magic/Resonance
+// are deliberately excluded here - those come from Priority allocation, not
+// a Karma raise, and their career-mode ceiling is Grade-aware (Initiate/
+// Submersion), which doesn't exist yet at chargen.
 //
 // Two restrictions here that career mode's Advancement.tsx does NOT have,
 // both confirmed from the book rather than assumed:
@@ -33,7 +43,7 @@ import { useState } from "react";
 import type { AdvancementEntry, CharacterData, SpecializationEntry } from "../../../character";
 import type { PriorityRulesResponse } from "../../../rules";
 import { karmaRemaining } from "../../../deriveGear";
-import { chargenSkillMax, skillAdvanceCost } from "../../../deriveAdvancement";
+import { CORE_ATTRIBUTE_KEYS, attributeAdvanceCost, attributeMax, chargenSkillMax, skillAdvanceCost } from "../../../deriveAdvancement";
 import {
   EXOTIC_WEAPONS_SKILL,
   SKILL_SPECIALIZATION_SUGGESTIONS,
@@ -57,8 +67,40 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
 
   const available = karmaRemaining(data, extraKarmaSpent);
   const specializations = data.specializations ?? [];
+  const attributeLog = [...(data.advancement ?? [])].filter((e) => e.type === "attribute").reverse();
   const skillLog = [...(data.advancement ?? [])].filter((e) => e.type === "skill").reverse();
   const specializationLog = [...(data.specializationLog ?? [])].reverse();
+
+  function increaseAttribute(key: string) {
+    const current = data.attributes[key as (typeof CORE_ATTRIBUTE_KEYS)[number]] ?? 1;
+    const max = attributeMax(data, key as (typeof CORE_ATTRIBUTE_KEYS)[number], priorityRules.metatypeAttributes, priorityRules.metavariants);
+    const next = current + 1;
+    if (next > max) return;
+    const cost = attributeAdvanceCost(next);
+    if (cost > available) return;
+    onChange({
+      ...data,
+      attributes: { ...data.attributes, [key]: next },
+      advancement: [
+        ...(data.advancement ?? []),
+        { id: generateId(), type: "attribute", key, fromRating: current, toRating: next, karmaCost: cost, date: new Date().toISOString() },
+      ],
+    });
+  }
+
+  /** Only the most recent purchase for a given attribute can be undone, same rule as skills below. */
+  function canUndoAttribute(entry: AdvancementEntry): boolean {
+    return (data.attributes[entry.key as (typeof CORE_ATTRIBUTE_KEYS)[number]] ?? 0) === entry.toRating;
+  }
+
+  function undoAttribute(entry: AdvancementEntry) {
+    if (!canUndoAttribute(entry)) return;
+    onChange({
+      ...data,
+      attributes: { ...data.attributes, [entry.key]: entry.fromRating },
+      advancement: (data.advancement ?? []).filter((e) => e.id !== entry.id),
+    });
+  }
 
   function increaseSkill(name: string) {
     const current = data.skills[name] ?? 0;
@@ -124,8 +166,63 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
   }
 
   return (
-    <div className="skill-advancement-picker">
-      <h2>Skills &amp; Specializations</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Attributes, Skills &amp; Specializations</h2>
+      </summary>
+      <div className="skill-advancement-picker">
+      <p className="hint">
+        Leftover Customization Karma can also raise attributes, at the same price as post-creation Character
+        Advancement (core p.66, 68-69): {attributeAdvanceCost(1)} Karma per new rating (new rating x 5), capped at
+        your metatype's natural maximum. Magic and Resonance aren't raised here - those come from your Priority
+        allocation.
+      </p>
+
+      <h3>Attributes</h3>
+      <div className="attribute-editor">
+        {CORE_ATTRIBUTE_KEYS.map((key) => {
+          const current = data.attributes[key] ?? 1;
+          const max = attributeMax(data, key, priorityRules.metatypeAttributes, priorityRules.metavariants);
+          const atMax = current >= max;
+          const cost = attributeAdvanceCost(current + 1);
+          const afford = cost <= available;
+          return (
+            <label key={key}>
+              {key} ({current}/{max})
+              <button
+                type="button"
+                className="chip"
+                disabled={atMax || !afford}
+                onClick={() => increaseAttribute(key)}
+                title={atMax ? `At natural maximum (${max})` : `Raise to ${current + 1} for ${cost} Karma`}
+              >
+                {atMax ? "Max" : `+1 (${cost})`}
+              </button>
+            </label>
+          );
+        })}
+      </div>
+
+      {attributeLog.length > 0 && (
+        <ul className="module-slots">
+          {attributeLog.map((entry) => (
+            <li key={entry.id}>
+              <div className="module-instance">
+                <div className="module-instance-header">
+                  <strong>
+                    {entry.key}: {entry.fromRating} to {entry.toRating} ({entry.karmaCost} Karma)
+                  </strong>
+                  <button className="danger" disabled={!canUndoAttribute(entry)} onClick={() => undoAttribute(entry)}>
+                    Undo
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h3>Skills</h3>
       <p className="hint">
         Customization Karma can also buy skill ranks and new specializations, at the same prices as post-creation
         Character Advancement (core p.66, 68-69): {skillAdvanceCost(1)} Karma per new rating (new rating x 5), or{" "}
@@ -254,6 +351,7 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
           ))}
         </ul>
       )}
-    </div>
+      </div>
+    </details>
   );
 }

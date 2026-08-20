@@ -37,8 +37,11 @@ export function PackPicker({ packRules, gearRules, lifestyleRules, data, onChang
   if (packRules.packs.length === 0) return null;
 
   return (
-    <div className="pack-picker">
-      <h2>PACKs</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>PACKs</h2>
+      </summary>
+      <div className="pack-picker">
       <p className="hint">
         Pre-assembled gear bundles at a flat price. Buying one adds each item as its own line in Gear
         (below), so it stays individually editable and removable afterward.
@@ -62,6 +65,7 @@ export function PackPicker({ packRules, gearRules, lifestyleRules, data, onChang
           </div>
         </details>
       ))}
-    </div>
+      </div>
+    </details>
   );
 }

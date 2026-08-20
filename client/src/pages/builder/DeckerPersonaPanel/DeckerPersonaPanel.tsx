@@ -44,8 +44,11 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
   }
 
   return (
-    <div className="decker-persona-panel">
-      <h2>Decker Persona</h2>
+    <details className="top-level-section" open>
+      <summary>
+        <h2>Decker Persona</h2>
+      </summary>
+      <div className="decker-persona-panel">
       <p className="hint">
         Assign each device's printed Attack/Sleaze or Data Processing/Firewall numbers to whichever named
         Matrix attribute you want - the book confirms these can be freely recombined across devices (core
@@ -115,6 +118,7 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
         {deckerMatrixInitiativeVRCold(effectiveAttrs, allocation)} + 1D6 | VR (hot-sim):{" "}
         {deckerMatrixInitiativeVRHot(effectiveAttrs, allocation)} + 2D6
       </p>
-    </div>
+      </div>
+    </details>
   );
 }
