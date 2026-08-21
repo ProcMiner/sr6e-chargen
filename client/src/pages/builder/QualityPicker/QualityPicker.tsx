@@ -11,7 +11,7 @@ import {
 import { combinedRacialQualities } from "../../../deriveMetavariant";
 import { startingKarma } from "../../../derivePriorityVariant";
 
-const MAX_QUALITIES = 6;
+export const MAX_QUALITIES = 6;
 const NET_KARMA_CAP = 20;
 
 // SR6e's "Exceptional (Attribute)" applies to any Physical or Mental
@@ -45,10 +45,16 @@ export function QualityPicker({ rules, metatypeAttributes, metavariants, skillLi
   const atQualityCap = selected.length >= MAX_QUALITIES;
 
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<"positive" | "negative">("positive");
+  const [affordableOnly, setAffordableOnly] = useState(false);
   const searchTerm = search.trim().toLowerCase();
   function matchesSearch(entry: QualityCatalogEntry) {
     if (!searchTerm) return true;
     return entry.name.toLowerCase().includes(searchTerm) || entry.summary.toLowerCase().includes(searchTerm);
+  }
+  function matchesAffordable(entry: QualityCatalogEntry) {
+    if (!affordableOnly || entry.category === "negative") return true;
+    return data.karma >= entry.karma;
   }
 
   const racialQualities = combinedRacialQualities(data, metatypeAttributes, metavariants);
@@ -113,10 +119,13 @@ export function QualityPicker({ rules, metatypeAttributes, metavariants, skillLi
                 <div className="module-instance">
                   <div className="module-instance-header">
                     <strong>
-                      {qualityDisplayName(sel, catalog)} ({entry.category === "positive" ? "-" : "+"}
-                      {amount} Karma)
+                      {qualityDisplayName(sel, catalog)}{" "}
+                      <span className={entry.category === "positive" ? "karma-pill karma-pill--cost" : "karma-pill karma-pill--bonus"}>
+                        {entry.category === "positive" ? "-" : "+"}
+                        {amount}
+                      </span>
                     </strong>
-                    <button className="danger" onClick={() => removeAt(i)}>
+                    <button className="link-button" onClick={() => removeAt(i)}>
                       Remove
                     </button>
                   </div>
@@ -179,47 +188,67 @@ export function QualityPicker({ rules, metatypeAttributes, metavariants, skillLi
         aria-label="Search qualities"
       />
 
-      <details className="quality-section" open>
-        <summary>Positive Qualities</summary>
-        <div className="module-picker">
-          {rules.positiveQualities.filter(matchesSearch).map((entry) => (
-            <button
-              key={entry.id}
-              className="chip"
-              disabled={!canAdd(entry)}
-              onClick={() => addQuality(entry)}
-              title={entry.summary}
-            >
-              {entry.name} ({entry.karma}
-              {entry.levels ? "/level" : ""} Karma)
-            </button>
-          ))}
-          {searchTerm && rules.positiveQualities.filter(matchesSearch).length === 0 && (
-            <p className="hint">No positive qualities match "{search}".</p>
-          )}
-        </div>
-      </details>
+      <div className="picker-filter-row">
+        <button
+          type="button"
+          className={category === "positive" ? "chip selected" : "chip"}
+          onClick={() => setCategory("positive")}
+        >
+          Positive
+        </button>
+        <button
+          type="button"
+          className={category === "negative" ? "chip selected" : "chip"}
+          onClick={() => setCategory("negative")}
+        >
+          Negative
+        </button>
+        <button
+          type="button"
+          className={affordableOnly ? "chip selected" : "chip"}
+          onClick={() => setAffordableOnly((v) => !v)}
+        >
+          Affordable only
+        </button>
+      </div>
 
-      <details className="quality-section" open>
-        <summary>Negative Qualities</summary>
-        <div className="module-picker">
-          {rules.negativeQualities.filter(matchesSearch).map((entry) => (
-            <button
-              key={entry.id}
-              className="chip"
-              disabled={!canAdd(entry)}
-              onClick={() => addQuality(entry)}
-              title={entry.summary}
-            >
-              {entry.name} (+{entry.karma}
-              {entry.levels ? "/level" : ""} Karma)
-            </button>
-          ))}
-          {searchTerm && rules.negativeQualities.filter(matchesSearch).length === 0 && (
-            <p className="hint">No negative qualities match "{search}".</p>
-          )}
-        </div>
-      </details>
+      {(() => {
+        const list = (category === "positive" ? rules.positiveQualities : rules.negativeQualities)
+          .filter(matchesSearch)
+          .filter(matchesAffordable);
+        if (list.length === 0) {
+          return <p className="hint">No qualities match{search ? ` "${search}"` : ""}.</p>;
+        }
+        return (
+          <div className="picker-list">
+            {list.map((entry) => (
+              <button
+                key={entry.id}
+                className="picker-list-row"
+                disabled={!canAdd(entry)}
+                onClick={() => addQuality(entry)}
+                title={entry.summary}
+              >
+                <span className="picker-list-row-text">
+                  <span className="picker-list-row-name">{entry.name}</span>
+                  <span className="picker-list-row-sub">{entry.summary}</span>
+                </span>
+                <span
+                  className={
+                    entry.category === "positive"
+                      ? "picker-list-row-cost picker-list-row-cost--cost num"
+                      : "picker-list-row-cost picker-list-row-cost--bonus num"
+                  }
+                >
+                  {entry.category === "positive" ? "-" : "+"}
+                  {entry.karma}
+                  {entry.levels ? "/lvl" : ""}
+                </span>
+              </button>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

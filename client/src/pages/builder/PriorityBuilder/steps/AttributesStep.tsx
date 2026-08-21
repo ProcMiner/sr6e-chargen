@@ -3,7 +3,12 @@ import type { PriorityRulesResponse } from "../../../../rules";
 import { NumberStepper } from "../../../../components/NumberStepper";
 import { effectiveMetatypeInfo } from "../../../../deriveMetavariant";
 import { effectivePriorityLetter } from "../../../../derivePriorityVariant";
-import { CORE_ATTRIBUTE_KEYS, deriveAdjustmentPoints, isSpecialAttribute, normalCap } from "../../../../deriveAdjustmentPoints";
+import {
+  CORE_ATTRIBUTE_KEYS,
+  attributePointsRemaining as computeAttributePointsRemaining,
+  deriveAdjustmentPoints,
+  isSpecialAttribute,
+} from "../../../../deriveAdjustmentPoints";
 
 interface Props {
   rules: PriorityRulesResponse;
@@ -32,12 +37,9 @@ export function AttributesStep({ rules, data, onChange }: Props) {
     onChange({ ...data, systemState: { ...state, adjustmentFundedAttributes: next } });
   }
 
-  const attributePointsSpent = CORE_ATTRIBUTE_KEYS.reduce((sum, key) => {
-    if (isSpecialAttribute(metatypeInfo, key) && isAdjustmentFunded(key)) return sum;
-    return sum + (Math.min(data.attributes[key], normalCap(metatypeInfo, key)) - 1);
-  }, 0);
-  const attributePointsTotal = attributeRow?.attributePoints ?? 0;
-  const attributePointsRemaining = attributePointsTotal - attributePointsSpent;
+  const attributePoints = computeAttributePointsRemaining(data, rules);
+  const attributePointsTotal = attributePoints.total;
+  const attributePointsRemaining = attributePoints.remaining;
   const adjustmentPoints = deriveAdjustmentPoints(data, rules);
 
   if (!attributeRow || !metatypeInfo) {

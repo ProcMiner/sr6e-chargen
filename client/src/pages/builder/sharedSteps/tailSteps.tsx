@@ -28,7 +28,8 @@ import { initiationKarmaTotal } from "../../../deriveInitiation";
 import { customCyberdeckKarmaTotal } from "../../../deriveCustomCyberdeck";
 import { advancementKarmaTotal } from "../../../deriveAdvancement";
 import { specializationKarmaTotal } from "../../../deriveSpecializations";
-import { QualityPicker } from "../QualityPicker/QualityPicker";
+import { nuyenRemaining } from "../../../deriveGear";
+import { QualityPicker, MAX_QUALITIES } from "../QualityPicker/QualityPicker";
 import { SpellPicker } from "../SpellPicker/SpellPicker";
 import { AdeptPowerPicker } from "../AdeptPowerPicker/AdeptPowerPicker";
 import { ComplexFormPicker } from "../ComplexFormPicker/ComplexFormPicker";
@@ -87,6 +88,7 @@ export function getSharedTailSteps({
     {
       id: "qualities",
       label: "Select Qualities",
+      state: `${data.qualities.length} / ${MAX_QUALITIES}`,
       content: (
         <QualityPicker
           rules={qualityRules}
@@ -119,6 +121,7 @@ export function getSharedTailSteps({
     {
       id: "gear",
       label: "Buy Gear",
+      state: `${nuyenRemaining(data, extraNuyenSpent).toLocaleString()}¥`,
       content: (
         <>
           <LifestylePicker rules={lifestyleRules} data={data} onChange={onChange} />

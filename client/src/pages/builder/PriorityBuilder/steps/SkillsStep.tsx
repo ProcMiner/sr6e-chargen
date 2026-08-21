@@ -8,6 +8,7 @@ import {
   exoticWeaponsNeedsSpecialization,
 } from "../../../../deriveSpecializations";
 import { effectivePriorityLetter } from "../../../../derivePriorityVariant";
+import { skillPointsRemaining as computeSkillPointsRemaining } from "../../../../deriveAdjustmentPoints";
 import { generateId } from "../../../../id";
 
 interface Props {
@@ -31,9 +32,7 @@ export function SkillsStep({ rules, data, onChange }: Props) {
   // A specialization costs the same as one rank of a skill (p. 65-66), so
   // it draws from the same skill-point budget as raising a skill's rank.
   const specializations = data.specializations ?? [];
-  const skillPointsSpent =
-    Object.values(data.skills).reduce((sum, v) => sum + v, 0) + specializations.length;
-  const skillPointsRemaining = (skillRow?.skillPoints ?? 0) - skillPointsSpent;
+  const skillPointsRemaining = computeSkillPointsRemaining(data, rules).remaining;
 
   // Priority chargen allows one specialization per skill (core p. 65-66:
   // "You cannot acquire more than one specialization in a skill at

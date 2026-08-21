@@ -90,3 +90,49 @@ export function deriveAdjustmentPoints(data: CharacterData, rules: PriorityRules
   const spent = edgeSpent + racialAdjustmentSpent + magicBoostSpent;
   return { total, spent, remaining: total - spent };
 }
+
+export interface AttributePoints {
+  total: number;
+  remaining: number;
+}
+
+/** The Attributes step's own point pool (core rulebook p.63-64) - separate
+ * from Adjustment Points above, which only cover Edge/special-racial/Magic
+ * overflow. Used by both AttributesStep.tsx itself and the step rail's
+ * per-step state label. */
+export function attributePointsRemaining(data: CharacterData, rules: PriorityRulesResponse): AttributePoints {
+  const state = (data.systemState as PrioritySystemState)?.priorities
+    ? (data.systemState as PrioritySystemState)
+    : { priorities: {} };
+
+  const attributeRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.attributes, state.powerLevel)
+  );
+  const metatypeInfo = effectiveMetatypeInfo(data, rules.metatypeAttributes, rules.metavariants);
+  const adjustmentFundedAttributes = state.adjustmentFundedAttributes ?? [];
+
+  const spent = CORE_ATTRIBUTE_KEYS.reduce((sum, key) => {
+    if (isSpecialAttribute(metatypeInfo, key) && adjustmentFundedAttributes.includes(key)) return sum;
+    return sum + (Math.min(data.attributes[key], normalCap(metatypeInfo, key)) - 1);
+  }, 0);
+  const total = attributeRow?.attributePoints ?? 0;
+  return { total, remaining: total - spent };
+}
+
+/** The Skills step's own point pool (core rulebook p.65-66) - grouped here
+ * alongside attributePointsRemaining above since both are small Priority
+ * chargen point-pool helpers shared between their step component and the
+ * step rail's per-step state label, despite this file's Adjustment Points
+ * focus otherwise. */
+export function skillPointsRemaining(data: CharacterData, rules: PriorityRulesResponse): AttributePoints {
+  const state = (data.systemState as PrioritySystemState)?.priorities
+    ? (data.systemState as PrioritySystemState)
+    : { priorities: {} };
+  const skillRow = rules.priorityTable.find(
+    (r) => r.priority === effectivePriorityLetter(state.priorities.skills, state.powerLevel)
+  );
+  const specializations = data.specializations ?? [];
+  const spent = Object.values(data.skills).reduce((sum, v) => sum + v, 0) + specializations.length;
+  const total = skillRow?.skillPoints ?? 0;
+  return { total, remaining: total - spent };
+}

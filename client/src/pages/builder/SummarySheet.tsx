@@ -15,6 +15,7 @@ import {
   nuyenRemaining,
 } from "../../deriveGear";
 import { contactsKarmaSpent } from "../../deriveContacts";
+import { startingKarma } from "../../derivePriorityVariant";
 import { LANGUAGE_LEVEL_NAMES } from "../../character";
 import { modifierBonuses } from "../../deriveModifiers";
 import { defenseRating, unarmedAttackRating } from "../../deriveCombat";
@@ -131,6 +132,20 @@ export function SummarySheet({
     return !(canAttachToWeapon(entry) && line.attachedTo);
   });
 
+  const extraKarmaSpentTotal =
+    spellKarma +
+    complexFormKarma +
+    metavariantKarma +
+    contactsKarma +
+    initiationKarma +
+    customCyberdeckKarma +
+    skillAdvancementKarma +
+    specializationKarma;
+  const karmaRemainingValue = karmaRemaining(data, extraKarmaSpentTotal);
+  const karmaTotal = startingKarma(data);
+  const nuyenRemainingValue = nuyenRemaining(data, lifestyleSpend);
+  const nuyenTotal = data.nuyen;
+
   return (
     <div className="summary-sheet">
       <h2>Summary</h2>
@@ -142,58 +157,111 @@ export function SummarySheet({
       )}
 
       <section>
+        <h3 className="rules-kicker">Budgets</h3>
+        <div className="budget-row">
+          <div className="budget-row-labels">
+            <span>Karma remaining</span>
+            <span className="num">
+              {karmaRemainingValue.toLocaleString()} / {karmaTotal.toLocaleString()}
+            </span>
+          </div>
+          <div className="budget-bar">
+            <div
+              className="budget-bar-fill"
+              style={{ width: `${Math.min(100, Math.max(0, ((karmaTotal - karmaRemainingValue) / karmaTotal) * 100))}%` }}
+            />
+          </div>
+        </div>
+        {nuyenTotal > 0 && (
+          <div className="budget-row">
+            <div className="budget-row-labels">
+              <span>Nuyen remaining</span>
+              <span className="num">{nuyenRemainingValue.toLocaleString()}¥</span>
+            </div>
+            <div className="budget-bar">
+              <div
+                className="budget-bar-fill"
+                style={{
+                  width: `${Math.min(100, Math.max(0, ((nuyenTotal - nuyenRemainingValue) / nuyenTotal) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {adjustmentPoints && adjustmentPoints.total > 0 && (
+          <div className="budget-row">
+            <div className="budget-row-labels">
+              <span>Adjustment Points</span>
+              <span className="num">
+                {adjustmentPoints.remaining.toLocaleString()} / {adjustmentPoints.total.toLocaleString()}
+              </span>
+            </div>
+            <div className="budget-bar">
+              <div
+                className="budget-bar-fill"
+                style={{
+                  width: `${Math.min(100, Math.max(0, (adjustmentPoints.spent / adjustmentPoints.total) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section>
         <h3>Attributes</h3>
-        <dl className="attribute-grid">
+        <div className="attribute-tile-grid">
           {ATTRIBUTE_LABELS.map(([key, label]) => {
             const natural = data.attributes[key];
             if (natural === undefined) return null;
             const effective = effectiveAttrs[key] ?? natural;
             return (
-              <div key={key}>
-                <dt>{label}</dt>
-                <dd>
+              <div key={key} className="attribute-tile">
+                <div className={effective !== natural ? "attribute-tile-value num boosted" : "attribute-tile-value num"}>
                   {effective}
-                  {effective !== natural && ` (${natural} natural)`}
-                </dd>
+                </div>
+                <div className="attribute-tile-label">{label}</div>
               </div>
             );
           })}
-          <div>
-            <dt>Essence</dt>
-            <dd>{formatEssence(essence)}</dd>
+          <div className="attribute-tile">
+            <div className="attribute-tile-value num">{formatEssence(essence)}</div>
+            <div className="attribute-tile-label">Essence</div>
           </div>
           {magicRaw !== undefined && (
-            <div>
-              <dt>Magic</dt>
-              <dd>
+            <div className="attribute-tile">
+              <div className={magicEffective !== magicRaw ? "attribute-tile-value num boosted" : "attribute-tile-value num"}>
                 {magicEffective}
-                {magicEffective !== magicRaw && ` (${magicRaw} base, capped by Essence loss)`}
-              </dd>
+              </div>
+              <div className="attribute-tile-label">Magic</div>
             </div>
           )}
           {resonanceRaw !== undefined && (
-            <div>
-              <dt>Resonance</dt>
-              <dd>
+            <div className="attribute-tile">
+              <div
+                className={
+                  resonanceEffective !== resonanceRaw ? "attribute-tile-value num boosted" : "attribute-tile-value num"
+                }
+              >
                 {resonanceEffective}
-                {resonanceEffective !== resonanceRaw && ` (${resonanceRaw} base, capped by Essence loss)`}
-              </dd>
+              </div>
+              <div className="attribute-tile-label">Resonance</div>
             </div>
           )}
-        </dl>
+          <div className="attribute-tile">
+            <div className="attribute-tile-value num">{derived.physicalMonitor}</div>
+            <div className="attribute-tile-label">Physical Monitor</div>
+          </div>
+          <div className="attribute-tile">
+            <div className="attribute-tile-value num">{derived.stunMonitor}</div>
+            <div className="attribute-tile-label">Stun Monitor</div>
+          </div>
+        </div>
       </section>
 
       <section>
         <h3>Derived</h3>
         <dl className="attribute-grid">
-          <div>
-            <dt>Physical Monitor</dt>
-            <dd>{derived.physicalMonitor}</dd>
-          </div>
-          <div>
-            <dt>Stun Monitor</dt>
-            <dd>{derived.stunMonitor}</dd>
-          </div>
           <div>
             <dt>Initiative</dt>
             <dd>
@@ -451,8 +519,6 @@ export function SummarySheet({
         )}
         <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
         {lifestyleSpend > 0 && <p>{lifestyleSpend.toLocaleString()}¥ spent on lifestyle</p>}
-        <p>{nuyenRemaining(data, lifestyleSpend).toLocaleString()}¥ remaining</p>
-        <p>{data.karma.toLocaleString()} Karma pool</p>
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
         {(data.karmaSpentOnNuyen ?? 0) > 0 && (
           <p>{(data.karmaSpentOnNuyen ?? 0).toLocaleString()} Karma converted to nuyen</p>
@@ -467,26 +533,7 @@ export function SummarySheet({
         )}
         {skillAdvancementKarma > 0 && <p>{skillAdvancementKarma.toLocaleString()} Karma spent on skill ranks</p>}
         {specializationKarma > 0 && <p>{specializationKarma.toLocaleString()} Karma spent on specializations</p>}
-        <p>
-          {karmaRemaining(
-            data,
-            spellKarma +
-              complexFormKarma +
-              metavariantKarma +
-              contactsKarma +
-              initiationKarma +
-              customCyberdeckKarma +
-              skillAdvancementKarma +
-              specializationKarma
-          ).toLocaleString()}{" "}
-          Karma remaining
-        </p>
-        {adjustmentPoints && (
-          <p>
-            {adjustmentPoints.remaining.toLocaleString()} / {adjustmentPoints.total.toLocaleString()} Adjustment
-            Points remaining
-          </p>
-        )}
+        <p className="hint">See Budgets above for Karma/Nuyen/Adjustment Points remaining.</p>
       </section>
     </div>
   );

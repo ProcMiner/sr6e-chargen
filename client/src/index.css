@@ -579,13 +579,29 @@ a {
 
 .builder-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 300px;
   gap: 1.5rem;
   align-items: start;
 }
 
 @media (max-width: 800px) {
   .builder-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Nested grid so the overall builder still reads as three columns (rail /
+   step content / summary sidebar) without builder-layout above needing to
+   know about the rail - step-wizard owns its own rail+content split. */
+.step-wizard {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .step-wizard {
     grid-template-columns: 1fr;
   }
 }
@@ -703,53 +719,85 @@ a {
   color: white;
 }
 
+.step-wizard-rail-col {
+  min-width: 0;
+}
+
 .step-rail {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 1px;
   list-style: none;
-  margin: 0 0 1.25rem;
+  margin: 0;
   padding: 0;
+}
+
+@media (max-width: 900px) {
+  .step-rail {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
 }
 
 .step-rail-item {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
   background: none;
-  color: var(--text-dim);
-  font-weight: 600;
-  font-size: 0.85rem;
+  text-align: left;
+  min-height: 0;
+  white-space: nowrap;
 }
 
 .step-rail-item:hover {
-  color: var(--text);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
 .step-rail-item.active {
-  color: var(--text);
-  background: var(--panel);
-  border-color: var(--accent);
+  background: var(--color-accent-tint-weak);
+  box-shadow: inset 2px 0 0 var(--color-accent);
 }
 
 .step-rail-index {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: var(--border);
-  color: var(--text-dim);
-  font-size: 0.75rem;
+  flex: none;
+  width: 18px;
+  font-size: 11px;
+  color: var(--color-neutral-600);
 }
 
 .step-rail-item.active .step-rail-index {
-  background: var(--accent);
-  color: white;
+  color: var(--color-accent-300);
+}
+
+.step-rail-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.step-rail-label {
+  font: 500 13px/1.3 var(--font-body);
+  color: var(--color-neutral-400);
+}
+
+.step-rail-item.active .step-rail-label {
+  color: var(--color-text);
+}
+
+.step-rail-state {
+  font-size: 11px;
+  color: var(--color-neutral-600);
+}
+
+.step-rail-item.active .step-rail-state {
+  color: var(--color-accent-300);
 }
 
 .step-wizard-content {
@@ -879,6 +927,105 @@ a {
   margin: 0.5rem 0 0.75rem;
 }
 
+.picker-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.9rem;
+}
+
+/* Dense two-column priced catalog list - the QualityPicker treatment
+   (230 entries), applicable to any picker that outgrows a chip cloud. */
+.picker-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 26px;
+}
+
+@media (max-width: 700px) {
+  .picker-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.picker-list-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 2px;
+  border: none;
+  border-bottom: 1px solid var(--color-neutral-900);
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  min-height: 0;
+}
+
+.picker-list-row:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+}
+
+.picker-list-row-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-list-row-name {
+  font-size: 13px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-list-row-sub {
+  font-size: 11px;
+  color: var(--color-neutral-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-list-row-cost {
+  flex: none;
+  width: 52px;
+  text-align: right;
+  font-size: 13px;
+}
+
+.picker-list-row-cost--cost {
+  color: var(--color-accent-300);
+}
+
+.picker-list-row-cost--bonus {
+  color: var(--color-neutral-400);
+}
+
+.karma-pill {
+  display: inline-block;
+  font: 500 11px/1.6 var(--font-body);
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.karma-pill--cost {
+  color: var(--color-accent-300);
+  background: #5d5294;
+  border-color: #5d5294;
+}
+
+.karma-pill--bonus {
+  color: var(--color-neutral-400);
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-800);
+}
+
 /* Wraps each top-level picker (Spells, Gear, Complex Forms, etc.) stacked
    within a single step, so a finished or not-currently-used category can be
    folded away instead of taking up scroll space - same <details>/<summary>
@@ -972,6 +1119,63 @@ a {
 .attribute-grid dt {
   text-transform: capitalize;
   color: var(--text-dim);
+}
+
+.budget-row {
+  margin-bottom: 12px;
+}
+
+.budget-row-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--color-neutral-400);
+  margin-bottom: 4px;
+}
+
+.budget-row-labels .num {
+  font: 500 15px/1 var(--font-body);
+  color: var(--color-text);
+}
+
+.budget-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-neutral-900);
+  overflow: hidden;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+}
+
+.attribute-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 8px;
+}
+
+.attribute-tile {
+  text-align: left;
+}
+
+.attribute-tile-value {
+  font: 500 22px/1 var(--font-body);
+  color: var(--color-text);
+}
+
+.attribute-tile-value.boosted {
+  color: var(--color-accent-300);
+}
+
+.attribute-tile-label {
+  font: 600 9px/1.4 var(--font-heading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  margin-top: 2px;
 }
 
 .skill-list {

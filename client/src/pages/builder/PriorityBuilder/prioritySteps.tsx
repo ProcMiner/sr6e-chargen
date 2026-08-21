@@ -16,6 +16,7 @@ import type {
   SpellRulesResponse,
 } from "../../../rules";
 import type { WizardStep } from "../../../components/StepWizard";
+import { attributePointsRemaining, skillPointsRemaining } from "../../../deriveAdjustmentPoints";
 import { getSharedTailSteps } from "../sharedSteps/tailSteps";
 import { PowerLevelStep } from "./steps/PowerLevelStep";
 import { MetatypeStep } from "./steps/MetatypeStep";
@@ -41,6 +42,8 @@ interface PriorityStepsProps {
 
 export function getPrioritySteps(props: PriorityStepsProps): WizardStep[] {
   const { priorityRules, data, onChange } = props;
+  const attributePoints = attributePointsRemaining(data, priorityRules);
+  const skillPoints = skillPointsRemaining(data, priorityRules);
 
   return [
     {
@@ -56,11 +59,13 @@ export function getPrioritySteps(props: PriorityStepsProps): WizardStep[] {
     {
       id: "attributes",
       label: "Attributes",
+      state: attributePoints.total > 0 ? `${attributePoints.remaining} / ${attributePoints.total}` : undefined,
       content: <AttributesStep rules={priorityRules} data={data} onChange={onChange} />,
     },
     {
       id: "skills",
       label: "Skills",
+      state: skillPoints.total > 0 ? `${skillPoints.remaining} / ${skillPoints.total}` : undefined,
       content: <SkillsStep rules={priorityRules} data={data} onChange={onChange} />,
     },
     {
