@@ -1,16 +1,63 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type CharacterSummary } from "../api";
+import type { PlayState } from "../playState";
+import type { Attributes } from "../rules";
+import { deriveStats } from "../derive";
+import { modifierBonuses } from "../deriveModifiers";
+import { ConditionStrip } from "../components/ConditionStrip";
+
+/** Physical Condition Monitor + Edge max, purely from the character's own
+ * chargen data (already present on CharacterSummary) - same computation
+ * Combat.tsx uses, just without needing the gear rules catalog since gear
+ * modifiers are pre-resolved per line. */
+const BLANK_ATTRIBUTES: Attributes = {
+  body: 0,
+  agility: 0,
+  reaction: 0,
+  strength: 0,
+  willpower: 0,
+  logic: 0,
+  intuition: 0,
+  charisma: 0,
+  edge: 0,
+};
+
+function vitals(c: CharacterSummary) {
+  const attributes = c.data.attributes ?? BLANK_ATTRIBUTES;
+  const bonuses = modifierBonuses(c.data.gear ?? [], c.data.adeptPowers ?? []);
+  const derived = deriveStats(attributes, bonuses);
+  const edge = attributes.edge;
+  const maxEdge = typeof edge === "number" && Number.isFinite(edge) ? edge : 0;
+  return { maxPhysical: derived.physicalMonitor, maxEdge };
+}
 
 export function CharacterList() {
   const [characters, setCharacters] = useState<CharacterSummary[] | null>(null);
+  const [playStates, setPlayStates] = useState<Record<number, PlayState>>({});
   const [name, setName] = useState("");
   const [system, setSystem] = useState<"priority" | "lifepath">("priority");
   const [creating, setCreating] = useState(false);
   const navigate = useNavigate();
 
   function refresh() {
-    api.listCharacters().then(setCharacters);
+    api.listCharacters().then((list) => {
+      setCharacters(list);
+      Promise.all(
+        list.map((c) =>
+          api
+            .getPlayState(c.id)
+            .then((ps) => [c.id, ps] as const)
+            .catch(() => null)
+        )
+      ).then((results) => {
+        const next: Record<number, PlayState> = {};
+        for (const r of results) {
+          if (r) next[r[0]] = r[1];
+        }
+        setPlayStates(next);
+      });
+    });
   }
 
   useEffect(refresh, []);
@@ -55,23 +102,55 @@ export function CharacterList() {
         </button>
       </form>
 
-      {characters === null && <p>Loading...</p>}
-      {characters?.length === 0 && <p>No characters yet - build your first one above.</p>}
+      {characters === null && <p className="hint">Loading...</p>}
+      {characters?.length === 0 && <p className="hint">No characters yet - build your first one above.</p>}
 
-      <ul className="character-list">
-        {characters?.map((c) => (
-          <li key={c.id}>
-            <Link to={`/characters/${c.id}`}>
-              <strong>{c.name}</strong>
-              <span className="system-tag">{c.system === "priority" ? "Priority" : "Life Path"}</span>
-            </Link>
-            <Link to={`/characters/${c.id}/live`}>Live Play</Link>
-            <button className="danger" onClick={() => handleDelete(c.id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      {characters && characters.length > 0 && (
+        <>
+          <div className="vault-header-row">
+            <span>Runner</span>
+            <span>System</span>
+            <span>Condition</span>
+            <span>Edge</span>
+            <span />
+          </div>
+          <ul className="character-list">
+            {characters.map((c) => {
+              const { maxPhysical, maxEdge } = vitals(c);
+              const ps = playStates[c.id];
+              const metaParts = [c.data.metatype, typeof c.data.karma === "number" ? `${c.data.karma} Karma` : null].filter(
+                Boolean
+              );
+              return (
+                <li key={c.id} className="vault-row">
+                  <div>
+                    <div className="vault-runner-name">{c.name}</div>
+                    {metaParts.length > 0 && <div className="vault-runner-meta">{metaParts.join(" · ")}</div>}
+                  </div>
+                  <div>
+                    <span className="system-tag">{c.system === "priority" ? "Priority" : "Life Path"}</span>
+                  </div>
+                  <div>
+                    <ConditionStrip filled={ps?.physicalDamage ?? 0} max={maxPhysical} size="sm" />
+                  </div>
+                  <div className="vault-edge num">{ps ? `${ps.edgeAvailable} / ${maxEdge}` : "–"}</div>
+                  <div className="vault-actions">
+                    <Link className="button-link" to={`/characters/${c.id}/live`}>
+                      Live Play
+                    </Link>
+                    <Link className="button-link btn-ghost" to={`/characters/${c.id}`}>
+                      Edit
+                    </Link>
+                    <button className="danger" onClick={() => handleDelete(c.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
