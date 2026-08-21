@@ -40,7 +40,7 @@
 
   /* Legacy token names - aliased onto the ramp above so every existing rule
      in this file re-themes without a mechanical rename. New rules should
-     use the --color-*/--space-*/--radius-* tokens directly instead. */
+     use the --color-, --space-, and --radius- tokens directly instead. */
   --bg: var(--color-bg);
   --panel: var(--color-surface);
   --border: var(--color-neutral-800);
