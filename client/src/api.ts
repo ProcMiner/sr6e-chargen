@@ -70,6 +70,7 @@ export const api = {
   getPlayState: (id: number) => request<PlayState>(`/characters/${id}/play-state`),
   updatePlayState: (id: number, patch: Partial<PlayState>) =>
     request<PlayState>(`/characters/${id}/play-state`, { method: "PUT", body: JSON.stringify(patch) }),
+  undoPlayState: (id: number) => request<PlayState>(`/characters/${id}/play-state/undo`, { method: "POST" }),
   getCharacterSessions: (id: number) => request<PlaySessionSummary[]>(`/characters/${id}/sessions`),
 
   priorityTables: () => request<import("./rules").PriorityRulesResponse>("/rules/priority-tables"),

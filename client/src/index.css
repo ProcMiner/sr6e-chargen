@@ -1220,7 +1220,79 @@ a {
   color: #ff8a80;
 }
 
-.gm-character-card {
-  min-width: 240px;
-  flex: 1 1 240px;
+.gm-header-row,
+.gm-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr 0.8fr 0.9fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.gm-header-row {
+  padding: 0 4px 8px;
+  border-bottom: 1px solid var(--color-neutral-800);
+  font: 600 10px/1.4 var(--font-heading);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+
+.gm-row {
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--color-neutral-900);
+}
+
+.gm-row:last-child {
+  border-bottom: 0;
+}
+
+.gm-undo {
+  display: block;
+  font-size: 11px;
+  margin-top: 2px;
+  padding: 0;
+}
+
+.gm-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gm-stat-value {
+  font: 500 19px/1 var(--font-body);
+  color: var(--color-text);
+}
+
+.gm-stat-value--overflow {
+  color: var(--color-accent-400);
+}
+
+.gm-stat-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.gm-stat-actions button {
+  min-height: 36px;
+  min-width: 40px;
+}
+
+.gm-status {
+  margin: 0;
+}
+
+.gm-status-add {
+  border: 1px dashed var(--color-neutral-800);
+  background: none;
+}
+
+@media (max-width: 900px) {
+  .gm-header-row {
+    display: none;
+  }
+  .gm-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }

@@ -262,6 +262,70 @@ function ownedCharacter(id: string, userId: number | undefined): CharacterRow | 
     | undefined;
 }
 
+/** True if `userId` GMs a session that `characterId` has joined - mirrors
+ * the join `play.ts`'s leave-session route already uses. A session has
+ * exactly one GM (`play_sessions.gm_user_id`, set at creation). */
+function isSessionGmFor(characterId: number, userId: number | undefined): boolean {
+  if (!userId) return false;
+  const row = db
+    .prepare(
+      `SELECT 1 FROM session_characters sc
+       JOIN play_sessions ps ON ps.id = sc.session_id
+       WHERE sc.character_id = ? AND ps.gm_user_id = ?`
+    )
+    .get(characterId, userId);
+  return !!row;
+}
+
+/** Play-state read/write needs a broader check than plain ownership: the
+ * group plays with paper character sheets, so the GM of a session a
+ * character has joined needs write access to that character's playState too
+ * - not just the character's own owner. Every other character.ts endpoint
+ * (chargen data, deletion, etc.) stays owner-only; this is deliberately
+ * scoped to play-state alone. */
+function ownedOrGmCharacter(id: string, userId: number | undefined): CharacterRow | undefined {
+  const owned = ownedCharacter(id, userId);
+  if (owned) return owned;
+  const characterId = Number(id);
+  if (!Number.isFinite(characterId) || !isSessionGmFor(characterId, userId)) return undefined;
+  return db.prepare("SELECT * FROM characters WHERE id = ?").get(characterId) as CharacterRow | undefined;
+}
+
+/** In-memory only, deliberately not persisted - see the redesign plan's
+ * decision #6: this is a single-process app on one Lightsail instance, and
+ * "undo my mis-tap" is a convenience, not an audit log. Lost on server
+ * restart, which is fine for that purpose. Keyed by character id since only
+ * one field's worth of undo needs to be remembered per character at a time. */
+interface PlayStateUndoRecord {
+  field: "physicalDamage" | "stunDamage" | "edgeAvailable";
+  previousValue: number;
+  at: number;
+}
+const lastPlayStateChange = new Map<number, PlayStateUndoRecord>();
+
+function writePlayState(characterId: number, state: PlayStateClient): void {
+  db.prepare(
+    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(character_id) DO UPDATE SET
+       physical_damage = excluded.physical_damage,
+       stun_damage = excluded.stun_damage,
+       edge_available = excluded.edge_available,
+       status_effects = excluded.status_effects,
+       bound_spirits = excluded.bound_spirits,
+       compiled_sprites = excluded.compiled_sprites,
+       updated_at = excluded.updated_at`
+  ).run(
+    characterId,
+    state.physicalDamage,
+    state.stunDamage,
+    state.edgeAvailable,
+    JSON.stringify(state.statusEffects),
+    JSON.stringify(state.boundSpirits),
+    JSON.stringify(state.compiledSprites)
+  );
+}
+
 export function maxEdgeFor(character: { data: string }): number {
   const data = JSON.parse(character.data) as { attributes?: { edge?: unknown } };
   const edge = data.attributes?.edge;
@@ -280,7 +344,7 @@ export function playStateFromRow(row: CharacterPlayStateRow): PlayStateClient {
 }
 
 charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
-  const character = ownedCharacter(req.params.id, req.session.userId);
+  const character = ownedOrGmCharacter(req.params.id, req.session.userId);
   if (!character) return res.status(404).json({ error: "not found" });
 
   const row = db
@@ -300,7 +364,7 @@ charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
 });
 
 charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
-  const character = ownedCharacter(req.params.id, req.session.userId);
+  const character = ownedOrGmCharacter(req.params.id, req.session.userId);
   if (!character) return res.status(404).json({ error: "not found" });
 
   const maxEdge = maxEdgeFor(character);
@@ -399,28 +463,45 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     compiledSprites = body.compiledSprites;
   }
 
-  db.prepare(
-    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-     ON CONFLICT(character_id) DO UPDATE SET
-       physical_damage = excluded.physical_damage,
-       stun_damage = excluded.stun_damage,
-       edge_available = excluded.edge_available,
-       status_effects = excluded.status_effects,
-       bound_spirits = excluded.bound_spirits,
-       compiled_sprites = excluded.compiled_sprites,
-       updated_at = excluded.updated_at`
-  ).run(
-    character.id,
-    physicalDamage,
-    stunDamage,
-    edgeAvailable,
-    JSON.stringify(statusEffects),
-    JSON.stringify(boundSpirits),
-    JSON.stringify(compiledSprites)
+  // Undo tracking: only meaningful when exactly one of the three numeric
+  // fields actually changed - the GM Bar's steppers always send one field
+  // per request, so this never fires for LivePlay's multi-field saves or
+  // for statusEffects-only writes.
+  const numericFieldsTouched = (["physicalDamage", "stunDamage", "edgeAvailable"] as const).filter(
+    (f) => body[f] !== undefined
   );
+  if (numericFieldsTouched.length === 1) {
+    const field = numericFieldsTouched[0];
+    const nextValue = { physicalDamage, stunDamage, edgeAvailable }[field];
+    if (nextValue !== current[field]) {
+      lastPlayStateChange.set(character.id, { field, previousValue: current[field], at: Date.now() });
+    }
+  }
+
+  writePlayState(character.id, { physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits, compiledSprites });
 
   res.json({ physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits, compiledSprites });
+});
+
+charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
+  const character = ownedOrGmCharacter(req.params.id, req.session.userId);
+  if (!character) return res.status(404).json({ error: "not found" });
+
+  const record = lastPlayStateChange.get(character.id);
+  if (!record) return res.status(404).json({ error: "no recent change to undo" });
+  lastPlayStateChange.delete(character.id);
+
+  const maxEdge = maxEdgeFor(character);
+  const existingRow = db
+    .prepare("SELECT * FROM character_play_state WHERE character_id = ?")
+    .get(character.id) as CharacterPlayStateRow | undefined;
+  const current: PlayStateClient = existingRow
+    ? playStateFromRow(existingRow)
+    : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, statusEffects: [], boundSpirits: [], compiledSprites: [] };
+
+  const reverted: PlayStateClient = { ...current, [record.field]: record.previousValue };
+  writePlayState(character.id, reverted);
+  res.json(reverted);
 });
 
 charactersRouter.get("/:id/sessions", (req: Request, res: Response) => {
