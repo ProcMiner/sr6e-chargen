@@ -32,6 +32,10 @@ export function TopNav() {
   return (
     <nav className="top-nav">
       <div className="top-nav-inner">
+        <div className="brand">
+          <span className="brand-mark" />
+          <span className="brand-label">SR6E CharGen</span>
+        </div>
         <div className="top-nav-tabs">
           {TABS.map((tab) => (
             <Link
@@ -44,6 +48,9 @@ export function TopNav() {
           ))}
         </div>
         <div className="top-nav-links">
+          <a href="/sre6-chargen/user-guide.html" target="_blank" rel="noopener noreferrer">
+            User Guide
+          </a>
           <a href="/sre6-chargen/release-notes.html" target="_blank" rel="noopener noreferrer">
             Release Notes
           </a>
@@ -52,19 +59,11 @@ export function TopNav() {
               "SR6e CharGen Feature Request or Bug"
             )}&body=${encodeURIComponent("Please include a screenshot and a brief description of the problem or request.")}`}
           >
-            Feature Request/Bug
+            Report a bug
           </a>
-        </div>
-        <div className="top-nav-user">
-          <span>{user?.username}</span>
+          <span className="top-nav-divider" aria-hidden="true" />
+          <span className="top-nav-username">{user?.username}</span>
           <button onClick={() => logout()}>Log out</button>
-        </div>
-      </div>
-      <div className="top-nav-secondary">
-        <div className="top-nav-secondary-inner">
-          <a href="/sre6-chargen/user-guide.html" target="_blank" rel="noopener noreferrer">
-            Character Generator User Guide
-          </a>
         </div>
       </div>
     </nav>

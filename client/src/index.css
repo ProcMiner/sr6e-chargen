@@ -1,13 +1,55 @@
 :root {
-  color-scheme: light dark;
-  --bg: #12141a;
-  --panel: #1b1e27;
-  --border: #2c303c;
-  --text: #e8e9ee;
-  --text-dim: #9297a6;
-  --accent: #c0392b;
-  --accent-hover: #e05545;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+
+  /* Nocturne design system tokens - see nocturne-readme.md handoff. */
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  --color-accent: #9184d9;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-tint: rgba(145, 132, 217, 0.16);
+  --color-accent-tint-weak: rgba(145, 132, 217, 0.14);
+
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
+
+  /* Legacy token names - aliased onto the ramp above so every existing rule
+     in this file re-themes without a mechanical rename. New rules should
+     use the --color-*/--space-*/--radius-* tokens directly instead. */
+  --bg: var(--color-bg);
+  --panel: var(--color-surface);
+  --border: var(--color-neutral-800);
+  --text: var(--color-text);
+  --text-dim: var(--color-neutral-500);
+  --accent: var(--color-accent);
+  --accent-hover: var(--color-accent-400);
+
+  font-family: var(--font-body);
 }
 
 * {
@@ -16,27 +58,61 @@
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 button {
   font: inherit;
   cursor: pointer;
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.5rem 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md);
+  padding: 5.6px 10px;
+  min-height: 36px;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-text) 12%, transparent);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+button.btn-primary {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: transparent;
+}
+
+button.btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+button.btn-primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+button.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-accent-300);
+}
+
+button.btn-ghost:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 button.danger {
@@ -47,7 +123,9 @@ button.danger {
 button.link-button {
   background: none;
   border: none;
-  color: var(--accent);
+  min-height: auto;
+  padding: 0;
+  color: var(--color-accent-300);
   text-decoration: underline;
 }
 
@@ -58,28 +136,49 @@ button.link-button {
 .button-link {
   font: inherit;
   cursor: pointer;
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.5rem 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md);
+  padding: 5.6px 10px;
+  min-height: 36px;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .button-link:hover {
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
 }
 
 input,
 select,
 textarea {
   font: inherit;
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: var(--radius-md);
   padding: 0.35rem 0.5rem;
+  min-height: 36px;
+  caret-color: var(--color-accent);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--color-accent);
+}
+
+button:focus-visible,
+.button-link:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 a {
@@ -87,18 +186,41 @@ a {
 }
 
 .top-nav {
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  border-bottom: 1px solid var(--color-neutral-900);
+  background: var(--color-surface);
 }
 
 .top-nav-inner {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 28px;
   flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-mark {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.brand-label {
+  font: 500 11px/1 var(--font-heading);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-neutral-400);
+  white-space: nowrap;
 }
 
 .top-nav-tabs {
@@ -107,71 +229,53 @@ a {
 }
 
 .top-nav-tab {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  color: var(--text-dim);
+  padding: 7px 13px;
+  border-radius: var(--radius-md);
+  font: 500 14px/1.2 var(--font-body);
+  color: var(--color-neutral-500);
   text-decoration: none;
-  font-weight: 600;
 }
 
 .top-nav-tab:hover {
-  color: var(--text);
+  color: var(--color-text);
 }
 
 .top-nav-tab.active {
-  color: var(--text);
-  background: var(--bg);
-  border-color: var(--accent);
+  color: var(--color-text);
+  background: var(--color-accent-tint-weak);
+  box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
-/* Secondary/meta links (Release Notes, Feature Request) - pushed toward the
-   user section on the right via top-nav-user's margin-left: auto below,
-   rather than centered by a space-between top-nav-inner. */
+/* Meta links (User Guide, Release Notes, Report a bug) plus the user/logout
+   group - pushed to the right via margin-left: auto rather than a
+   space-between top-nav-inner, so the tab group can stay left-aligned next
+   to the brand mark. */
 .top-nav-links {
   display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
+  align-items: center;
+  gap: 18px;
+  font: 400 12px/1.2 var(--font-body);
+  color: var(--color-neutral-600);
+  margin-left: auto;
 }
 
 .top-nav-links a {
-  color: var(--text-dim);
+  color: var(--color-neutral-600);
   text-decoration: none;
 }
 
 .top-nav-links a:hover {
-  color: var(--text);
+  color: var(--color-text);
 }
 
-.top-nav-user {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--text-dim);
-  margin-left: auto;
+.top-nav-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-neutral-800);
 }
 
-/* Distinct line under the main bar - separate from top-nav-links above,
-   which sits inline with the tabs/user section instead of on its own row. */
-.top-nav-secondary {
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.top-nav-secondary-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0.4rem 1.5rem;
-  font-size: 0.82rem;
-}
-
-.top-nav-secondary a {
-  color: var(--text-dim);
-  text-decoration: none;
-}
-
-.top-nav-secondary a:hover {
-  color: var(--text);
+.top-nav-username {
+  color: var(--color-neutral-400);
 }
 
 .page {
@@ -185,7 +289,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--color-neutral-900);
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
