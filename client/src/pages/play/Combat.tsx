@@ -7,6 +7,7 @@
 // excludes the full generic Edge Actions catalog (p. 47 - spans every
 // discipline, not just combat) and the Barrier-breaking-through math (deep
 // GM-facing minutiae) - same scope boundary as Matrix's Hosts/IC exclusion.
+import { useState } from "react";
 import type { CharacterData } from "../../character";
 import type { GearRulesResponse } from "../../rules";
 import { deriveStats, effectiveAttributes } from "../../derive";
@@ -24,12 +25,23 @@ import {
   wornArmorTotal,
 } from "../../deriveCombat";
 
+type ReferenceSection = "process" | "edge" | "ranges" | "damage" | "options";
+
+const REFERENCE_SECTIONS: { id: ReferenceSection; label: string }[] = [
+  { id: "process", label: "Combat process" },
+  { id: "edge", label: "Edge in combat" },
+  { id: "ranges", label: "Ranges & firing modes" },
+  { id: "damage", label: "Damage types" },
+  { id: "options", label: "Combat options" },
+];
+
 interface Props {
   data: CharacterData;
   gearRules: GearRulesResponse;
 }
 
 export function Combat({ data, gearRules }: Props) {
+  const [section, setSection] = useState<ReferenceSection>("process");
   const bonuses = modifierBonuses(data.gear ?? [], data.adeptPowers ?? []);
   const derived = deriveStats(data.attributes, bonuses);
   const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
@@ -80,131 +92,147 @@ export function Combat({ data, gearRules }: Props) {
         )}
       </section>
 
-      <details className="quality-section">
-        <summary>Combat Process</summary>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Step</th>
-              <th>Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMBAT_PROCESS_STEPS.map(({ step, summary }) => (
-              <tr key={step}>
-                <td>{step}</td>
-                <td>{summary}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="hint">
-          Edge tie-break for Initiative ties: compare Edge, then Reaction, then Intuition (ERIC) - whoever's higher
-          first goes first; a coin flip breaks any remaining tie.
-        </p>
-      </details>
+      <section>
+        <h3>Combat reference</h3>
+        <p className="rules-kicker">Core rulebook pp. 67, 104-111</p>
+        <div className="rules-nav">
+          {REFERENCE_SECTIONS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={s.id === section ? "chip selected" : "chip"}
+              onClick={() => setSection(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
 
-      <details className="quality-section">
-        <summary>Edge in Combat</summary>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Cost</th>
-              <th>Uses</th>
-            </tr>
-          </thead>
-          <tbody>
-            {EDGE_IN_COMBAT.map(({ cost, uses }) => (
-              <tr key={cost}>
-                <td>{cost}</td>
-                <td>
-                  <ul>
-                    {uses.map((u) => (
-                      <li key={u}>{u}</li>
-                    ))}
-                  </ul>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+        {section === "process" && (
+          <>
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th>Summary</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMBAT_PROCESS_STEPS.map(({ step, summary }) => (
+                  <tr key={step}>
+                    <td>{step}</td>
+                    <td>{summary}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="hint">
+              Edge tie-break for Initiative ties: compare Edge, then Reaction, then Intuition (ERIC) - whoever's
+              higher first goes first; a coin flip breaks any remaining tie.
+            </p>
+          </>
+        )}
 
-      <details className="quality-section">
-        <summary>Range Categories &amp; Firing Modes</summary>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Range</th>
-              <th>Distance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {RANGE_CATEGORIES.map(({ name, distance }) => (
-              <tr key={name}>
-                <td>{name}</td>
-                <td>{distance}</td>
+        {section === "edge" && (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Cost</th>
+                <th>Uses</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Firing Mode</th>
-              <th>Effect</th>
-            </tr>
-          </thead>
-          <tbody>
-            {FIRING_MODES.map(({ mode, effect }) => (
-              <tr key={mode}>
-                <td>{mode}</td>
-                <td>{effect}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+            </thead>
+            <tbody>
+              {EDGE_IN_COMBAT.map(({ cost, uses }) => (
+                <tr key={cost}>
+                  <td>{cost}</td>
+                  <td>
+                    <ul>
+                      {uses.map((u) => (
+                        <li key={u}>{u}</li>
+                      ))}
+                    </ul>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
-      <details className="quality-section">
-        <summary>Damage Types</summary>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Secondary effect</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DAMAGE_TYPES.map(({ type, effect }) => (
-              <tr key={type}>
-                <td>{type}</td>
-                <td>{effect}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+        {section === "ranges" && (
+          <div className="rules-two-col">
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Range</th>
+                  <th>Distance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {RANGE_CATEGORIES.map(({ name, distance }) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td>{distance}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Firing Mode</th>
+                  <th>Effect</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FIRING_MODES.map(({ mode, effect }) => (
+                  <tr key={mode}>
+                    <td>{mode}</td>
+                    <td>{effect}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      <details className="quality-section">
-        <summary>Combat Options</summary>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Option</th>
-              <th>Summary</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMBAT_OPTIONS.map(({ name, summary }) => (
-              <tr key={name}>
-                <td>{name}</td>
-                <td>{summary}</td>
+        {section === "damage" && (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Secondary effect</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+            </thead>
+            <tbody>
+              {DAMAGE_TYPES.map(({ type, effect }) => (
+                <tr key={type}>
+                  <td>{type}</td>
+                  <td>{effect}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {section === "options" && (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Summary</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMBAT_OPTIONS.map(({ name, summary }) => (
+                <tr key={name}>
+                  <td>{name}</td>
+                  <td>{summary}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 }

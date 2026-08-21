@@ -404,27 +404,78 @@ a {
 }
 
 .rules-table {
-  border-collapse: collapse;
-  margin-bottom: 1rem;
   width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 1rem;
 }
 
-.rules-table td,
 .rules-table th {
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.75rem;
+  font: 600 10px/1.4 var(--font-heading);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
   text-align: left;
+  padding: 0 14px 7px 0;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+
+.rules-table td {
+  padding: 9px 14px 9px 0;
+  border-bottom: 1px solid var(--color-neutral-900);
   vertical-align: top;
+  color: var(--color-text);
+}
+
+.rules-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.rules-table td:first-child {
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-accent-300);
 }
 
 .rules-table ul {
   margin: 0;
-  padding-left: 1.1rem;
+  padding-left: 15px;
+  color: var(--color-neutral-400);
 }
 
 .rules-table .current-row td {
-  background: var(--accent-bg, rgba(255, 200, 0, 0.15));
-  font-weight: 600;
+  background: var(--color-accent-tint-weak);
+  font-weight: 500;
+}
+
+/* Panel header's section jump-nav (Combat.tsx) - a row of chips standing in
+   for what used to be nested <details> folds, so a GM can see what's in the
+   panel without expanding every disclosure. */
+.rules-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.rules-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 700px) {
+  .rules-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rules-kicker {
+  font: 600 10px/1.4 var(--font-heading);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  margin-bottom: 0.4rem;
 }
 
 .chip-row {
