@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes, emptyCharacterData, type CharacterData } from "../../character";
@@ -20,6 +20,7 @@ import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
+import { matrixDevices } from "../../deriveDeckerPersona";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Combat } from "./Combat";
@@ -30,6 +31,7 @@ import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 import { generateId } from "../../id";
+import { ConditionStrip } from "../../components/ConditionStrip";
 
 const COMMON_STATUS_EFFECTS = [
   "Prone",
@@ -71,6 +73,8 @@ export function LivePlay() {
   const [effectName, setEffectName] = useState("");
   const [effectRounds, setEffectRounds] = useState("");
   const [effectNotes, setEffectNotes] = useState("");
+  const [showCustomEffect, setShowCustomEffect] = useState(false);
+  const [activeTab, setActiveTab] = useState("combat");
 
   function refreshSessions() {
     if (!id) return;
@@ -238,6 +242,159 @@ export function LivePlay() {
     scheduleSave({ ...playState!, statusEffects: playState!.statusEffects.filter((e) => e.id !== effectId) });
   }
 
+  function toggleCommonEffect(name: string) {
+    const existing = playState!.statusEffects.find((e) => e.name === name);
+    if (existing) {
+      removeStatusEffect(existing.id);
+    } else {
+      addStatusEffect({ name });
+    }
+  }
+
+  const isTechnomancer = attributes.resonance !== undefined;
+  const hasMagic = attributes.magic !== undefined;
+  const spiritsRelevant = !!spiritRules && (attributes.magic ?? 0) > 0;
+  const spritesRelevant = !!spriteRules && isTechnomancer;
+  const matrixRelevant = !!gearRules && (isTechnomancer || matrixDevices(characterData, gearRules).length > 0);
+  const advancementRelevant = !!(priorityRules && qualityRules && metamagicRules);
+  const activeEffectNames = new Set(playState.statusEffects.map((e) => e.name));
+
+  const tabs: { id: string; label: string; content: ReactNode }[] = [
+    {
+      id: "games",
+      label: "Games",
+      content: (
+        <>
+          {sessions && sessions.length > 0 && (
+            <ul className="module-slots">
+              {sessions.map((s) => (
+                <li key={s.id}>
+                  <div className="module-instance">
+                    <div className="module-instance-header">
+                      <strong>{s.name}</strong>
+                      <button className="danger" onClick={() => handleLeave(s.id)}>
+                        Leave
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form onSubmit={handleJoin} className="inline-field">
+            <input
+              type="text"
+              placeholder="Join code"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+            />
+            <button type="submit" disabled={joining || !joinCode.trim()}>
+              Join a game
+            </button>
+            {joinError && <span className="save-error">{joinError}</span>}
+          </form>
+        </>
+      ),
+    },
+    ...(gearRules
+      ? [{ id: "combat", label: "Combat", content: <Combat data={characterData} gearRules={gearRules} /> }]
+      : []),
+    ...(matrixRelevant
+      ? [{ id: "matrix", label: "Matrix", content: <Matrix data={characterData} gearRules={gearRules!} /> }]
+      : []),
+    ...(hasMagic ? [{ id: "astral", label: "Astral", content: <Astral data={characterData} /> }] : []),
+    ...(spiritsRelevant
+      ? [
+          {
+            id: "spirits",
+            label: "Spirits",
+            content: (
+              <Spirits
+                data={characterData}
+                onDataChange={scheduleDataSave}
+                playState={playState}
+                onChange={scheduleSave}
+                spiritRules={spiritRules!}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(spritesRelevant
+      ? [
+          {
+            id: "sprites",
+            label: "Sprites",
+            content: (
+              <Sprites data={characterData} playState={playState} onChange={scheduleSave} spriteRules={spriteRules!} />
+            ),
+          },
+        ]
+      : []),
+    ...(advancementRelevant
+      ? [
+          {
+            id: "advancement",
+            label: "Advancement",
+            content: (
+              <Advancement
+                data={characterData}
+                onChange={scheduleDataSave}
+                priorityRules={priorityRules!}
+                qualityRules={qualityRules!}
+                metamagicRules={metamagicRules!}
+              />
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "reputation",
+      label: "Reputation & Heat",
+      content: <ReputationHeat data={characterData} onChange={scheduleDataSave} />,
+    },
+    ...(gearRules
+      ? [
+          {
+            id: "equipment",
+            label: "Equipment",
+            content: (
+              <>
+                <form
+                  className="inline-field"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    awardNuyen();
+                  }}
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Nuyen earned from a run"
+                    value={nuyenAward}
+                    onChange={(e) => setNuyenAward(e.target.value.replace(/[^0-9]/g, ""))}
+                  />
+                  <button type="submit" disabled={!nuyenAward}>
+                    Award Nuyen
+                  </button>
+                </form>
+                <GearPicker
+                  rules={gearRules}
+                  data={characterData}
+                  onChange={scheduleDataSave}
+                  extraKarmaSpent={extraKarmaSpent}
+                  extraNuyenSpent={extraNuyenSpent}
+                  allowFree
+                />
+              </>
+            ),
+          },
+        ]
+      : []),
+  ];
+
+  const currentTab = tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id;
+
   return (
     <div className="page live-play-page">
       <header className="page-header">
@@ -247,234 +404,136 @@ export function LivePlay() {
         </div>
       </header>
 
-      <section>
-        <h2>Games</h2>
-        {sessions && sessions.length > 0 && (
-          <ul className="module-slots">
-            {sessions.map((s) => (
-              <li key={s.id}>
-                <div className="module-instance">
-                  <div className="module-instance-header">
-                    <strong>{s.name}</strong>
-                    <button className="danger" onClick={() => handleLeave(s.id)}>
-                      Leave
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        <form onSubmit={handleJoin} className="inline-field">
-          <input
-            type="text"
-            placeholder="Join code"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-          />
-          <button type="submit" disabled={joining || !joinCode.trim()}>
-            Join a game
-          </button>
-          {joinError && <span className="save-error">{joinError}</span>}
-        </form>
-      </section>
+      <div className="vitals-row">
+        <div className="vitals-card">
+          <div className="vitals-card-header">
+            <span className="vitals-card-label">Physical</span>
+            <span className="vitals-card-value num">
+              {playState.physicalDamage} / {derived.physicalMonitor}
+              {physicalOverflow > 0 && <span className="danger-text"> Overflow {physicalOverflow}</span>}
+            </span>
+          </div>
+          <ConditionStrip filled={playState.physicalDamage} max={derived.physicalMonitor} size="lg" />
+          <div className="vitals-card-actions">
+            <button onClick={() => adjustDamage("physicalDamage", -1)}>-1</button>
+            <button onClick={() => adjustDamage("physicalDamage", 1)}>+1</button>
+            <button className="btn-ghost" onClick={() => resetDamage("physicalDamage")}>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div className="vitals-card">
+          <div className="vitals-card-header">
+            <span className="vitals-card-label">Stun</span>
+            <span className="vitals-card-value vitals-card-value--stun num">
+              {playState.stunDamage} / {derived.stunMonitor}
+              {stunOverflow > 0 && <span className="danger-text"> Overflow {stunOverflow}</span>}
+            </span>
+          </div>
+          <ConditionStrip filled={playState.stunDamage} max={derived.stunMonitor} size="lg" />
+          <div className="vitals-card-actions">
+            <button onClick={() => adjustDamage("stunDamage", -1)}>-1</button>
+            <button onClick={() => adjustDamage("stunDamage", 1)}>+1</button>
+            <button className="btn-ghost" onClick={() => resetDamage("stunDamage")}>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div className="vitals-card">
+          <div className="vitals-card-header">
+            <span className="vitals-card-label">Edge</span>
+            <span className="vitals-card-value num">
+              {playState.edgeAvailable} / {attributes.edge}
+            </span>
+          </div>
+          <ConditionStrip filled={playState.edgeAvailable} max={attributes.edge} size="lg" shape="circle" />
+          <div className="vitals-card-actions">
+            <button onClick={() => adjustEdge(-1)} disabled={playState.edgeAvailable <= 0}>
+              Spend
+            </button>
+            <button onClick={() => adjustEdge(1)} disabled={playState.edgeAvailable >= attributes.edge}>
+              Regain
+            </button>
+            <button className="btn-ghost" onClick={resetEdge}>
+              Max
+            </button>
+          </div>
+        </div>
+      </div>
 
       <section>
-        <h2>Physical</h2>
-        <div className="damage-bar">
-          <div
-            className="damage-bar-fill"
-            style={{ width: `${Math.min(100, (playState.physicalDamage / derived.physicalMonitor) * 100)}%` }}
-          />
-        </div>
-        <p>
-          {playState.physicalDamage} / {derived.physicalMonitor}
-          {physicalOverflow > 0 && <span className="danger-text"> (Overflow: {physicalOverflow})</span>}
-        </p>
+        <h2 className="rules-kicker">Status</h2>
         <div className="chip-row">
-          <button onClick={() => adjustDamage("physicalDamage", -1)}>-1</button>
-          <button onClick={() => adjustDamage("physicalDamage", 1)}>+1</button>
-          <button onClick={() => resetDamage("physicalDamage")}>Reset</button>
-        </div>
-      </section>
-
-      <section>
-        <h2>Stun</h2>
-        <div className="damage-bar">
-          <div
-            className="damage-bar-fill"
-            style={{ width: `${Math.min(100, (playState.stunDamage / derived.stunMonitor) * 100)}%` }}
-          />
-        </div>
-        <p>
-          {playState.stunDamage} / {derived.stunMonitor}
-          {stunOverflow > 0 && <span className="danger-text"> (Overflow: {stunOverflow})</span>}
-        </p>
-        <div className="chip-row">
-          <button onClick={() => adjustDamage("stunDamage", -1)}>-1</button>
-          <button onClick={() => adjustDamage("stunDamage", 1)}>+1</button>
-          <button onClick={() => resetDamage("stunDamage")}>Reset</button>
-        </div>
-      </section>
-
-      <section>
-        <h2>Edge</h2>
-        <p>
-          {playState.edgeAvailable} / {attributes.edge}
-        </p>
-        <div className="chip-row">
-          <button onClick={() => adjustEdge(-1)} disabled={playState.edgeAvailable <= 0}>
-            Spend 1
-          </button>
-          <button onClick={() => adjustEdge(1)} disabled={playState.edgeAvailable >= attributes.edge}>
-            Regain 1
-          </button>
-          <button onClick={resetEdge}>Reset to Max</button>
-        </div>
-      </section>
-
-      {gearRules && (
-        <section>
-          <Combat data={characterData} gearRules={gearRules} />
-        </section>
-      )}
-
-      <section>
-        <h2>Status Effects</h2>
-        {playState.statusEffects.length > 0 && (
-          <ul className="module-slots">
-            {playState.statusEffects.map((effect) => (
-              <li key={effect.id}>
-                <div className="module-instance">
-                  <div className="module-instance-header">
-                    <strong>
-                      {effect.name}
-                      {effect.roundsRemaining !== undefined ? ` (${effect.roundsRemaining} rounds)` : ""}
-                    </strong>
-                    <button className="danger" onClick={() => removeStatusEffect(effect.id)}>
-                      Remove
-                    </button>
-                  </div>
-                  {effect.notes && <p className="hint">{effect.notes}</p>}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="chip-row">
-          {COMMON_STATUS_EFFECTS.map((name) => (
-            <button key={name} className="chip" onClick={() => addStatusEffect({ name })}>
+          {playState.statusEffects.map((effect) => (
+            <button key={effect.id} className="chip selected" onClick={() => removeStatusEffect(effect.id)}>
+              {effect.name}
+              {effect.roundsRemaining !== undefined ? ` · ${effect.roundsRemaining}` : ""}
+            </button>
+          ))}
+          {COMMON_STATUS_EFFECTS.filter((name) => !activeEffectNames.has(name)).map((name) => (
+            <button key={name} className="chip" onClick={() => toggleCommonEffect(name)}>
               {name}
             </button>
           ))}
-        </div>
-
-        <div className="inline-field">
-          <input
-            type="text"
-            placeholder="Status name"
-            value={effectName}
-            onChange={(e) => setEffectName(e.target.value)}
-          />
-          <label className="inline-field">
-            Rounds
-            <input
-              type="number"
-              min={0}
-              placeholder="optional"
-              value={effectRounds}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => setEffectRounds(e.target.value)}
-            />
-          </label>
-          <input
-            type="text"
-            placeholder="Notes (optional)"
-            value={effectNotes}
-            onChange={(e) => setEffectNotes(e.target.value)}
-          />
-          <button onClick={addFreeformEffect} disabled={!effectName.trim()}>
-            Add
+          <button className="chip" onClick={() => setShowCustomEffect((v) => !v)}>
+            + custom
           </button>
         </div>
-      </section>
 
-      {priorityRules && qualityRules && metamagicRules && (
-        <section>
-          <Advancement
-            data={characterData}
-            onChange={scheduleDataSave}
-            priorityRules={priorityRules}
-            qualityRules={qualityRules}
-            metamagicRules={metamagicRules}
-          />
-        </section>
-      )}
-
-      <section>
-        <ReputationHeat data={characterData} onChange={scheduleDataSave} />
-      </section>
-
-      {spiritRules && (
-        <section>
-          <Spirits
-            data={characterData}
-            onDataChange={scheduleDataSave}
-            playState={playState}
-            onChange={scheduleSave}
-            spiritRules={spiritRules}
-          />
-        </section>
-      )}
-
-      {spriteRules && (
-        <section>
-          <Sprites data={characterData} playState={playState} onChange={scheduleSave} spriteRules={spriteRules} />
-        </section>
-      )}
-
-      <section>
-        <Astral data={characterData} />
-      </section>
-
-      {gearRules && (
-        <section>
-          <Matrix data={characterData} gearRules={gearRules} />
-        </section>
-      )}
-
-      {gearRules && (
-        <section>
-          <h2>Equipment</h2>
-          <form
-            className="inline-field"
-            onSubmit={(e) => {
-              e.preventDefault();
-              awardNuyen();
-            }}
-          >
+        {showCustomEffect && (
+          <div className="inline-field">
             <input
               type="text"
-              inputMode="numeric"
-              placeholder="Nuyen earned from a run"
-              value={nuyenAward}
-              onChange={(e) => setNuyenAward(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="Status name"
+              value={effectName}
+              onChange={(e) => setEffectName(e.target.value)}
             />
-            <button type="submit" disabled={!nuyenAward}>
-              Award Nuyen
+            <label className="inline-field">
+              Rounds
+              <input
+                type="number"
+                min={0}
+                placeholder="optional"
+                value={effectRounds}
+                onFocus={(e) => e.currentTarget.select()}
+                onChange={(e) => setEffectRounds(e.target.value)}
+              />
+            </label>
+            <input
+              type="text"
+              placeholder="Notes (optional)"
+              value={effectNotes}
+              onChange={(e) => setEffectNotes(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                addFreeformEffect();
+                setShowCustomEffect(false);
+              }}
+              disabled={!effectName.trim()}
+            >
+              Add
             </button>
-          </form>
-          <GearPicker
-            rules={gearRules}
-            data={characterData}
-            onChange={scheduleDataSave}
-            extraKarmaSpent={extraKarmaSpent}
-            extraNuyenSpent={extraNuyenSpent}
-            allowFree
-          />
-        </section>
-      )}
+          </div>
+        )}
+      </section>
+
+      <div className="tab-bar">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={t.id === currentTab ? "tab-bar-item active" : "tab-bar-item"}
+            onClick={() => setActiveTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <section>{tabs.find((t) => t.id === currentTab)?.content}</section>
     </div>
   );
 }

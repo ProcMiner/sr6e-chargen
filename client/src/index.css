@@ -455,6 +455,101 @@ a {
   border-color: var(--color-accent-400);
 }
 
+.condition-strip--circle {
+  gap: 7px;
+}
+
+.condition-strip--circle .condition-box {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Vitals row (Live Play) - Physical/Stun/Edge cards, no border, per the
+   Nocturne handoff's "vitals-card" spec. */
+.vitals-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 22px;
+  margin-bottom: 26px;
+}
+
+@media (max-width: 700px) {
+  .vitals-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vitals-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+
+.vitals-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.vitals-card-label {
+  font: 600 10px/1.4 var(--font-heading);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+
+.vitals-card-value {
+  font: 500 20px/1 var(--font-body);
+  color: var(--color-text);
+}
+
+.vitals-card-value--stun {
+  color: var(--color-accent-300);
+}
+
+.vitals-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.vitals-card-actions button {
+  min-height: 36px;
+  min-width: 44px;
+}
+
+/* Tab bar (Live Play sub-panels, and reusable anywhere a set of panels needs
+   the same inset-accent-mark active convention as the top nav). */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--color-neutral-800);
+  margin: 22px 0 18px;
+  flex-wrap: wrap;
+}
+
+.tab-bar-item {
+  font: 500 13px/1.2 var(--font-body);
+  padding: 9px 14px;
+  color: var(--color-neutral-500);
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.tab-bar-item:hover {
+  color: var(--color-text);
+  background: none;
+}
+
+.tab-bar-item.active {
+  color: var(--color-text);
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
 .vault-header-row--inplay,
 .vault-row--inplay {
   grid-template-columns: 1fr 110px 130px 120px;
