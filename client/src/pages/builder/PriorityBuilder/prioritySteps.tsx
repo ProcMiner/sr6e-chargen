@@ -41,7 +41,7 @@ interface PriorityStepsProps {
 }
 
 export function getPrioritySteps(props: PriorityStepsProps): WizardStep[] {
-  const { priorityRules, data, onChange } = props;
+  const { priorityRules, qualityRules, data, onChange } = props;
   const attributePoints = attributePointsRemaining(data, priorityRules);
   const skillPoints = skillPointsRemaining(data, priorityRules);
 
@@ -49,7 +49,7 @@ export function getPrioritySteps(props: PriorityStepsProps): WizardStep[] {
     {
       id: "power-level",
       label: "Priorities",
-      content: <PowerLevelStep rules={priorityRules} data={data} onChange={onChange} />,
+      content: <PowerLevelStep rules={priorityRules} qualityRules={qualityRules} data={data} onChange={onChange} />,
     },
     {
       id: "metatype",

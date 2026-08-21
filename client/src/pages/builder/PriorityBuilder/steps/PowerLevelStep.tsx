@@ -1,6 +1,7 @@
 import type { CharacterData, PrioritySystemState } from "../../../../character";
-import type { PriorityLetter, PriorityRulesResponse } from "../../../../rules";
+import type { PriorityLetter, PriorityRulesResponse, QualityRulesResponse } from "../../../../rules";
 import { effectivePriorityLetter, startingKarma } from "../../../../derivePriorityVariant";
+import { combineQualityCatalog, qualityKarmaTotal } from "../../../../deriveQualities";
 
 const LETTERS: PriorityLetter[] = ["A", "B", "C", "D", "E"];
 const CATEGORIES = [
@@ -13,11 +14,12 @@ const CATEGORIES = [
 
 interface Props {
   rules: PriorityRulesResponse;
+  qualityRules: QualityRulesResponse;
   data: CharacterData;
   onChange: (data: CharacterData) => void;
 }
 
-export function PowerLevelStep({ data, onChange }: Props) {
+export function PowerLevelStep({ qualityRules, data, onChange }: Props) {
   const state = (data.systemState as PrioritySystemState)?.priorities
     ? (data.systemState as PrioritySystemState)
     : { priorities: {} };
@@ -29,13 +31,15 @@ export function PowerLevelStep({ data, onChange }: Props) {
   // "Different Levels of Play" (core rulebook p.63 sidebar). Street-level
   // reads every priority row's table values one row worse than the letter
   // actually assigned; Prime Runner doubles the customization Karma pool.
-  // Toggling recovers the qualities' net Karma from the old total (rather
-  // than requiring the qualities catalog here too) and re-adds it to the
-  // new base, mirroring QualityPicker.tsx's own applySelection().
+  // Toggling recomputes karma from scratch (starting pool + actual net
+  // quality Karma), mirroring QualityPicker.tsx's own applySelection() -
+  // an absolute recompute rather than preserving a delta off data.karma,
+  // which broke if data.karma ever started out of sync with startingKarma()
+  // (as it did before emptyCharacterData() was fixed to seed karma: 50).
   function setPowerLevel(next: PrioritySystemState["powerLevel"]) {
     const nextData = { ...data, systemState: { ...state, powerLevel: next } };
-    const netQualityKarma = data.karma - startingKarma(data);
-    onChange({ ...nextData, karma: startingKarma(nextData) + netQualityKarma });
+    const catalog = combineQualityCatalog(qualityRules);
+    onChange({ ...nextData, karma: startingKarma(nextData) + qualityKarmaTotal(data.qualities, catalog) });
   }
 
   function usedLetters(exceptCategory?: string) {

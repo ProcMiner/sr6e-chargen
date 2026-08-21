@@ -517,7 +517,12 @@ export function emptyCharacterData(): CharacterData {
     adeptPowers: [],
     complexForms: [],
     nuyen: 0,
-    karma: 0,
+    // Must match derivePriorityVariant.ts's startingKarma() baseline for an
+    // untouched character (no powerLevel set yet) - PowerLevelStep.tsx's
+    // Prime Runner toggle rebases off whatever this starts at, so a mismatch
+    // here (previously 0) makes that rebase land on the wrong total the
+    // first time a fresh character touches Power Level before Qualities.
+    karma: 50,
     advancement: [],
     knowledgePurchases: [],
     qualityPurchases: [],
