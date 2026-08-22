@@ -1,0 +1,56 @@
+name: Deploy
+
+# Deliberately push-only, never pull_request/pull_request_target - this repo
+# is public, and this workflow holds secrets with deploy access to the live
+# server. Never widen the trigger without re-checking that constraint.
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.LIGHTSAIL_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull, install, build on the server
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "chargen@$LIGHTSAIL_HOST" \
+            "cd /opt/sr6e-chargen/app && git pull && npm install && npm run build"
+
+      - name: Restart the service
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "chargen@$LIGHTSAIL_HOST" \
+            "sudo systemctl restart chargen"
+
+      - name: Smoke test
+        run: |
+          sleep 3
+          curl -sf https://procminersgaming.tools/ > /dev/null
+          curl -sf https://procminersgaming.tools/sre6-chargen > /dev/null
