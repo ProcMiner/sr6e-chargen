@@ -6,6 +6,7 @@ import {
   EXOTIC_WEAPONS_SKILL,
   SKILL_SPECIALIZATION_SUGGESTIONS,
   exoticWeaponsNeedsSpecialization,
+  newSpecializationBlockReason,
 } from "../../../../deriveSpecializations";
 import { effectivePriorityLetter } from "../../../../derivePriorityVariant";
 import { skillPointsRemaining as computeSkillPointsRemaining } from "../../../../deriveAdjustmentPoints";
@@ -119,7 +120,12 @@ export function SkillsStep({ rules, data, onChange }: Props) {
         <div className="inline-field">
           <select value={specSkill} onChange={(e) => setSpecSkill(e.target.value)}>
             {rules.skillList.map((skill) => (
-              <option key={skill} value={skill} disabled={!canAddSpecializationAtChargen(skill)}>
+              <option
+                key={skill}
+                value={skill}
+                disabled={!canAddSpecializationAtChargen(skill)}
+                title={newSpecializationBlockReason(data, skill)}
+              >
                 {skill}
               </option>
             ))}
@@ -133,6 +139,14 @@ export function SkillsStep({ rules, data, onChange }: Props) {
           <button
             onClick={addSpecialization}
             disabled={!specFocus.trim() || !canAddSpecializationAtChargen(specSkill) || skillPointsRemaining < 1}
+            title={
+              newSpecializationBlockReason(data, specSkill) ??
+              (skillPointsRemaining < 1
+                ? "No skill points remaining."
+                : !specFocus.trim()
+                  ? "Enter a focus name first."
+                  : undefined)
+            }
           >
             Add
           </button>

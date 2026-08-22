@@ -101,6 +101,20 @@ export function canAddSpecialization(data: CharacterData, skill: string): boolea
   return rank >= 1 && entriesFor(data, skill).length === 0;
 }
 
+/**
+ * Human-readable reason `skill` can't currently take a brand-new
+ * specialization, or undefined if it can - mirrors canAddSpecialization()'s
+ * two gates, split out so a disabled Add button can tell the player *why*
+ * instead of just going gray. Shared by the Priority skill-point step and
+ * the Customization Karma picker.
+ */
+export function newSpecializationBlockReason(data: CharacterData, skill: string): string | undefined {
+  const rank = data.skills[skill] ?? 0;
+  if (rank < 1) return `${skill} needs at least 1 rank before it can take a specialization.`;
+  if (entriesFor(data, skill).length > 0) return `${skill} already has a specialization.`;
+  return undefined;
+}
+
 /** Whether an existing specialization on `skill` can be upgraded to an expertise: needs a specialization present and skill rank >= 5. Exotic Weapons can never gain an expertise (p. 95). */
 export function canUpgradeToExpertise(data: CharacterData, skill: string): boolean {
   if (skill === EXOTIC_WEAPONS_SKILL) return false;

@@ -60,6 +60,7 @@ import {
   SPECIALIZATION_KARMA_COST,
   canAddSpecialization,
   exoticWeaponsNeedsSpecialization,
+  newSpecializationBlockReason,
 } from "../../../deriveSpecializations";
 import { generateId } from "../../../id";
 
@@ -311,7 +312,7 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
       <div className="inline-field">
         <select value={specSkill} onChange={(e) => setSpecSkill(e.target.value)}>
           {priorityRules.skillList.map((skill) => (
-            <option key={skill} value={skill}>
+            <option key={skill} value={skill} title={newSpecializationBlockReason(data, skill)}>
               {skill}
             </option>
           ))}
@@ -325,7 +326,14 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
         <button
           onClick={() => buySpecialization(specSkill, specFocus)}
           disabled={!canAddSpecialization(data, specSkill) || !specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
-          title={!canAddSpecialization(data, specSkill) ? "This skill already has a specialization" : undefined}
+          title={
+            newSpecializationBlockReason(data, specSkill) ??
+            (SPECIALIZATION_KARMA_COST > available
+              ? `Not enough Karma remaining (needs ${SPECIALIZATION_KARMA_COST}).`
+              : !specFocus.trim()
+                ? "Enter a focus name first."
+                : undefined)
+          }
         >
           Add specialization ({SPECIALIZATION_KARMA_COST})
         </button>
