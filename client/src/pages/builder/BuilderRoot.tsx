@@ -18,6 +18,7 @@ import type {
 import { getPrioritySteps } from "./PriorityBuilder/prioritySteps";
 import { getLifepathSteps } from "./LifepathBuilder/lifepathSteps";
 import { StepWizard } from "../../components/StepWizard";
+import { EditableName } from "../../components/EditableName";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
@@ -77,6 +78,12 @@ export function BuilderRoot() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleRename(name: string) {
+    if (!character) return;
+    setCharacter({ ...character, name });
+    api.updateCharacter(character.id, { name });
   }
 
   async function handleDownloadSheet() {
@@ -155,7 +162,9 @@ export function BuilderRoot() {
   return (
     <div className="page builder-page">
       <header className="page-header">
-        <h1>{character.name}</h1>
+        <h1>
+          <EditableName value={character.name} onSave={handleRename} />
+        </h1>
         <div className="header-actions">
           <button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save"}

@@ -6,6 +6,7 @@ import type { Attributes } from "../rules";
 import { deriveStats } from "../derive";
 import { modifierBonuses } from "../deriveModifiers";
 import { ConditionStrip } from "../components/ConditionStrip";
+import { EditableName } from "../components/EditableName";
 
 /** Physical Condition Monitor + Edge max, purely from the character's own
  * chargen data (already present on CharacterSummary) - same computation
@@ -80,6 +81,11 @@ export function CharacterList() {
     refresh();
   }
 
+  function handleRename(id: number, nextName: string) {
+    setCharacters((prev) => prev && prev.map((c) => (c.id === id ? { ...c, name: nextName } : c)));
+    api.updateCharacter(id, { name: nextName });
+  }
+
   return (
     <div className="page">
       <header className="page-header">
@@ -124,7 +130,9 @@ export function CharacterList() {
               return (
                 <li key={c.id} className="vault-row">
                   <div>
-                    <div className="vault-runner-name">{c.name}</div>
+                    <div className="vault-runner-name">
+                      <EditableName value={c.name} onSave={(next) => handleRename(c.id, next)} />
+                    </div>
                     {metaParts.length > 0 && <div className="vault-runner-meta">{metaParts.join(" · ")}</div>}
                   </div>
                   <div>

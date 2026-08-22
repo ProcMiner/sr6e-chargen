@@ -32,6 +32,7 @@ import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 import { generateId } from "../../id";
 import { ConditionStrip } from "../../components/ConditionStrip";
+import { EditableName } from "../../components/EditableName";
 
 const COMMON_STATUS_EFFECTS = [
   "Prone",
@@ -242,6 +243,12 @@ export function LivePlay() {
     scheduleSave({ ...playState!, statusEffects: playState!.statusEffects.filter((e) => e.id !== effectId) });
   }
 
+  function handleRename(name: string) {
+    if (!character) return;
+    setCharacter({ ...character, name });
+    api.updateCharacter(character.id, { name });
+  }
+
   function toggleCommonEffect(name: string) {
     const existing = playState!.statusEffects.find((e) => e.name === name);
     if (existing) {
@@ -398,7 +405,9 @@ export function LivePlay() {
   return (
     <div className="page live-play-page">
       <header className="page-header">
-        <h1>{character.name} - Live Play</h1>
+        <h1>
+          <EditableName value={character.name} onSave={handleRename} /> - Live Play
+        </h1>
         <div className="header-actions">
           {(saving || dataSaving) && <span className="saved-at">Saving...</span>}
         </div>
