@@ -31,35 +31,24 @@
 // - Expertise is flatly unavailable at chargen: "you cannot acquire an
 //   expertise" (p.65, in the Priority Chart's own specialization rules,
 //   read here as a general chargen restriction, not Priority-specific).
-//   New specializations ARE allowed (one per skill, same
+//   This component omits the Upgrade-to-Expertise action entirely rather
+//   than gating it - the "second specialization" tier (which requires an
+//   existing expertise) is therefore unreachable here too, by the same
+//   omission. New specializations ARE allowed (one per skill, same
 //   SPECIALIZATION_KARMA_COST as career mode) - nothing in the book
 //   restricts Customization-Karma-funded specializations differently from
 //   skill-point-funded ones, and Life Path has no specialization rule of
 //   its own to contradict this (confirmed in [[specializations_expertise]]).
-//
-// House rule (opt-in, not RAW - checked the core rulebook's Prime Runner
-// sidebar p.63, the Companion's Elite section p.14-16, and every other
-// sourcebook for a printed exception; found none): Prime Runner (Priority)
-// and Elite (Life Path) characters CAN buy Expertise and a second
-// specialization at chargen, using the exact same progression and Karma
-// costs career mode already has (canUpgradeToExpertise/
-// canAddSecondSpecialization, EXPERTISE_KARMA_COST) - just made reachable
-// here instead of waiting for play. No extra per-character cap beyond the
-// Customization Karma pool itself, same as every other chargen Karma
-// spend in this app.
 import { useState } from "react";
-import type { AdvancementEntry, CharacterData, LifepathSystemState, PrioritySystemState, SpecializationEntry } from "../../../character";
+import type { AdvancementEntry, CharacterData, SpecializationEntry } from "../../../character";
 import type { PriorityRulesResponse } from "../../../rules";
 import { karmaRemaining } from "../../../deriveGear";
 import { CORE_ATTRIBUTE_KEYS, attributeAdvanceCost, attributeMax, chargenSkillMax, skillAdvanceCost } from "../../../deriveAdvancement";
 import {
   EXOTIC_WEAPONS_SKILL,
-  EXPERTISE_KARMA_COST,
   SKILL_SPECIALIZATION_SUGGESTIONS,
   SPECIALIZATION_KARMA_COST,
-  canAddSecondSpecialization,
   canAddSpecialization,
-  canUpgradeToExpertise,
   exoticWeaponsNeedsSpecialization,
 } from "../../../deriveSpecializations";
 import { generateId } from "../../../id";
@@ -81,10 +70,6 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
   const attributeLog = [...(data.advancement ?? [])].filter((e) => e.type === "attribute").reverse();
   const skillLog = [...(data.advancement ?? [])].filter((e) => e.type === "skill").reverse();
   const specializationLog = [...(data.specializationLog ?? [])].reverse();
-
-  const priorityState = data.systemState as Partial<PrioritySystemState> | undefined;
-  const lifepathState = data.systemState as Partial<LifepathSystemState> | undefined;
-  const elevatedPowerLevel = priorityState?.powerLevel === "prime" || lifepathState?.powerLevel === "elite";
 
   function increaseAttribute(key: string) {
     const current = data.attributes[key as (typeof CORE_ATTRIBUTE_KEYS)[number]] ?? 1;
@@ -177,48 +162,6 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
       ...data,
       specializations: specializations.filter((s) => !(s.skill === entry.skill && s.focus === entry.focus)),
       specializationLog: (data.specializationLog ?? []).filter((e) => e.id !== entry.id),
-    });
-  }
-
-  // House rule, Prime Runner/Elite only (see file header) - mirrors career
-  // mode's Advancement.tsx upgradeToExpertise/buySecondSpecialization
-  // exactly, same functions/costs, just reachable at chargen too.
-  function upgradeToExpertise(skill: string) {
-    if (!elevatedPowerLevel || !canUpgradeToExpertise(data, skill) || EXPERTISE_KARMA_COST > available) return;
-    const existing = specializations.find((s) => s.skill === skill && s.tier === "specialization");
-    if (!existing) return;
-    const logEntry: SpecializationEntry = {
-      id: generateId(),
-      skill,
-      focus: existing.focus,
-      action: "expertise",
-      karmaCost: EXPERTISE_KARMA_COST,
-      date: new Date().toISOString(),
-    };
-    onChange({
-      ...data,
-      specializations: specializations.map((s) => (s.id === existing.id ? { ...s, tier: "expertise" } : s)),
-      specializationLog: [...(data.specializationLog ?? []), logEntry],
-    });
-  }
-
-  function buySecondSpecialization(skill: string, focus: string) {
-    if (!elevatedPowerLevel || !focus.trim() || !canAddSecondSpecialization(data, skill) || SPECIALIZATION_KARMA_COST > available) {
-      return;
-    }
-    const specEntry = { id: generateId(), skill, focus: focus.trim(), tier: "specialization" as const };
-    const logEntry: SpecializationEntry = {
-      id: generateId(),
-      skill,
-      focus: focus.trim(),
-      action: "second",
-      karmaCost: SPECIALIZATION_KARMA_COST,
-      date: new Date().toISOString(),
-    };
-    onChange({
-      ...data,
-      specializations: [...specializations, specEntry],
-      specializationLog: [...(data.specializationLog ?? []), logEntry],
     });
   }
 
@@ -336,41 +279,19 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
         </ul>
       )}
 
-      <h3>Specializations{elevatedPowerLevel ? " & Expertise" : ""}</h3>
+      <h3>Specializations</h3>
       <p className="hint">
         A specialization is +2 dice on tests in that narrow area. One per skill at chargen ({SPECIALIZATION_KARMA_COST}{" "}
-        Karma) - Expertise (+3 dice, needs the skill already specialized and at rank 5+) normally can't be bought
-        until career mode.
-        {elevatedPowerLevel && (
-          <>
-            {" "}
-            House rule for this Prime Runner/Elite character: the full career-mode progression is unlocked here too
-            - upgrade a specialization to Expertise ({EXPERTISE_KARMA_COST} Karma), which then allows one more
-            specialization on that skill ({SPECIALIZATION_KARMA_COST} Karma). Not a printed rule - your table's
-            call.
-          </>
-        )}
+        Karma).
       </p>
       {specializations.length > 0 && (
         <ul className="module-slots">
           {specializations.map((s) => (
             <li key={s.id}>
               <div className="module-instance">
-                <div className="module-instance-header">
-                  <strong>
-                    {s.skill}: {s.focus}
-                    {elevatedPowerLevel ? ` (${s.tier})` : ""}
-                  </strong>
-                  {elevatedPowerLevel && s.tier === "specialization" && canUpgradeToExpertise(data, s.skill) && (
-                    <button
-                      className="chip"
-                      disabled={EXPERTISE_KARMA_COST > available}
-                      onClick={() => upgradeToExpertise(s.skill)}
-                    >
-                      Upgrade to Expertise ({EXPERTISE_KARMA_COST})
-                    </button>
-                  )}
-                </div>
+                <strong>
+                  {s.skill}: {s.focus}
+                </strong>
               </div>
             </li>
           ))}
@@ -390,28 +311,13 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
           value={specFocus}
           onChange={(e) => setSpecFocus(e.target.value)}
         />
-        {elevatedPowerLevel && canAddSecondSpecialization(data, specSkill) ? (
-          <button
-            onClick={() => {
-              buySecondSpecialization(specSkill, specFocus);
-              setSpecFocus("");
-            }}
-            disabled={!specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
-          >
-            Add second specialization ({SPECIALIZATION_KARMA_COST})
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              buySpecialization(specSkill, specFocus);
-              setSpecFocus("");
-            }}
-            disabled={!canAddSpecialization(data, specSkill) || !specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
-            title={!canAddSpecialization(data, specSkill) ? "This skill already has a specialization" : undefined}
-          >
-            Add specialization ({SPECIALIZATION_KARMA_COST})
-          </button>
-        )}
+        <button
+          onClick={() => buySpecialization(specSkill, specFocus)}
+          disabled={!canAddSpecialization(data, specSkill) || !specFocus.trim() || SPECIALIZATION_KARMA_COST > available}
+          title={!canAddSpecialization(data, specSkill) ? "This skill already has a specialization" : undefined}
+        >
+          Add specialization ({SPECIALIZATION_KARMA_COST})
+        </button>
       </div>
       {(SKILL_SPECIALIZATION_SUGGESTIONS[specSkill] ?? []).length > 0 && (
         <div className="chip-row">
