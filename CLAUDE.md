@@ -54,10 +54,21 @@ ssh <lightsail-host> "sudo -u chargen bash -lc 'cd /opt/sr6e-chargen/app && git 
 
 **Workflow expectation**: after committing, ask before pushing to master rather than stopping silently — but once pushed, redeploy to the live server automatically without waiting to be asked again. Never `--force` push to master.
 
+## Sourcebook PDFs
+
+The SR6E rulebook PDFs (core + sourcebooks) used to verify rules content live in a **separate private repo**, `github.com/ProcMiner/sr6e-source-pdfs` — not in this repo (too large, copyrighted scans). Clone or fetch it separately when a rules question needs source verification:
+
+```bash
+git clone git@github.com:ProcMiner/sr6e-source-pdfs.git
+```
+
+Files (imageless, text-extractable — `pdftotext -layout <file> -` works despite benign `XObject` warnings): `SR6_Core_RuleBook_noimg.pdf`, `Sixth_World_Companion_compressed__noimg.pdf`, `Body_Shop_compressed__noimg.pdf`, `Collapsing_Now__Runner_Groups__noimg.pdf`, `Double_Clutch__Rigger_Sourcebook__noimg.pdf`, `Firing_Squad__Combat_Sourcebook__noimg.pdf`, `Hack_and_Slash__Matrix_Sourcebook__compressed__noimg.pdf`, `Krime_Katalog_noimg.pdf`, `Neo-Anarchist_Streetpedia_noimg.pdf`, `No_Future__Music___Culture__compressed__noimg.pdf`, `Power_Plays__Corp_Info__compressed__noimg.pdf`, `Street_Wyrd__Magic_Sourebook__noimg.pdf`.
+
+**Prefer verifying rules text against these over recalling from training data** — this project has a strong track record of catching real errors (mis-cited formulas, wrong page numbers) specifically by checking source rather than assuming. If a session can't reach this repo, say so explicitly rather than answering a rules question from memory alone.
+
 ## Things that only work from a machine with local setup (not portable to a fresh clone/cloud session)
 
 - **Deploying**: the SSH key/host alias for the Lightsail box is local machine config, not in this repo. A session without it can commit and push code but can't redeploy — flag this rather than silently failing to ship.
-- **Sourcebook PDFs**: the actual SR6E rulebook PDFs (core + ~10 sourcebooks) used to verify rules content are local files on the maintainer's desktop, **not checked into this repo** (too large, and mostly copyrighted scans). A session without them should say so rather than guessing at rules text from training data alone — this project has a strong preference for verifying against source over recalling from memory.
 - **Local dev DB**: `server/data/chargen.sqlite` (gitignored) accumulates real test characters/users over time on the maintainer's machine. A fresh clone starts with an empty DB — register a new test user rather than assuming any specific credentials exist.
 
 ## Working style notes
