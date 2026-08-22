@@ -46,13 +46,17 @@ This app is a character generator + live-play tracker, not a full VTT. It delibe
 
 ## Deployment
 
-Single Lightsail instance, systemd service `chargen`, Caddy reverse-proxying HTTPS. From a machine with SSH access configured:
+Single Lightsail instance, systemd service `chargen`, Caddy reverse-proxying HTTPS.
+
+**Auto-deploys on push to master** via `.github/workflows/deploy.yml` — build gate (full `npm run build`) then SSH deploy + service restart + smoke test, using a dedicated `chargen`-scoped deploy key (not the maintainer's personal SSH access). Watch it with `gh run watch` (or the Actions tab) after pushing; a broken build never reaches the deploy step, and a broken deploy fails visibly instead of silently. This means **pushing to master is the whole deploy step now** — no manual SSH needed from any environment, including a session with no local machine access at all.
+
+Manual deploy (only needed if the Action itself is broken, or for out-of-band changes on the box):
 
 ```bash
 ssh <lightsail-host> "sudo -u chargen bash -lc 'cd /opt/sr6e-chargen/app && git pull && npm install && npm run build' && sudo systemctl restart chargen"
 ```
 
-**Workflow expectation**: after committing, ask before pushing to master rather than stopping silently — but once pushed, redeploy to the live server automatically without waiting to be asked again. Never `--force` push to master.
+**Workflow expectation**: after committing, ask before pushing to master rather than stopping silently — but once pushed, the Action handles deploy automatically; no need to also do it by hand. Never `--force` push to master.
 
 ## Sourcebook PDFs
 
@@ -68,8 +72,8 @@ Files (imageless, text-extractable — `pdftotext -layout <file> -` works despit
 
 ## Things that only work from a machine with local setup (not portable to a fresh clone/cloud session)
 
-- **Deploying**: the SSH key/host alias for the Lightsail box is local machine config, not in this repo. A session without it can commit and push code but can't redeploy — flag this rather than silently failing to ship.
 - **Local dev DB**: `server/data/chargen.sqlite` (gitignored) accumulates real test characters/users over time on the maintainer's machine. A fresh clone starts with an empty DB — register a new test user rather than assuming any specific credentials exist.
+- Deploying itself is *not* in this list anymore — see Deployment above, it's automatic on push from any environment now.
 
 ## Working style notes
 
