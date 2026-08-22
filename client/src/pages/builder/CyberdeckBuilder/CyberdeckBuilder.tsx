@@ -15,7 +15,7 @@ import {
   coreCost,
   coreSlotsUsed,
   defaultCustomCyberdeckStats,
-  DIY_NUYEN_PER_KARMA,
+  diyNuyenPerKarma,
   karmaFundedNuyenCost,
   maxModuleRating,
   maxUsefulKarma,
@@ -47,6 +47,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
 
   const nuyenBudget = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
+  const nuyenPerKarma = diyNuyenPerKarma(data);
 
   function updateDraft(patch: Partial<CustomCyberdeckStats>) {
     const next = { ...draft, ...patch };
@@ -59,7 +60,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
     next.extraProgramSlots = Math.max(0, Math.min(next.extraProgramSlots, slotBudget - slotsForModules));
     setDraft(next);
     // A shrinking cost can make the stored Karma spend more than the build could ever use.
-    setKarmaSpent((prev) => Math.min(prev, maxUsefulKarma(totalCost(next))));
+    setKarmaSpent((prev) => Math.min(prev, maxUsefulKarma(totalCost(next), nuyenPerKarma)));
   }
 
   const draftCap = maxModuleRating(draft.coreRating);
@@ -68,8 +69,8 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
   const draftCost = totalCost(draft);
   const slotsUsedByModules = moduleCoreSlots(draft.attackRating) + moduleCoreSlots(draft.sleazeRating);
   const maxExtraProgramSlots = Math.max(0, draftBudget - slotsUsedByModules);
-  const maxKarmaSpend = Math.min(maxUsefulKarma(draftCost), karmaBudget);
-  const draftNuyenCost = karmaFundedNuyenCost(draftCost, karmaSpent);
+  const maxKarmaSpend = Math.min(maxUsefulKarma(draftCost, nuyenPerKarma), karmaBudget);
+  const draftNuyenCost = karmaFundedNuyenCost(draftCost, karmaSpent, nuyenPerKarma);
   const canBuild = draftUsed <= draftBudget && karmaSpent <= karmaBudget && draftNuyenCost <= nuyenBudget;
 
   function build() {
@@ -108,10 +109,14 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
         Device Rating x3. Data Processing/Firewall still come from a separate cyberjack or cyberhack, same as a
         stock deck. Once built, a custom deck's Attack/Sleaze are locked to it and can't be reassigned in the
         Decker Persona section below (the book's own restriction). You can pay part or all of the cost in Karma
-        instead of nuyen (the DIY "Building Your Own" path, p.35) at 4,000¥ per Karma - the book's own extended
-        Matrix Search and Electronics tests that gate this in play aren't modeled, since at chargen the build
-        happens before play starts and how long it took doesn't matter. Cases and case mods aren't modeled - see
-        the Availability column below for reference only, it isn't enforced anywhere in this app.
+        instead of nuyen (the DIY "Building Your Own" path, p.35) at {nuyenPerKarma.toLocaleString()}¥ per Karma
+        {nuyenPerKarma > 4_000
+          ? " (5,000¥ instead of the usual 4,000¥, from the Deck Builder quality)"
+          : " (5,000¥ instead with the Deck Builder quality, Hack & Slash p.81)"}{" "}
+        - the book's own extended Matrix Search and Electronics tests that gate this in play aren't modeled, since
+        at chargen the build happens before play starts and how long it took doesn't matter. Cases and case mods
+        aren't modeled - see the Availability column below for reference only, it isn't enforced anywhere in this
+        app.
       </p>
 
       {owned.length > 0 && (
@@ -136,7 +141,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
                   {stats.karmaSpent > 0 && (
                     <p className="hint">
                       {stats.karmaSpent.toLocaleString()} Karma DIY-covered{" "}
-                      {(stats.karmaSpent * DIY_NUYEN_PER_KARMA).toLocaleString()}¥ of the{" "}
+                      {(stats.karmaSpent * nuyenPerKarma).toLocaleString()}¥ of the{" "}
                       {totalCost(stats).toLocaleString()}¥ total, {line.unitCost.toLocaleString()}¥ paid in nuyen
                     </p>
                   )}
@@ -204,7 +209,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
       </p>
 
       <label className="inline-field">
-        Karma spent DIY-building it ({DIY_NUYEN_PER_KARMA.toLocaleString()}¥ each)
+        Karma spent DIY-building it ({nuyenPerKarma.toLocaleString()}¥ each)
         <NumberStepper
           label="Karma spent DIY-building it"
           min={0}
@@ -219,7 +224,7 @@ export function CyberdeckBuilder({ data, onChange, extraKarmaSpent = 0, extraNuy
         {karmaSpent > 0 && (
           <>
             {" "}
-            - {karmaSpent.toLocaleString()} Karma covers {(karmaSpent * DIY_NUYEN_PER_KARMA).toLocaleString()}¥
+            - {karmaSpent.toLocaleString()} Karma covers {(karmaSpent * nuyenPerKarma).toLocaleString()}¥
           </>
         )}{" "}
         - {draftNuyenCost.toLocaleString()}¥ owed in nuyen ({nuyenBudget.toLocaleString()}¥ available, {karmaBudget.toLocaleString()}{" "}

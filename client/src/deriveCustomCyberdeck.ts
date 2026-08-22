@@ -13,10 +13,12 @@
 // build happens before play starts and the time those tests would take
 // doesn't matter - confirmed with the user rather than assumed - so this
 // app skips both rolls and just lets Karma substitute for nuyen at that
-// same 4,000:1 rate, blended across the whole deck rather than tracked
-// per-component (Core/Attack/Sleaze) the way RAW's extended tests would.
-// Scoped to the custom deck only, not the Cyberhack the book also allows
-// building this way - that stays a flat nuyen catalog purchase for now.
+// same 4,000:1 rate (5,000:1 with the Deck Builder quality - see
+// diyNuyenPerKarma() below), blended across the whole deck rather than
+// tracked per-component (Core/Attack/Sleaze) the way RAW's extended tests
+// would. Scoped to the custom deck only, not the Cyberhack the book also
+// allows building this way - that stays a flat nuyen catalog purchase for
+// now.
 //
 // Deliberately out of scope, same "no dice-rolling engine, no crafting
 // simulation" boundary as everywhere else in this app: the 7 case types
@@ -31,7 +33,7 @@
 // a chargen restriction for anyone (see
 // [[priority_power_level_variants]]/[[custom_deck]]), so
 // availabilityDisplay() below is reference text only, same treatment.
-import type { GearLine } from "./character";
+import type { CharacterData, GearLine } from "./character";
 
 export interface CustomCyberdeckStats {
   coreRating: number;
@@ -40,8 +42,10 @@ export interface CustomCyberdeckStats {
   extraProgramSlots: number;
 }
 
-/** Nuyen covered per Karma spent on the DIY build path (p.35, "each Karma you spend covers 4,000 nuyen of the component's cost"). */
-export const DIY_NUYEN_PER_KARMA = 4_000;
+/** Nuyen covered per Karma spent on the DIY build path (p.35, "each Karma you spend covers 4,000 nuyen of the component's cost") - 5,000 instead with the Deck Builder quality ("each point of Karma is worth 5,000 nuyen (instead of 4,000)," Hack & Slash p.81). */
+export function diyNuyenPerKarma(data: CharacterData): number {
+  return data.qualities.some((q) => q.id === "deck-builder") ? 5_000 : 4_000;
+}
 
 export const CORE_RATING_MIN = 1;
 export const CORE_RATING_MAX = 6;
@@ -99,13 +103,13 @@ export function totalCost(stats: CustomCyberdeckStats): number {
 }
 
 /** Nuyen still owed after `karmaSpent` Karma covered part of the build cost via the DIY path, floored at 0. */
-export function karmaFundedNuyenCost(cost: number, karmaSpent: number): number {
-  return Math.max(0, cost - karmaSpent * DIY_NUYEN_PER_KARMA);
+export function karmaFundedNuyenCost(cost: number, karmaSpent: number, nuyenPerKarma: number): number {
+  return Math.max(0, cost - karmaSpent * nuyenPerKarma);
 }
 
 /** The most Karma it's ever useful to spend on a given cost - beyond this, the nuyen owed is already 0. */
-export function maxUsefulKarma(cost: number): number {
-  return Math.ceil(cost / DIY_NUYEN_PER_KARMA);
+export function maxUsefulKarma(cost: number, nuyenPerKarma: number): number {
+  return Math.ceil(cost / nuyenPerKarma);
 }
 
 /** Sum of Karma spent DIY-building every owned custom cyberdeck - feeds into the shared Karma pool the same way spell/complex-form/Initiation Karma costs do (see tailSteps.tsx's extraKarmaSpent). */
