@@ -27,7 +27,17 @@
 // - Skill ranks cap at 6 (7 with Aptitude), not career mode's 9/10 -
 //   "During character creation, skills can be purchased up to rank 6...
 //   During gameplay, those skills can reach 9" (p.65). See
-//   deriveAdvancement.ts's chargenSkillMax().
+//   deriveAdvancement.ts's chargenSkillMax(). The book's next sentence,
+//   "Only one skill can be put at that maximum level," is enforced too, via
+//   chargenSkillEffectiveMax() - one skill total (summed across both this
+//   picker and Priority's skill-point-funded SkillsStep.tsx, since they
+//   share data.skills) may sit at its own max; every other skill's ceiling
+//   drops one rank once that slot is claimed. Chargen-only, confirmed the
+//   book never repeats the one-skill limit for career mode's 9/10 ceiling -
+//   Priority/Elite runners get more Karma and priority points, but neither
+//   sourcebook grants an exception to this specific line (core p.63 sidebar,
+//   Companion p.14 Elite section - checked both directly, neither mentions
+//   skill caps at all).
 // - Expertise is flatly unavailable at chargen: "you cannot acquire an
 //   expertise" (p.65, in the Priority Chart's own specialization rules,
 //   read here as a general chargen restriction, not Priority-specific).
@@ -43,7 +53,7 @@ import { useState } from "react";
 import type { AdvancementEntry, CharacterData, SpecializationEntry } from "../../../character";
 import type { PriorityRulesResponse } from "../../../rules";
 import { karmaRemaining } from "../../../deriveGear";
-import { CORE_ATTRIBUTE_KEYS, attributeAdvanceCost, attributeMax, chargenSkillMax, skillAdvanceCost } from "../../../deriveAdvancement";
+import { CORE_ATTRIBUTE_KEYS, attributeAdvanceCost, attributeMax, chargenSkillEffectiveMax, skillAdvanceCost } from "../../../deriveAdvancement";
 import {
   EXOTIC_WEAPONS_SKILL,
   SKILL_SPECIALIZATION_SUGGESTIONS,
@@ -104,7 +114,7 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
 
   function increaseSkill(name: string) {
     const current = data.skills[name] ?? 0;
-    const max = chargenSkillMax(data, name);
+    const max = chargenSkillEffectiveMax(data, name, data.skills);
     const next = current + 1;
     if (next > max) return;
     const cost = skillAdvanceCost(next);
@@ -227,14 +237,15 @@ export function SkillAdvancementPicker({ priorityRules, data, onChange, extraKar
         Customization Karma can also buy skill ranks and new specializations, at the same prices as post-creation
         Character Advancement (core p.66, 68-69): {skillAdvanceCost(1)} Karma per new rating (new rating x 5), or{" "}
         {SPECIALIZATION_KARMA_COST} Karma for a specialization. Skills cap at 6 at chargen (7 for the Aptitude
-        skill) - the higher 9/10 ceiling only opens up once play starts. Expertise can't be bought at chargen at
-        all ("you cannot acquire an expertise," p.65) - that has to wait for career mode.
+        skill), and only one skill total can sit at that maximum - the higher 9/10 ceiling, with no such
+        one-skill limit, only opens up once play starts. Expertise can't be bought at chargen at all ("you cannot
+        acquire an expertise," p.65) - that has to wait for career mode.
       </p>
 
       <div className="skill-editor">
         {priorityRules.skillList.map((skill) => {
           const current = data.skills[skill] ?? 0;
-          const max = chargenSkillMax(data, skill);
+          const max = chargenSkillEffectiveMax(data, skill, data.skills);
           const atMax = current >= max;
           const cost = skillAdvanceCost(current + 1);
           const afford = cost <= available;

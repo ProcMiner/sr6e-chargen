@@ -81,12 +81,32 @@ export function skillMax(data: CharacterData, skill: string): number {
  * post-creation ceiling - reusing skillMax() for a chargen-time Karma
  * purchase would let a rating-9 skill through before play has even
  * started. The book's further sentence ("Only one skill can be put at that
- * maximum level") isn't enforced here, matching this app's pre-existing
- * Priority Skills step (SkillsStep.tsx), which already lets every skill
- * independently reach 6 with no such cross-skill check - self-adjudicate
- * if you want to respect that stricter reading. See [[skill_karma_at_chargen]].
+ * maximum level") is enforced separately by chargenSkillEffectiveMax()
+ * below, since it's a cross-skill check this single-skill function has no
+ * way to make. See [[skill_karma_at_chargen]].
  */
 export function chargenSkillMax(data: CharacterData, skill: string): number {
   const hasAptitude = data.qualities.some((q) => q.id === "aptitude" && q.param === skill);
   return hasAptitude ? 7 : 6;
+}
+
+/**
+ * Enforces the rest of that same p.65 sentence: "Only one skill can be put
+ * at that maximum level (6 or 7)." One skill total (across both skill-point
+ * and Customization-Karma funding, since both write the same data.skills
+ * map) may sit at its own chargenSkillMax(); every other skill's effective
+ * ceiling drops one rank below its usual max once that single slot is
+ * claimed. Chargen-only - skillMax()'s post-creation 9/10 ceiling carries no
+ * such restriction, the book never repeats it for career mode.
+ */
+export function chargenSkillEffectiveMax(
+  data: CharacterData,
+  skill: string,
+  skills: Record<string, number>
+): number {
+  const ownMax = chargenSkillMax(data, skill);
+  const slotTaken = Object.entries(skills).some(
+    ([name, rank]) => name !== skill && rank >= chargenSkillMax(data, name)
+  );
+  return slotTaken ? ownMax - 1 : ownMax;
 }

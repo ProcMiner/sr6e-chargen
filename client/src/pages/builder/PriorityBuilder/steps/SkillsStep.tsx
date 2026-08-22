@@ -9,6 +9,7 @@ import {
 } from "../../../../deriveSpecializations";
 import { effectivePriorityLetter } from "../../../../derivePriorityVariant";
 import { skillPointsRemaining as computeSkillPointsRemaining } from "../../../../deriveAdjustmentPoints";
+import { chargenSkillEffectiveMax } from "../../../../deriveAdvancement";
 import { generateId } from "../../../../id";
 
 interface Props {
@@ -68,6 +69,10 @@ export function SkillsStep({ rules, data, onChange }: Props) {
         <h3>
           Skills ({skillPointsRemaining} / {skillRow.skillPoints} points remaining)
         </h3>
+        <p className="hint">
+          Skills cap at 6 at chargen (7 for the Aptitude skill), and only one skill total can sit at that maximum
+          - "Only one skill can be put at that maximum level" (core p. 65).
+        </p>
         <div className="skill-editor">
           {rules.skillList.map((skill) => (
             <label key={skill}>
@@ -75,7 +80,7 @@ export function SkillsStep({ rules, data, onChange }: Props) {
               <NumberStepper
                 label={skill}
                 min={0}
-                max={6}
+                max={chargenSkillEffectiveMax(data, skill, data.skills)}
                 value={data.skills[skill] ?? 0}
                 onChange={(next) => onChange({ ...data, skills: { ...data.skills, [skill]: next } })}
               />
