@@ -78,14 +78,34 @@ export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }
 
-/** 2,000 nuyen per Karma point normally, or 5,000 with the In Debt quality (core rulebook p.66, "in-debt" quality entry). */
-export function karmaToNuyenRate(data: CharacterData): number {
-  return data.qualities.some((q) => q.id === "in-debt") ? 5000 : 2000;
+/** Standard Karma-to-nuyen rate (core rulebook p.66, "Spend Customization Karma"). */
+export const STANDARD_KARMA_TO_NUYEN_RATE = 2000;
+/** In Debt quality's rate (core rulebook p.66, "in-debt" quality entry) - only applies to whatever portion of karmaSpentOnNuyen the player has routed through it via CharacterData.inDebtKarma; the rest still converts at the standard rate. */
+export const IN_DEBT_KARMA_TO_NUYEN_RATE = 5000;
+
+export function hasInDebtQuality(data: CharacterData): boolean {
+  return data.qualities.some((q) => q.id === "in-debt");
+}
+
+/**
+ * Portion of karmaSpentOnNuyen actually going through the In Debt quality's
+ * 5,000/point rate (and its attendant debt/interest, tracked narratively
+ * rather than mechanically - see the quality's effect text) rather than the
+ * standard 2,000/point rate. Player-chosen (GearPicker.tsx's second
+ * stepper), so taking the quality doesn't force every Karma-to-nuyen
+ * conversion through it. Clamped to karmaSpentOnNuyen and to 0 if the
+ * quality isn't actually selected.
+ */
+export function inDebtKarmaSpent(data: CharacterData): number {
+  if (!hasInDebtQuality(data)) return 0;
+  return Math.min(data.inDebtKarma ?? 0, data.karmaSpentOnNuyen ?? 0);
 }
 
 /** Nuyen gained from converting Karma at chargen - see CharacterData.karmaSpentOnNuyen. */
 export function nuyenFromKarmaConversion(data: CharacterData): number {
-  return (data.karmaSpentOnNuyen ?? 0) * karmaToNuyenRate(data);
+  const spent = data.karmaSpentOnNuyen ?? 0;
+  const inDebt = inDebtKarmaSpent(data);
+  return inDebt * IN_DEBT_KARMA_TO_NUYEN_RATE + (spent - inDebt) * STANDARD_KARMA_TO_NUYEN_RATE;
 }
 
 export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {

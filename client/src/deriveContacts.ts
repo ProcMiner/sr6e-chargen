@@ -10,6 +10,10 @@
 //   ratings are not limited by your Charisma attribute" (Companion p.31).
 //   Each rating caps at 8 instead. Customization Karma can optionally push a
 //   rating further, 1 Karma per point, but never above Charisma.
+// House rule (not RAW, see contactRatingCap below): an Elite (Life Path) or
+// Prime Runner (Priority) character isn't held to that starter-character
+// Charisma cap on individual ratings - they can push all the way to the
+// in-play cap (CONTACT_RATING_MAX) instead.
 import type { Contact, ContactAdvancementEntry } from "./character";
 import type { LifeModule } from "./rules";
 
@@ -70,6 +74,19 @@ function karmaFundedTotal(c: Contact): number {
 /** Priority/Point Buy contact point pool (core rulebook p.66-67). */
 export function priorityContactPointPool(charisma: number): number {
   return charisma * 6;
+}
+
+/**
+ * Highest a single Connection/Loyalty rating may reach at chargen. Standard
+ * play caps every rating at Charisma - Priority directly (core p.66-67),
+ * Life Path indirectly via its Karma-funded push (Companion p.31, "never
+ * above Charisma"). House rule: an Elite/Prime Runner character (see
+ * PrioritySystemState.powerLevel/LifepathSystemState.powerLevel) isn't held
+ * to that starter-character limitation and can push a rating all the way to
+ * the in-play cap instead.
+ */
+export function contactRatingCap(charisma: number, elevated: boolean): number {
+  return elevated ? CONTACT_RATING_MAX : charisma;
 }
 
 /**

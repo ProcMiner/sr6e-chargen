@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { CharacterData, Contact, KnowledgeSkillLine, LanguageLevel } from "../../../../character";
+import type { CharacterData, Contact, KnowledgeSkillLine, LanguageLevel, PrioritySystemState } from "../../../../character";
 import { LANGUAGE_LEVEL_NAMES } from "../../../../character";
 import type { PriorityRulesResponse } from "../../../../rules";
 import { NumberStepper } from "../../../../components/NumberStepper";
-import { contactsCostTotal, priorityContactPointPool, withRating } from "../../../../deriveContacts";
+import { contactRatingCap, contactsCostTotal, priorityContactPointPool, withRating } from "../../../../deriveContacts";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL, knowledgeSlotsSpent, priorityKnowledgeSlotPool } from "../../../../deriveKnowledge";
 import { generateId } from "../../../../id";
 
@@ -32,6 +32,8 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
   const contactPool = priorityContactPointPool(charisma);
   const contactPointsSpent = contactsCostTotal(contacts);
   const contactPointsRemaining = contactPool - contactPointsSpent;
+  const isPrimeRunner = (data.systemState as PrioritySystemState)?.powerLevel === "prime";
+  const ratingCap = contactRatingCap(charisma, isPrimeRunner);
 
   function updateContact(id: string, next: Contact) {
     onChange({ ...data, contacts: contacts.map((c) => (c.id === id ? next : c)) });
@@ -93,7 +95,10 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
         </h3>
         <p className="hint">
           Charisma x 6 points to spend on Connection + Loyalty across all your contacts (core rulebook
-          p.66-67). No single rating may exceed your Charisma ({charisma}).
+          p.66-67).{" "}
+          {isPrimeRunner
+            ? `As a Prime Runner, no single rating is limited by your Charisma - up to ${ratingCap} instead.`
+            : `No single rating may exceed your Charisma (${charisma}).`}
         </p>
         {contacts.length > 0 && (
           <ul className="module-slots">
@@ -112,7 +117,7 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
                       <NumberStepper
                         label={`${c.name} Connection`}
                         min={1}
-                        max={Math.min(charisma, c.connection + contactPointsRemaining)}
+                        max={Math.min(ratingCap, c.connection + contactPointsRemaining)}
                         value={c.connection}
                         onChange={(next) => updateContact(c.id, withRating(c, "connection", next))}
                       />
@@ -122,7 +127,7 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
                       <NumberStepper
                         label={`${c.name} Loyalty`}
                         min={1}
-                        max={Math.min(charisma, c.loyalty + contactPointsRemaining)}
+                        max={Math.min(ratingCap, c.loyalty + contactPointsRemaining)}
                         value={c.loyalty}
                         onChange={(next) => updateContact(c.id, withRating(c, "loyalty", next))}
                       />

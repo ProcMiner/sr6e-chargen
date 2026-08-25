@@ -10,12 +10,15 @@ import {
   gearUnitBondingKarma,
   gearUnitCost,
   gearUnitEssenceCost,
+  hasInDebtQuality,
+  inDebtKarmaSpent,
+  IN_DEBT_KARMA_TO_NUYEN_RATE,
   isWeapon,
   karmaRemaining,
-  karmaToNuyenRate,
   nuyenFromKarmaConversion,
   nuyenRemaining,
   ratingFor,
+  STANDARD_KARMA_TO_NUYEN_RATE,
 } from "../../../deriveGear";
 import { resolveGearModifiers } from "../../../deriveModifiers";
 import { NumberStepper } from "../../../components/NumberStepper";
@@ -46,12 +49,21 @@ export function GearPicker({
   const remaining = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
   const karmaSpentOnNuyen = data.karmaSpentOnNuyen ?? 0;
-  const rate = karmaToNuyenRate(data);
+  const isInDebt = hasInDebtQuality(data);
+  const inDebtKarma = inDebtKarmaSpent(data);
   // Ceiling on the stepper if it were set back to 0 - what's already converted plus whatever's still free to spend.
   const maxKarmaConvertible = karmaBudget + karmaSpentOnNuyen;
 
   function setKarmaSpentOnNuyen(next: number) {
-    onChange({ ...data, karmaSpentOnNuyen: next });
+    onChange({
+      ...data,
+      karmaSpentOnNuyen: next,
+      ...(inDebtKarma > next ? { inDebtKarma: next } : {}),
+    });
+  }
+
+  function setInDebtKarma(next: number) {
+    onChange({ ...data, inDebtKarma: next });
   }
 
   const [search, setSearch] = useState("");
@@ -308,19 +320,35 @@ export function GearPicker({
       </p>
 
       {!allowFree && (
-        <label className="inline-field">
-          Convert Karma to nuyen
-          <NumberStepper
-            label="Karma converted to nuyen"
-            min={0}
-            max={maxKarmaConvertible}
-            value={karmaSpentOnNuyen}
-            onChange={setKarmaSpentOnNuyen}
-          />
-          <span className="hint">
-            {rate.toLocaleString()}¥ per Karma point{rate === 5000 ? " (In Debt)" : ""} - core rulebook p.66
-          </span>
-        </label>
+        <>
+          <label className="inline-field">
+            Convert Karma to nuyen
+            <NumberStepper
+              label="Karma converted to nuyen"
+              min={0}
+              max={maxKarmaConvertible}
+              value={karmaSpentOnNuyen}
+              onChange={setKarmaSpentOnNuyen}
+            />
+            <span className="hint">{STANDARD_KARMA_TO_NUYEN_RATE.toLocaleString()}¥ per Karma point - core rulebook p.66</span>
+          </label>
+          {isInDebt && karmaSpentOnNuyen > 0 && (
+            <label className="inline-field">
+              ...of that, via In Debt
+              <NumberStepper
+                label="Karma converted to nuyen via In Debt"
+                min={0}
+                max={karmaSpentOnNuyen}
+                value={inDebtKarma}
+                onChange={setInDebtKarma}
+              />
+              <span className="hint">
+                {IN_DEBT_KARMA_TO_NUYEN_RATE.toLocaleString()}¥ per Karma point instead, but adds debt + monthly
+                interest (In Debt quality) - the rest above still converts at the standard rate
+              </span>
+            </label>
+          )}
+        </>
       )}
 
       {weaponLines.length > 0 && (

@@ -78,7 +78,17 @@ interface Props {
   adeptPowerRules: AdeptPowerRulesResponse;
   complexFormRules: ComplexFormRulesResponse;
   gearRules: GearRulesResponse;
+  /** Enables the editable Personal Information fields below - omit to render this panel read-only (e.g. a future non-owner view). */
+  onChange?: (data: CharacterData) => void;
 }
+
+const PERSONAL_INFO_FIELDS: [keyof NonNullable<CharacterData["personalInfo"]>, string, string][] = [
+  ["realName", "Name", "Character's real name"],
+  ["sex", "Sex", "e.g. Female, Male, Metagender"],
+  ["age", "Age", "e.g. 27"],
+  ["height", "Height", "e.g. 5'10\" or 178 cm"],
+  ["weight", "Weight", "e.g. 154 lbs or 70 kg"],
+];
 
 export function SummarySheet({
   data,
@@ -89,6 +99,7 @@ export function SummarySheet({
   adeptPowerRules,
   complexFormRules,
   gearRules,
+  onChange,
 }: Props) {
   const spellKarma = spellKarmaCost(data, priorityRules);
   const spellsFree = freeSpellAllotment(data, priorityRules);
@@ -146,6 +157,10 @@ export function SummarySheet({
   const nuyenRemainingValue = nuyenRemaining(data, lifestyleSpend);
   const nuyenTotal = data.nuyen;
 
+  function updatePersonalInfo(field: keyof NonNullable<CharacterData["personalInfo"]>, value: string) {
+    onChange?.({ ...data, personalInfo: { ...data.personalInfo, [field]: value } });
+  }
+
   return (
     <div className="summary-sheet">
       <h2>Summary</h2>
@@ -155,6 +170,35 @@ export function SummarySheet({
           {selectedMetavariant ? ` (${selectedMetavariant.name})` : ""}
         </p>
       )}
+
+      <section>
+        <h3 className="rules-kicker">Personal Information</h3>
+        <p className="hint">
+          Sex, Age, Height, and Weight for the character sheet's Personal Data box - not used in any
+          calculation.
+        </p>
+        {onChange ? (
+          PERSONAL_INFO_FIELDS.map(([field, label, placeholder]) => (
+            <label key={field} className="inline-field">
+              {label}
+              <input
+                type="text"
+                placeholder={placeholder}
+                value={data.personalInfo?.[field] ?? ""}
+                onChange={(e) => updatePersonalInfo(field, e.target.value)}
+              />
+            </label>
+          ))
+        ) : (
+          <ul>
+            {PERSONAL_INFO_FIELDS.filter(([field]) => data.personalInfo?.[field]).map(([field, label]) => (
+              <li key={field}>
+                {label}: {data.personalInfo?.[field]}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section>
         <h3 className="rules-kicker">Budgets</h3>

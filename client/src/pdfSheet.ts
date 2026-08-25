@@ -154,6 +154,12 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   draw(page, ctx, karmaSpendable, 50, 171, 8);
   draw(page, ctx, data.karma, 190, 171, 8);
   draw(page, ctx, essence.toFixed(2).replace(/\.?0+$/, ""), 292, 171, 8);
+  // Biographical fields (personalInfo) - "Name" here is the real name, distinct from the street Alias above.
+  draw(page, ctx, data.personalInfo?.realName, 210, 123, 8);
+  draw(page, ctx, data.personalInfo?.sex, 42, 147, 8);
+  draw(page, ctx, data.personalInfo?.age, 43, 159, 8);
+  draw(page, ctx, data.personalInfo?.height, 212, 147, 8);
+  draw(page, ctx, data.personalInfo?.weight, 289, 147, 8);
 
   // --- Attributes (left column, Rtg only - no universal "Pool" formula for a raw attribute alone) ---
   // Values are the character's *effective* (augmented) attributes - see derive.ts's effectiveAttributes.

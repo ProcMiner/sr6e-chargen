@@ -168,6 +168,7 @@ export function getSharedTailSteps({
           adeptPowerRules={adeptPowerRules}
           complexFormRules={complexFormRules}
           gearRules={gearRules}
+          onChange={onChange}
         />
       ),
     },

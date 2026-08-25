@@ -234,6 +234,7 @@ export function BuilderRoot() {
             adeptPowerRules={adeptPowerRules}
             complexFormRules={complexFormRules}
             gearRules={gearRules}
+            onChange={setData}
           />
         </aside>
       </div>

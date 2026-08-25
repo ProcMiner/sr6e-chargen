@@ -439,12 +439,22 @@ export interface CharacterData {
   /**
    * Karma converted to nuyen during character creation's "Finishing
    * Touches" step (core rulebook p.66, "Spend Customization Karma") -
-   * 2,000 nuyen per Karma point, or 5,000 with the In Debt quality. See
-   * deriveGear.ts's karmaToNuyenRate/nuyenFromKarmaConversion. Chargen-only
-   * (undefined/0 once in play) - the Companion's optional downtime
-   * "Working for the Man" variant of this exchange isn't modeled.
+   * 2,000 nuyen per Karma point standard rate. See deriveGear.ts's
+   * nuyenFromKarmaConversion. Chargen-only (undefined/0 once in play) - the
+   * Companion's optional downtime "Working for the Man" variant of this
+   * exchange isn't modeled.
    */
   karmaSpentOnNuyen?: number;
+  /**
+   * Portion of karmaSpentOnNuyen converted at the In Debt quality's 5,000/
+   * point rate instead of the standard 2,000/point rate (core rulebook
+   * p.66's "in-debt" quality entry) - a player choice, not automatic just
+   * from having the quality, so taking In Debt doesn't force every
+   * Karma-to-nuyen conversion through it. See deriveGear.ts's
+   * inDebtKarmaSpent. Meaningless without the "in-debt" quality selected;
+   * clamped to karmaSpentOnNuyen.
+   */
+  inDebtKarma?: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
   /** Itemized post-creation Knowledge/Language purchase log - see KnowledgePurchaseEntry. Empty/undefined for a character still in chargen. */
@@ -487,6 +497,22 @@ export interface CharacterData {
    */
   astralReputation?: number;
   notes?: string;
+  /**
+   * The character sheet's "Personal Data" box biographical fields (Sex, Age,
+   * Height, Weight, and the character's real Name as distinct from their
+   * street Alias) - editable from Final Calculations (SummarySheet.tsx) and
+   * drawn onto the PDF export (pdfSheet.ts). Purely descriptive, never used
+   * in any derived calculation. All free text (e.g. Age "mid-20s", Weight
+   * "70 kg") rather than typed numbers, since the character sheet template
+   * itself doesn't constrain the format.
+   */
+  personalInfo?: {
+    realName?: string;
+    sex?: string;
+    age?: string;
+    height?: string;
+    weight?: string;
+  };
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }
 
