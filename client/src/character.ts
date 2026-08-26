@@ -449,13 +449,31 @@ export interface CharacterData {
   karma: number;
   /**
    * Karma converted to nuyen during character creation's "Finishing
-   * Touches" step (core rulebook p.66, "Spend Customization Karma") -
-   * 2,000 nuyen per Karma point, or 5,000 with the In Debt quality. See
-   * deriveGear.ts's karmaToNuyenRate/nuyenFromKarmaConversion. Chargen-only
-   * (undefined/0 once in play) - the Companion's optional downtime
-   * "Working for the Man" variant of this exchange isn't modeled.
+   * Touches" step (core rulebook p.66, "Spend Customization Karma") at the
+   * normal rate of 2,000 nuyen per Karma point. See deriveGear.ts's
+   * nuyenFromKarmaConversion. Chargen-only (undefined/0 once in play) - the
+   * Companion's optional downtime "Working for the Man" variant of this
+   * exchange isn't modeled.
+   *
+   * Kept separate from karmaSpentOnNuyenInDebt below (house rule) so an
+   * In Debt character can still convert some Karma at the normal rate/no
+   * debt, rather than the quality forcing every point of this exchange
+   * into the boosted-but-indebted rate.
    */
   karmaSpentOnNuyen?: number;
+  /**
+   * Karma converted to nuyen at the In Debt quality's boosted rate - 5,000
+   * nuyen per Karma point, plus 5,000 nuyen of debt and 500 nuyen/month
+   * interest per point (core rulebook p.66, "in-debt" quality entry). Only
+   * meaningful/spendable when the character owns the "in-debt" quality -
+   * see deriveGear.ts's nuyenFromKarmaConversion/inDebtPrincipal/
+   * inDebtMonthlyInterest. House rule: a separate pool from
+   * karmaSpentOnNuyen above (the un-indebted normal-rate conversion) so a
+   * player chooses how much of their Karma-to-nuyen exchange to run through
+   * the debt-creating rate, rather than the quality applying to the whole
+   * pool automatically. Chargen-only, same as karmaSpentOnNuyen.
+   */
+  karmaSpentOnNuyenInDebt?: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
   /** Itemized post-creation Knowledge/Language purchase log - see KnowledgePurchaseEntry. Empty/undefined for a character still in chargen. */

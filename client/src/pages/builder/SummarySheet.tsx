@@ -516,19 +516,22 @@ export function SummarySheet({
       <section>
         <h3>Resources</h3>
         <p>{data.nuyen.toLocaleString()}¥ earned</p>
-        {(data.karmaSpentOnNuyen ?? 0) > 0 && (
+        {nuyenFromKarmaConversion(data) > 0 && (
           <p>{nuyenFromKarmaConversion(data).toLocaleString()}¥ from converting Karma</p>
         )}
         <p>{gearCostTotal(data.gear).toLocaleString()}¥ spent on gear</p>
         {lifestyleSpend > 0 && <p>{lifestyleSpend.toLocaleString()}¥ spent on lifestyle</p>}
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
-        {(data.karmaSpentOnNuyen ?? 0) > 0 && (
-          <p>{(data.karmaSpentOnNuyen ?? 0).toLocaleString()} Karma converted to nuyen</p>
+        {(data.karmaSpentOnNuyen ?? 0) + (data.karmaSpentOnNuyenInDebt ?? 0) > 0 && (
+          <p>
+            {((data.karmaSpentOnNuyen ?? 0) + (data.karmaSpentOnNuyenInDebt ?? 0)).toLocaleString()} Karma converted
+            to nuyen
+          </p>
         )}
         {inDebtPrincipal(data) > 0 && (
           <p>
             {inDebtPrincipal(data).toLocaleString()}¥ owed ({inDebtMonthlyInterest(data).toLocaleString()}¥/month
-            interest) from converting Karma while In Debt
+            interest) from converting Karma at the In Debt rate
           </p>
         )}
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>

@@ -27,7 +27,14 @@
 // (CharacterData.karmaSpentOnNuyen) rather than by mutating `data.nuyen`
 // directly, matching every other Karma spend's convention - both
 // nuyenRemaining and karmaRemaining fold it in automatically, so callers
-// never need to know it exists.
+// never need to know it exists. The In Debt quality gets its own separate
+// pool (karmaSpentOnNuyenInDebt) at its own boosted rate - a house rule so
+// an In Debt character can still run some Karma through the normal,
+// debt-free rate instead of the quality forcing all of it through the
+// boosted-but-indebted one. This is independent of the Deck Builder
+// quality's DIY-custom-cyberdeck Karma rate (see deriveCustomCyberdeck.ts's
+// diyNuyenPerKarma) - that's its own device-scoped field entirely, never
+// touches karmaSpentOnNuyen or karmaSpentOnNuyenInDebt.
 import type { CharacterData, GearLine } from "./character";
 import type { GearCatalogEntry } from "./rules";
 
@@ -78,32 +85,45 @@ export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }
 
-/** 2,000 nuyen per Karma point normally, or 5,000 with the In Debt quality (core rulebook p.66, "in-debt" quality entry). */
-export function karmaToNuyenRate(data: CharacterData): number {
-  return data.qualities.some((q) => q.id === "in-debt") ? 5000 : 2000;
+/** Normal Karma-to-nuyen conversion rate (core rulebook p.66, "Spend Customization Karma") - always 2,000¥/point, regardless of qualities. See karmaSpentOnNuyenInDebt below for the In Debt quality's separate, boosted-rate pool. */
+export const KARMA_TO_NUYEN_RATE = 2000;
+
+/** The In Debt quality's boosted Karma-to-nuyen rate (core rulebook p.66, "in-debt" quality entry) - 5,000¥/point instead of 2,000¥, but see inDebtPrincipal/inDebtMonthlyInterest for the debt that comes with it. */
+export const IN_DEBT_KARMA_TO_NUYEN_RATE = 5000;
+
+export function hasInDebtQuality(data: CharacterData): boolean {
+  return data.qualities.some((q) => q.id === "in-debt");
 }
 
-/** Nuyen gained from converting Karma at chargen - see CharacterData.karmaSpentOnNuyen. */
+/**
+ * Nuyen gained from converting Karma at chargen - the normal-rate pool
+ * (CharacterData.karmaSpentOnNuyen) always counts; the In Debt-rate pool
+ * (karmaSpentOnNuyenInDebt) only counts while the character still owns the
+ * "in-debt" quality, since that rate/debt is what the quality grants.
+ */
 export function nuyenFromKarmaConversion(data: CharacterData): number {
-  return (data.karmaSpentOnNuyen ?? 0) * karmaToNuyenRate(data);
+  const normal = (data.karmaSpentOnNuyen ?? 0) * KARMA_TO_NUYEN_RATE;
+  const inDebt = hasInDebtQuality(data) ? (data.karmaSpentOnNuyenInDebt ?? 0) * IN_DEBT_KARMA_TO_NUYEN_RATE : 0;
+  return normal + inDebt;
 }
 
 /**
  * The In Debt quality's other half (core rulebook p.66, "in-debt" quality
- * entry): each Karma point converted to nuyen "also adds 5,000 nuyen of
- * debt plus a 500 nuyen/Karma-spent monthly interest payment." Reference
- * numbers only, same as Lifestyle's monthly cost - this app doesn't
- * simulate a calendar of payments, just surfaces what's owed so the
- * player/GM can track it.
+ * entry): each Karma point converted at the boosted rate "also adds 5,000
+ * nuyen of debt plus a 500 nuyen/Karma-spent monthly interest payment."
+ * Driven only by karmaSpentOnNuyenInDebt - the normal-rate pool never
+ * creates debt. Reference numbers only, same as Lifestyle's monthly cost -
+ * this app doesn't simulate a calendar of payments, just surfaces what's
+ * owed so the player/GM can track it.
  */
 export function inDebtPrincipal(data: CharacterData): number {
-  if (!data.qualities.some((q) => q.id === "in-debt")) return 0;
-  return (data.karmaSpentOnNuyen ?? 0) * 5000;
+  if (!hasInDebtQuality(data)) return 0;
+  return (data.karmaSpentOnNuyenInDebt ?? 0) * 5000;
 }
 
 export function inDebtMonthlyInterest(data: CharacterData): number {
-  if (!data.qualities.some((q) => q.id === "in-debt")) return 0;
-  return (data.karmaSpentOnNuyen ?? 0) * 500;
+  if (!hasInDebtQuality(data)) return 0;
+  return (data.karmaSpentOnNuyenInDebt ?? 0) * 500;
 }
 
 export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {
@@ -115,7 +135,13 @@ export function gearBondingKarmaTotal(gear: GearLine[]): number {
 }
 
 export function karmaRemaining(data: CharacterData, extraKarmaSpent = 0): number {
-  return data.karma - gearBondingKarmaTotal(data.gear) - (data.karmaSpentOnNuyen ?? 0) - extraKarmaSpent;
+  return (
+    data.karma -
+    gearBondingKarmaTotal(data.gear) -
+    (data.karmaSpentOnNuyen ?? 0) -
+    (data.karmaSpentOnNuyenInDebt ?? 0) -
+    extraKarmaSpent
+  );
 }
 
 export function ratingFor(entry: GearCatalogEntry, rating: number | undefined): number {

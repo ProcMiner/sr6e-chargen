@@ -2,16 +2,36 @@
 // The two build systems fund contacts very differently:
 // - Priority/Point Buy: a flat pool of Charisma x 6 points, spent on
 //   Connection + Loyalty across every contact, with each individual rating
-//   capped at Charisma. No hard cap on the number of contacts - it falls out
-//   of the pool size (a new contact costs 2 points minimum).
+//   capped at Charisma (house rule: this per-rating Charisma cap is lifted
+//   for Prime Runner characters - see isPrimeOrElite below). No hard cap on
+//   the number of contacts - it falls out of the pool size (a new contact
+//   costs 2 points minimum).
 // - Life Path: contact points come entirely from selected life modules
 //   (LifeModule.contactPoints) plus Coming of Age's fixed 4 points: "your
 //   Charisma does not provide you with contact points, and your contacts'
 //   ratings are not limited by your Charisma attribute" (Companion p.31).
 //   Each rating caps at 8 instead. Customization Karma can optionally push a
-//   rating further, 1 Karma per point, but never above Charisma.
-import type { Contact, ContactAdvancementEntry } from "./character";
+//   rating further, 1 Karma per point, but never above Charisma (house rule:
+//   that Charisma ceiling is lifted for Elite characters).
+import type { CharacterData, Contact, ContactAdvancementEntry } from "./character";
 import type { LifeModule } from "./rules";
+
+/**
+ * House rule: Prime Runner (Priority) and Elite (Life Path) characters
+ * aren't capped at Charisma for an individual contact's Connection/Loyalty
+ * rating - confirmed with the user, not RAW (the book caps every character
+ * at Charisma regardless of power level). Only removes the per-rating
+ * ceiling; the underlying point pools/costs are untouched. Same
+ * `data.systemState` read as derivePriorityVariant.ts's startingKarma() -
+ * cast to a loose shape rather than either system's own type, since
+ * PrioritySystemState's powerLevel ("street"|"prime") and
+ * LifepathSystemState's ("elite") don't overlap and only one is ever
+ * actually present on a given character.
+ */
+export function isPrimeOrElite(data: CharacterData): boolean {
+  const powerLevel = (data.systemState as { powerLevel?: string })?.powerLevel;
+  return powerLevel === "prime" || powerLevel === "elite";
+}
 
 // Post-chargen ("career mode") Contact improvement: 1 Karma per point of
 // Connection or Loyalty, reusing the same rate this app's Life Path build
@@ -124,7 +144,7 @@ export function withRating(contact: Contact, field: "connection" | "loyalty", va
   return { ...contact, [field]: value, karmaFunded: { ...karmaFunded, [field]: value } };
 }
 
-/** Adds 1 Karma-funded point to a contact's rating - caller is responsible for checking the rating is below Charisma and the Karma budget allows it (Companion p.31). */
+/** Adds 1 Karma-funded point to a contact's rating - caller is responsible for checking the Karma budget allows it, and (unless isPrimeOrElite) that the rating is below Charisma (Companion p.31). */
 export function withKarmaFundedPoint(contact: Contact, field: "connection" | "loyalty"): Contact {
   const karmaFunded = contact.karmaFunded ?? { connection: 0, loyalty: 0 };
   return {
