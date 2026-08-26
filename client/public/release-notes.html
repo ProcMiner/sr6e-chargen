@@ -217,6 +217,10 @@
         <div><div class="entry-title">In Debt's debt wasn't shown anywhere</div>
         <div class="entry-body">Converting Karma to nuyen already paid out at the correct 5,000¥/point rate with the In Debt quality, but the quality's other half - the 5,000¥ debt and 500¥/month interest that conversion is supposed to also saddle you with - was never surfaced, so a converted character looked like it got the upside with none of the downside. Both now show next to the Karma-to-nuyen control in Buy Gear and in the Builder summary, as reference numbers you track yourself (same treatment as Lifestyle's monthly cost - no calendar simulation).</div></div>
       </li>
+      <li class="entry"><span class="entry-tag"><span class="tag tag-fix">Fix</span></span>
+        <div><div class="entry-title">Decker Persona pool could silently lose a device's value</div>
+        <div class="entry-body">A custom cyberdeck's locked Attack/Sleaze aren't part of the freely-assignable Data Processing/Firewall pool, but the code computing each dropdown's remaining options didn't know that - it subtracted the locked values from the shared pool the same as any other assignment. Harmless most of the time, but if the locked Attack/Sleaze number happened to match a number your cyberjack or commlink also prints (e.g. a custom deck built at 8/8 alongside a Rating 6 cyberjack's 9/8), that legitimate device value vanished from every other dropdown - reported by a player who built exactly that combination and found Firewall stuck offering only 0/3/1, never the cyberjack's 8. Fixed by having the pool math skip the locked slots entirely instead of subtracting their values.</div></div>
+      </li>
     </ul>
   </div>
 

@@ -107,15 +107,16 @@ export function resolveDeckerAllocation(devices: MatrixDevice[], allocation: Dec
   return { ...allocation, attack: locked.attack, sleaze: locked.sleaze };
 }
 
-/** Values still available for a given slot: the full pool minus whatever's already assigned to every OTHER slot (so each physical number is only ever used once). Pass the slot being edited as `excludeKey` so its own current value doesn't count against itself. */
+/** Values still available for a given slot: the full pool minus whatever's already assigned to every OTHER poolable slot (so each physical number is only ever used once). Pass the slot being edited as `excludeKey` so its own current value doesn't count against itself. A custom cyberdeck's locked Attack/Sleaze (see resolveDeckerAllocation) live in the same allocation object but were never drawn from `available` - if a locked value happens to numerically match a real pool entry (e.g. a custom deck's Attack 8 and a cyberjack's Firewall 8), subtracting it here would wrongly remove that unrelated device's legitimate value. Pass `lockedKeys` (attack/sleaze, when a custom cyberdeck is owned) so those get skipped instead of subtracted. */
 export function remainingMatrixValues(
   available: number[],
   allocation: DeckerPersonaAllocation,
-  excludeKey: MatrixAttributeKey
+  excludeKey: MatrixAttributeKey,
+  lockedKeys: ReadonlySet<MatrixAttributeKey> = new Set()
 ): number[] {
   const pool = [...available];
   for (const key of MATRIX_ATTRIBUTE_KEYS) {
-    if (key === excludeKey) continue;
+    if (key === excludeKey || lockedKeys.has(key)) continue;
     const used = allocation[key];
     if (used === undefined) continue;
     const idx = pool.indexOf(used);
