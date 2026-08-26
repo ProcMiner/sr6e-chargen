@@ -88,6 +88,24 @@ export function nuyenFromKarmaConversion(data: CharacterData): number {
   return (data.karmaSpentOnNuyen ?? 0) * karmaToNuyenRate(data);
 }
 
+/**
+ * The In Debt quality's other half (core rulebook p.66, "in-debt" quality
+ * entry): each Karma point converted to nuyen "also adds 5,000 nuyen of
+ * debt plus a 500 nuyen/Karma-spent monthly interest payment." Reference
+ * numbers only, same as Lifestyle's monthly cost - this app doesn't
+ * simulate a calendar of payments, just surfaces what's owed so the
+ * player/GM can track it.
+ */
+export function inDebtPrincipal(data: CharacterData): number {
+  if (!data.qualities.some((q) => q.id === "in-debt")) return 0;
+  return (data.karmaSpentOnNuyen ?? 0) * 5000;
+}
+
+export function inDebtMonthlyInterest(data: CharacterData): number {
+  if (!data.qualities.some((q) => q.id === "in-debt")) return 0;
+  return (data.karmaSpentOnNuyen ?? 0) * 500;
+}
+
 export function nuyenRemaining(data: CharacterData, extraNuyenSpent = 0): number {
   return data.nuyen + nuyenFromKarmaConversion(data) - gearCostTotal(data.gear) - extraNuyenSpent;
 }

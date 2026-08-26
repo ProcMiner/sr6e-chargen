@@ -151,6 +151,10 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   const magicOrResonance =
     magicEffective > 0 ? `Magic ${magicEffective}` : resonanceEffective > 0 ? `Resonance ${resonanceEffective}` : "";
   draw(page, ctx, magicOrResonance, 248, 135, 8);
+  draw(page, ctx, data.sex, 45, 145, 8);
+  draw(page, ctx, data.height, 213, 145, 8);
+  draw(page, ctx, data.weight, 300, 145, 8);
+  draw(page, ctx, data.age, 45, 157, 8);
   draw(page, ctx, karmaSpendable, 50, 171, 8);
   draw(page, ctx, data.karma, 190, 171, 8);
   draw(page, ctx, essence.toFixed(2).replace(/\.?0+$/, ""), 292, 171, 8);

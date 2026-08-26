@@ -10,6 +10,8 @@ import {
   gearUnitBondingKarma,
   gearUnitCost,
   gearUnitEssenceCost,
+  inDebtMonthlyInterest,
+  inDebtPrincipal,
   isWeapon,
   karmaRemaining,
   karmaToNuyenRate,
@@ -321,6 +323,12 @@ export function GearPicker({
             {rate.toLocaleString()}¥ per Karma point{rate === 5000 ? " (In Debt)" : ""} - core rulebook p.66
           </span>
         </label>
+      )}
+      {!allowFree && inDebtPrincipal(data) > 0 && (
+        <p className="hint">
+          {inDebtPrincipal(data).toLocaleString()}¥ owed, {inDebtMonthlyInterest(data).toLocaleString()}¥/month
+          interest - from converting Karma while In Debt
+        </p>
       )}
 
       {weaponLines.length > 0 && (

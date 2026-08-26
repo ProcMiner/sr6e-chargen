@@ -381,6 +381,17 @@ export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
   metavariant?: string;
+  /**
+   * Free-text physical description fields from the character sheet's
+   * "Personal Data" box (core rulebook chargen worksheet) - Sex, Age,
+   * Height, Weight. Purely descriptive, player-chosen, no formula or
+   * mechanical effect - see pdfSheet.ts's drawPage1 for where these land
+   * on the printed sheet.
+   */
+  sex?: string;
+  age?: string;
+  height?: string;
+  weight?: string;
   attributes: Attributes;
   skills: Record<string, number>;
   /** Skill specializations/expertise - see SkillSpecialization. One skill-point-worth each at chargen (Priority: one per skill; Life Path: one total for the whole character - the two systems genuinely differ here, confirmed from both books), or 5 Karma each post-creation. */

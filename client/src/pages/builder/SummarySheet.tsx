@@ -9,6 +9,8 @@ import {
   gearBondingKarmaTotal,
   gearCostTotal,
   gearLineKey,
+  inDebtMonthlyInterest,
+  inDebtPrincipal,
   isWeapon,
   karmaRemaining,
   nuyenFromKarmaConversion,
@@ -522,6 +524,12 @@ export function SummarySheet({
         <p>{gearBondingKarmaTotal(data.gear).toLocaleString()} Karma spent bonding foci</p>
         {(data.karmaSpentOnNuyen ?? 0) > 0 && (
           <p>{(data.karmaSpentOnNuyen ?? 0).toLocaleString()} Karma converted to nuyen</p>
+        )}
+        {inDebtPrincipal(data) > 0 && (
+          <p>
+            {inDebtPrincipal(data).toLocaleString()}¥ owed ({inDebtMonthlyInterest(data).toLocaleString()}¥/month
+            interest) from converting Karma while In Debt
+          </p>
         )}
         <p>{spellKarma.toLocaleString()} Karma spent on spells</p>
         {complexFormKarma > 0 && <p>{complexFormKarma.toLocaleString()} Karma spent on complex forms</p>}

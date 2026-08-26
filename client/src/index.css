@@ -312,6 +312,18 @@ a {
   color: var(--text-dim);
 }
 
+.personal-data-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: -0.75rem 0 1.5rem;
+  color: var(--text-dim);
+}
+
+.personal-data-fields input {
+  width: 6rem;
+}
+
 .auth-page {
   max-width: 360px;
   margin: 4rem auto;
