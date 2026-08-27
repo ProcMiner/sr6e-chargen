@@ -50,6 +50,25 @@ export interface MatrixDevice {
    * excluded from the Matrix Condition Monitor bar/reference list.
    */
   hasConditionMonitor: boolean;
+  /** Which of the two named pairs `values` holds - a cyberdeck/custom deck prints Attack/Sleaze ("AS"), a commlink/cyberjack/cyberhack prints Data Processing/Firewall ("DF"). Lets a caller that needs the *named* attributes (not just the poolable pair) pick the right accessor below instead of guessing from context. */
+  kind: "AS" | "DF";
+}
+
+/** This device's Attack value, if it's an AS-kind device (undefined for a DF device like a commlink/cyberjack). */
+export function deviceAttack(d: MatrixDevice): number | undefined {
+  return d.kind === "AS" ? d.values[0] : undefined;
+}
+/** This device's Sleaze value, if it's an AS-kind device. */
+export function deviceSleaze(d: MatrixDevice): number | undefined {
+  return d.kind === "AS" ? d.values[1] : undefined;
+}
+/** This device's Data Processing value, if it's a DF-kind device (undefined for an AS device like a cyberdeck). */
+export function deviceDataProcessing(d: MatrixDevice): number | undefined {
+  return d.kind === "DF" ? d.values[0] : undefined;
+}
+/** This device's Firewall value, if it's a DF-kind device. */
+export function deviceFirewall(d: MatrixDevice): number | undefined {
+  return d.kind === "DF" ? d.values[1] : undefined;
 }
 
 function parsePair(raw: string | undefined): number[] {
@@ -79,6 +98,7 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
         vrInitBonus: 0,
         locked: true,
         hasConditionMonitor: true,
+        kind: "AS",
       });
       continue;
     }
@@ -92,6 +112,7 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
       values: pair,
       vrInitBonus: parseBonus(entry.stats?.["VR Matrix Init Dice"]),
       hasConditionMonitor: entry.stats?.deviceRating !== undefined,
+      kind: asPair.length ? "AS" : "DF",
     });
   }
   return devices;

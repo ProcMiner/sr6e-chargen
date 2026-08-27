@@ -34,6 +34,19 @@ import { lifestyleCostTotal } from "./deriveLifestyle";
 import { metavariantKarmaCost, combinedRacialQualities, findMetavariant } from "./deriveMetavariant";
 import { combineQualityCatalog, qualityDisplayName } from "./deriveQualities";
 import { livingPersonaAttribute } from "./deriveLivingPersona";
+import {
+  deckerAllocation,
+  deckerAttackRating,
+  deckerAttribute,
+  deckerDefenseRating,
+  deviceAttack,
+  deviceDataProcessing,
+  deviceFirewall,
+  deviceSleaze,
+  matrixDevices as computeMatrixDevices,
+  resolveDeckerAllocation,
+} from "./deriveDeckerPersona";
+import { activeProgramSlots as customDeckActiveProgramSlots } from "./deriveCustomCyberdeck";
 import { initiationKarmaTotal } from "./deriveInitiation";
 import { customCyberdeckKarmaTotal } from "./deriveCustomCyberdeck";
 import { advancementKarmaTotal } from "./deriveAdvancement";
@@ -259,7 +272,7 @@ function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
 
 function drawPage2(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   const { data } = inputs;
-  const { augmentations, general, matrixDevices, vehicles, drones } = bucketGear(data, inputs.gearRules.gear);
+  const { augmentations, general, matrixDevices: matrixDeviceLines, vehicles, drones } = bucketGear(data, inputs.gearRules.gear);
 
   // --- Augmentations ---
   augmentations.slice(0, 9).forEach(({ line }, i) => {
@@ -298,13 +311,60 @@ function drawPage2(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {
   });
 
   // --- Matrix Devices ---
-  matrixDevices.slice(0, 7).forEach(({ line }, i) => {
+  // The template's own table has Progr/D/Fir/Attack/Sl columns already
+  // printed (verified via `pdftotext -bbox` on the template) - just unfilled
+  // until now. "D"/"Fir" and "Attack"/"Sl" are mutually exclusive per device
+  // (a cyberdeck prints one pair, a commlink/cyberjack/cyberhack the other -
+  // see deriveDeckerPersona.ts's MatrixDevice.kind), so each row only ever
+  // fills two of the four attribute columns.
+  const isTechnomancer = data.attributes.resonance !== undefined;
+  const computedDevices = computeMatrixDevices(data, inputs.gearRules);
+  // Deckers get one fewer device row than the table's full 7-row capacity,
+  // reserved below for a synthesized "Persona" row - the pooled/assigned
+  // Attack+Sleaze+Data Processing+Firewall totals that actually drive Attack
+  // Rating/Defense Rating, which no single owned device shows on its own.
+  const deviceRowCount = isTechnomancer ? 7 : Math.min(matrixDeviceLines.length, 6);
+  matrixDeviceLines.slice(0, deviceRowCount).forEach(({ line, entry }, i) => {
     const rowY = 536 + i * 12;
+    const computed = computedDevices.find((d) => d.name === line.name);
+    const progSlots = line.customCyberdeck
+      ? customDeckActiveProgramSlots(line.customCyberdeck)
+      : entry?.stats?.activeProgramSlots;
     draw(page, ctx, truncate(line.name, 20), 24, rowY, 6.5);
+    draw(page, ctx, progSlots, 150.13, rowY, 6.5);
+    if (computed) {
+      draw(page, ctx, deviceDataProcessing(computed), 190.66, rowY, 6.5);
+      draw(page, ctx, deviceFirewall(computed), 223.07, rowY, 6.5);
+      draw(page, ctx, deviceAttack(computed), 244.25, rowY, 6.5);
+      draw(page, ctx, deviceSleaze(computed), 278.84, rowY, 6.5);
+    }
   });
+  if (!isTechnomancer && matrixDeviceLines.length > 0) {
+    const allocation = resolveDeckerAllocation(computedDevices, deckerAllocation(data));
+    const rowY = 536 + deviceRowCount * 12;
+    draw(page, ctx, `Persona (AR ${deckerAttackRating(allocation)} / DR ${deckerDefenseRating(allocation)})`, 24, rowY, 6.5);
+    draw(page, ctx, deckerAttribute(allocation, "dataProcessing"), 190.66, rowY, 6.5);
+    draw(page, ctx, deckerAttribute(allocation, "firewall"), 223.07, rowY, 6.5);
+    draw(page, ctx, deckerAttribute(allocation, "attack"), 244.25, rowY, 6.5);
+    draw(page, ctx, deckerAttribute(allocation, "sleaze"), 278.84, rowY, 6.5);
+  }
 
   // --- Currency ---
   draw(page, ctx, `${nuyenRemaining(data, lifestyleCostTotal(data.lifestyles)).toLocaleString()}¥ on hand`, 307.05, 526, 7);
+
+  // --- Programs owned (counts only - the app doesn't track which named
+  // program each generic Cyberprogram slot represents, only how many Basic/
+  // Hacking slots were bought; see Matrix.tsx's Programs glossary for the
+  // full reference list of what each named program can be). ---
+  const basicPrograms = data.gear
+    .filter((g) => g.itemId === "software-cyberprogram-basic")
+    .reduce((sum, g) => sum + g.qty, 0);
+  const hackingPrograms = data.gear
+    .filter((g) => g.itemId === "software-cyberprogram-hacking")
+    .reduce((sum, g) => sum + g.qty, 0);
+  if (basicPrograms > 0 || hackingPrograms > 0) {
+    draw(page, ctx, `Programs: ${basicPrograms}x Basic, ${hackingPrograms}x Hacking`, 307.05, 538, 6.5);
+  }
 
   // --- Vehicles / Drones ---
   vehicles.slice(0, 4).forEach(({ line, entry }, i) => {
