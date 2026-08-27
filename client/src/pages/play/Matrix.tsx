@@ -10,6 +10,8 @@
 // boundary: GM-facing content, not character-build data.
 import type { CharacterData } from "../../character";
 import type { GearRulesResponse } from "../../rules";
+import type { PlayState } from "../../playState";
+import { ConditionStrip } from "../../components/ConditionStrip";
 import { effectiveAttributes } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
 import {
@@ -42,9 +44,11 @@ import {
 interface Props {
   data: CharacterData;
   gearRules: GearRulesResponse;
+  playState: PlayState;
+  onChange: (next: PlayState) => void;
 }
 
-export function Matrix({ data, gearRules }: Props) {
+export function Matrix({ data, gearRules, playState, onChange }: Props) {
   const devices = matrixDevices(data, gearRules);
   const isTechnomancer = data.attributes.resonance !== undefined;
   if (devices.length === 0 && !isTechnomancer) return null;
@@ -52,9 +56,50 @@ export function Matrix({ data, gearRules }: Props) {
   const allocation = resolveDeckerAllocation(devices, deckerAllocation(data));
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
+  function adjustMatrixDamage(deviceName: string, delta: number) {
+    const current = playState.matrixDamageByDevice[deviceName] ?? 0;
+    onChange({
+      ...playState,
+      matrixDamageByDevice: { ...playState.matrixDamageByDevice, [deviceName]: Math.max(0, current + delta) },
+    });
+  }
+
+  function resetMatrixDamage(deviceName: string) {
+    onChange({ ...playState, matrixDamageByDevice: { ...playState.matrixDamageByDevice, [deviceName]: 0 } });
+  }
+
   return (
     <div className="matrix-panel">
       <h2>The Matrix</h2>
+
+      {devices.length > 0 && (
+        <div className="vitals-row vitals-row--matrix">
+          {devices.map((d) => {
+            const max = matrixConditionMonitor(d.deviceRating);
+            const damage = playState.matrixDamageByDevice[d.name] ?? 0;
+            const overflow = damage - max;
+            return (
+              <div className="vitals-card" key={d.name}>
+                <div className="vitals-card-header">
+                  <span className="vitals-card-label">{d.name} Matrix CM</span>
+                  <span className="vitals-card-value num">
+                    {damage} / {max}
+                    {overflow > 0 && <span className="danger-text"> Overflow {overflow}</span>}
+                  </span>
+                </div>
+                <ConditionStrip filled={damage} max={max} size="lg" />
+                <div className="vitals-card-actions">
+                  <button onClick={() => adjustMatrixDamage(d.name, -1)}>-1</button>
+                  <button onClick={() => adjustMatrixDamage(d.name, 1)}>+1</button>
+                  <button className="btn-ghost" onClick={() => resetMatrixDamage(d.name)}>
+                    Reset
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <section>
         <h3>Matrix Initiative</h3>

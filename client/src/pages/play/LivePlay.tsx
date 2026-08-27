@@ -307,7 +307,15 @@ export function LivePlay() {
       ? [{ id: "combat", label: "Combat", content: <Combat data={characterData} gearRules={gearRules} /> }]
       : []),
     ...(matrixRelevant
-      ? [{ id: "matrix", label: "Matrix", content: <Matrix data={characterData} gearRules={gearRules!} /> }]
+      ? [
+          {
+            id: "matrix",
+            label: "Matrix",
+            content: (
+              <Matrix data={characterData} gearRules={gearRules!} playState={playState} onChange={scheduleSave} />
+            ),
+          },
+        ]
       : []),
     ...(hasMagic ? [{ id: "astral", label: "Astral", content: <Astral data={characterData} /> }] : []),
     ...(spiritsRelevant

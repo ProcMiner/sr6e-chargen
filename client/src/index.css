@@ -520,6 +520,15 @@ a {
   }
 }
 
+/* Matrix live-play's per-device Condition Monitor row (Matrix.tsx) - device
+   count varies (0 to several owned decks/commlinks/cyberjacks), unlike the
+   fixed Physical/Stun/Edge trio above, so this fits as many cards per row as
+   space allows instead of forcing exactly three columns. */
+.vitals-row--matrix {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 22px;
+}
+
 .vitals-card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
