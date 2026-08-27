@@ -55,6 +55,7 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
 
   const allocation = resolveDeckerAllocation(devices, deckerAllocation(data));
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
+  const cmDevices = devices.filter((d) => d.hasConditionMonitor);
 
   function adjustMatrixDamage(deviceName: string, delta: number) {
     const current = playState.matrixDamageByDevice[deviceName] ?? 0;
@@ -72,9 +73,9 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
     <div className="matrix-panel">
       <h2>The Matrix</h2>
 
-      {devices.length > 0 && (
+      {cmDevices.length > 0 && (
         <div className="vitals-row vitals-row--matrix">
-          {devices.map((d) => {
+          {cmDevices.map((d) => {
             const max = matrixConditionMonitor(d.deviceRating);
             const damage = playState.matrixDamageByDevice[d.name] ?? 0;
             const overflow = damage - max;
@@ -133,11 +134,14 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
             Persona section of the builder.
           </p>
         )}
-        {devices.length > 0 && (
+        {cmDevices.length > 0 && (
           <p className="hint">
             Device Matrix Condition Monitor -{" "}
-            {devices.map((d) => `${d.name}: ${matrixConditionMonitor(d.deviceRating)}`).join(", ")}. Technomancers
-            have no Matrix Condition Monitor - Matrix damage applies to Stun (or as otherwise specified) instead.
+            {cmDevices.map((d) => `${d.name}: ${matrixConditionMonitor(d.deviceRating)}`).join(", ")}. An implanted
+            cyberjack has no Device Rating and isn't itself something a persona runs on - it just feeds Data
+            Processing/Firewall into whatever deck it's wired to, so it doesn't get its own Condition Monitor; a
+            bricked deck ends the connection regardless. Technomancers have no Matrix Condition Monitor - Matrix
+            damage applies to Stun (or as otherwise specified) instead.
           </p>
         )}
       </section>

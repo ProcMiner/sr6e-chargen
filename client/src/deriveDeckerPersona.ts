@@ -37,6 +37,19 @@ export interface MatrixDevice {
   vrInitBonus: number;
   /** True only for a custom cyberdeck: `values` is always `[attack, sleaze]` in that order, force-assigned rather than pooled - see this file's header comment. */
   locked?: boolean;
+  /**
+   * False for a device with no printed Device Rating - an implanted cyberjack
+   * (core rulebook p.176's stat table has Attributes(D/F)/VR Init Dice/Avail/
+   * Ess/Cost, no Device Rating column at all), as opposed to an external
+   * cyberhack (Hack & Slash p.34, which does print one). A cyberjack only
+   * feeds Data Processing/Firewall into whatever deck it's wired to - core
+   * p.174's "device an individual is using to access the Matrix" and p.175's
+   * Bricked Devices both describe something a persona runs on and that gets
+   * ejected/dumpshocked when it bricks; a cyberjack isn't that, the deck it's
+   * plugged into is. Still contributes its values to the pool below - just
+   * excluded from the Matrix Condition Monitor bar/reference list.
+   */
+  hasConditionMonitor: boolean;
 }
 
 function parsePair(raw: string | undefined): number[] {
@@ -65,6 +78,7 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
         values: [attackRating, sleazeRating],
         vrInitBonus: 0,
         locked: true,
+        hasConditionMonitor: true,
       });
       continue;
     }
@@ -77,6 +91,7 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
       deviceRating: Number(entry.stats?.deviceRating) || 0,
       values: pair,
       vrInitBonus: parseBonus(entry.stats?.["VR Matrix Init Dice"]),
+      hasConditionMonitor: entry.stats?.deviceRating !== undefined,
     });
   }
   return devices;
