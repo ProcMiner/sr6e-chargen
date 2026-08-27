@@ -38,6 +38,7 @@ import { canInitiate, canSubmerge, initiationCost, initiationKarmaTotal } from "
 import { isAdept, isMysticAdept } from "../../deriveAdeptPowers";
 import { generateId } from "../../id";
 import { MetamagicPicker } from "../../components/MetamagicPicker";
+import { NumberStepper } from "../../components/NumberStepper";
 import {
   EXOTIC_WEAPONS_SKILL,
   EXPERTISE_KARMA_COST,
@@ -86,6 +87,9 @@ export function Advancement({ data, onChange, priorityRules, qualityRules, metam
   const [knowledgeType, setKnowledgeType] = useState<"knowledge" | "language">("knowledge");
   const [qualitySearch, setQualitySearch] = useState("");
   const [qualityChoices, setQualityChoices] = useState<Record<string, { rating?: number; param?: string }>>({});
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactConnection, setNewContactConnection] = useState(1);
+  const [newContactLoyalty, setNewContactLoyalty] = useState(1);
 
   const spellKarma = spellKarmaCost(data, priorityRules);
   const complexFormKarma = complexFormKarmaCost(data, priorityRules);
@@ -443,6 +447,28 @@ export function Advancement({ data, onChange, priorityRules, qualityRules, metam
         qualityPurchases: nextPurchases,
       });
     }
+  }
+
+  /**
+   * A GM-narrative-granted contact (met on a run, owed a favor, etc.) - free,
+   * no Karma cost, unlike raiseContact below. The book has no rule at all for
+   * *gaining* a new contact post-chargen (only the Connection/Loyalty
+   * improvement cost this app already extrapolates for raiseContact), and in
+   * practice these come from the story, not a purchase - same "player-
+   * reported from the table" treatment as a Karma/Nuyen award.
+   */
+  function addContact() {
+    const name = newContactName.trim();
+    if (!name) return;
+    const contact: Contact = { id: generateId(), name, connection: newContactConnection, loyalty: newContactLoyalty };
+    onChange({ ...data, contacts: [...data.contacts, contact] });
+    setNewContactName("");
+    setNewContactConnection(1);
+    setNewContactLoyalty(1);
+  }
+
+  function removeContact(id: string) {
+    onChange({ ...data, contacts: data.contacts.filter((c) => c.id !== id) });
   }
 
   function raiseContact(contact: Contact, field: "connection" | "loyalty") {
@@ -942,6 +968,9 @@ export function Advancement({ data, onChange, priorityRules, qualityRules, metam
               <div className="module-instance">
                 <div className="module-instance-header">
                   <strong>{c.name}</strong>
+                  <button className="danger" onClick={() => removeContact(c.id)}>
+                    Remove
+                  </button>
                 </div>
                 <div className="contact-rating-editor">
                   <label>
@@ -974,6 +1003,37 @@ export function Advancement({ data, onChange, priorityRules, qualityRules, metam
       ) : (
         <p className="hint">No contacts yet.</p>
       )}
+      <div className="inline-field">
+        <input
+          type="text"
+          placeholder="New contact name (e.g. Chattanooga Slick, Fixer)"
+          value={newContactName}
+          onChange={(e) => setNewContactName(e.target.value)}
+        />
+        <label>
+          Connection
+          <NumberStepper
+            label="New contact Connection"
+            min={1}
+            max={CONTACT_RATING_MAX}
+            value={newContactConnection}
+            onChange={setNewContactConnection}
+          />
+        </label>
+        <label>
+          Loyalty
+          <NumberStepper
+            label="New contact Loyalty"
+            min={1}
+            max={CONTACT_RATING_MAX}
+            value={newContactLoyalty}
+            onChange={setNewContactLoyalty}
+          />
+        </label>
+        <button onClick={addContact} disabled={!newContactName.trim()}>
+          Add Contact (free)
+        </button>
+      </div>
 
       {(log.length > 0 ||
         initiationLog.length > 0 ||
