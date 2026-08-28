@@ -87,6 +87,23 @@ drops a `Secure` cookie sent over plain HTTP, which breaks login entirely
 with no visible error. Remove this line once Caddy is actually terminating
 HTTPS in front of the app.
 
+**Optional: assistant read-only export API.** `server/src/routes/assistant.ts`
+exposes `GET /api/assistant/characters/:id` and
+`GET /api/assistant/characters/:id/play-state`, gated by a bearer token
+instead of session-cookie login (see `server/src/assistantAuth.ts`) - meant
+for a coding assistant to pull a character's current build/play-state to
+keep an external companion view (e.g. a Claude Artifact) in sync. Unset by
+default, which disables the routes entirely (401 on every request). To
+enable, add a random token to the same `.env` file:
+
+```bash
+echo "ASSISTANT_READ_TOKEN=$(openssl rand -base64 32)" | sudo tee -a /opt/sr6e-chargen/app/.env
+sudo systemctl restart chargen
+```
+
+Then give that token to the assistant session out-of-band (not committed
+anywhere) so it can call the API with `Authorization: Bearer <token>`.
+
 ## 4. systemd service
 
 ```bash

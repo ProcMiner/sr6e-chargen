@@ -10,6 +10,7 @@ import { charactersRouter } from "./routes/characters.js";
 import { rulesRouter } from "./routes/rules.js";
 import { playRouter } from "./routes/play.js";
 import { npcsRouter } from "./routes/npcs.js";
+import { assistantRouter } from "./routes/assistant.js";
 import { SqliteSessionStore } from "./sessionStore.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,7 @@ app.use("/api/characters", charactersRouter);
 app.use("/api/rules", rulesRouter);
 app.use("/api/play", playRouter);
 app.use("/api/npcs", npcsRouter);
+app.use("/api/assistant", assistantRouter);
 
 if (isProd) {
   // The chargen app itself lives under /sre6-chargen (not the domain root) so
