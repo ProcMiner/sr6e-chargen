@@ -22,6 +22,11 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** Strips trailing zeros, e.g. 6 -> "6", 5.8 -> "5.8", 4.25 -> "4.25". */
+export function formatEssence(n: number): string {
+  return n.toFixed(2).replace(/\.?0+$/, "");
+}
+
 export function essenceUsed(gear: GearLine[]): number {
   return round2(gear.reduce((sum, line) => sum + (line.essenceCost ?? 0) * line.qty, 0));
 }

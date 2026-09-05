@@ -66,6 +66,7 @@ db.exec(`
     status_effects TEXT NOT NULL DEFAULT '[]',
     bound_spirits TEXT NOT NULL DEFAULT '[]',
     compiled_sprites TEXT NOT NULL DEFAULT '[]',
+    matrix_damage INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -85,6 +86,11 @@ try {
 }
 try {
   db.exec(`ALTER TABLE character_play_state ADD COLUMN compiled_sprites TEXT NOT NULL DEFAULT '[]'`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_damage INTEGER NOT NULL DEFAULT 0`);
 } catch {
   // column already exists
 }

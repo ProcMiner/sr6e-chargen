@@ -78,6 +78,66 @@ export function gearCostTotal(gear: GearLine[]): number {
   return gear.reduce((sum, line) => sum + (line.free ? 0 : line.qty * line.unitCost), 0);
 }
 
+export interface BucketedGearLine {
+  line: GearLine;
+  entry?: GearCatalogEntry;
+}
+
+export interface BucketedGear {
+  ranged: BucketedGearLine[];
+  melee: BucketedGearLine[];
+  armor: BucketedGearLine[];
+  augmentations: BucketedGearLine[];
+  matrixDevices: BucketedGearLine[];
+  vehicles: BucketedGearLine[];
+  drones: BucketedGearLine[];
+  general: BucketedGearLine[];
+}
+
+const MELEE_SUBCATEGORIES = new Set(["Blades", "Clubs", "Melee (Other)"]);
+const WEAPON_EXCLUDED_SUBCATEGORIES = new Set(["Ammunition", "Weapon Accessories", "Explosives"]);
+const MATRIX_DEVICE_SUBCATEGORIES = new Set(["Commlinks", "Cyberdecks", "Cyberhacks"]);
+
+/**
+ * Sorts every owned gear line into the categories the character sheet PDF
+ * export and the Live Play sheet both need (Ranged/Melee weapons, Armor,
+ * Augmentations, Matrix devices, Vehicles, Drones, catch-all Gear) - shared
+ * so the two presentations of the same data can never silently drift apart.
+ */
+export function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]): BucketedGear {
+  const ranged: BucketedGearLine[] = [];
+  const melee: BucketedGearLine[] = [];
+  const armor: BucketedGearLine[] = [];
+  const augmentations: BucketedGearLine[] = [];
+  const matrixDevices: BucketedGearLine[] = [];
+  const vehicles: BucketedGearLine[] = [];
+  const drones: BucketedGearLine[] = [];
+  const general: BucketedGearLine[] = [];
+
+  for (const line of data.gear) {
+    const entry = findGearEntry(line.itemId ?? "", catalog);
+    const category = entry?.category;
+    const subcategory = entry?.subcategory;
+
+    if (category === "weapon" && subcategory && !WEAPON_EXCLUDED_SUBCATEGORIES.has(subcategory)) {
+      (MELEE_SUBCATEGORIES.has(subcategory) ? melee : ranged).push({ line, entry });
+    } else if (category === "armor" && subcategory !== "Armor Modifications") {
+      armor.push({ line, entry });
+    } else if (category === "augmentation" || (line.essenceCost ?? 0) > 0) {
+      augmentations.push({ line, entry });
+    } else if (line.customCyberdeck || (category === "electronics" && subcategory && MATRIX_DEVICE_SUBCATEGORIES.has(subcategory))) {
+      matrixDevices.push({ line, entry });
+    } else if (category === "vehicle" && subcategory && /drone/i.test(subcategory)) {
+      drones.push({ line, entry });
+    } else if (category === "vehicle") {
+      vehicles.push({ line, entry });
+    } else {
+      general.push({ line, entry });
+    }
+  }
+  return { ranged, melee, armor, augmentations, matrixDevices, vehicles, drones, general };
+}
+
 /** 2,000 nuyen per Karma point normally, or 5,000 with the In Debt quality (core rulebook p.66, "in-debt" quality entry). */
 export function karmaToNuyenRate(data: CharacterData): number {
   return data.qualities.some((q) => q.id === "in-debt") ? 5000 : 2000;

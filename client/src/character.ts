@@ -487,6 +487,18 @@ export interface CharacterData {
    */
   astralReputation?: number;
   notes?: string;
+  /**
+   * Freeform flavor/identity fields for the Live Play character sheet
+   * (Personal Data card) - none of these feed any derived rule, they're
+   * purely descriptive. Undefined/blank until the player fills them in;
+   * no chargen step sets these, they're edited directly in Live Play.
+   */
+  playerName?: string;
+  sex?: string;
+  age?: string;
+  height?: string;
+  weight?: string;
+  ethnicity?: string;
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }
 

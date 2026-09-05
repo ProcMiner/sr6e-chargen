@@ -110,3 +110,17 @@ export function minorActions(derived: DerivedStats): number {
 export function astralInitiative(attributes: Attributes): number {
   return attributes.logic + attributes.intuition;
 }
+
+/**
+ * Wound modifier (core rulebook p. 38): "Condition Monitors are a series of
+ * boxes set in rows of three... When a row of boxes on a monitor is
+ * filled, the character takes a -1 dice pool penalty to all tests except
+ * Damage Resistance. Each row filled on either monitor increases the
+ * penalty by 1." The two monitors are independent (a filled Physical row
+ * and a filled Stun row both contribute), then summed - not a single
+ * combined-total tier lookup. Returns a non-positive number (0 = no
+ * penalty).
+ */
+export function woundModifier(physicalDamage: number, stunDamage: number): number {
+  return -(Math.floor(physicalDamage / 3) + Math.floor(stunDamage / 3));
+}

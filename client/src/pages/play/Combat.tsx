@@ -12,6 +12,8 @@ import type { CharacterData } from "../../character";
 import type { GearRulesResponse } from "../../rules";
 import { deriveStats, effectiveAttributes } from "../../derive";
 import { modifierBonuses } from "../../deriveModifiers";
+import { bucketGear, gearLineKey } from "../../deriveGear";
+import { currentEssence, formatEssence } from "../../deriveEssence";
 import {
   COMBAT_OPTIONS,
   COMBAT_PROCESS_STEPS,
@@ -23,6 +25,7 @@ import {
   unarmedAttackRating,
   weaponAttackRatings,
   wornArmorTotal,
+  type WeaponAttackRating,
 } from "../../deriveCombat";
 
 type ReferenceSection = "process" | "edge" | "ranges" | "damage" | "options";
@@ -48,48 +51,168 @@ export function Combat({ data, gearRules }: Props) {
   const armor = wornArmorTotal(data, gearRules.gear);
   const dr = defenseRating(data, gearRules.gear, derived.armor, effectiveAttrs.body);
   const weaponRatings = weaponAttackRatings(data, gearRules.gear, effectiveAttrs);
+  const ratingByLine = new Map<string, WeaponAttackRating>(weaponRatings.map((w) => [gearLineKey(w.line), w]));
+  const bucketed = bucketGear(data, gearRules.gear);
+  const essence = currentEssence(data);
 
   return (
     <div className="combat-panel">
       <h2>Combat</h2>
+
+      <section className="sheet-card">
+        <div className="rules-kicker">Weapons — Ranged</div>
+        {bucketed.ranged.length > 0 ? (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Weapon</th>
+                <th>DV</th>
+                <th>Mode</th>
+                <th>Ammo</th>
+                <th>Close</th>
+                <th>Near</th>
+                <th>Medium</th>
+                <th>Far</th>
+                <th>Extreme</th>
+                <th>Accessories</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bucketed.ranged.map(({ line, entry }, i) => {
+                const rating = ratingByLine.get(gearLineKey(line));
+                const bands = (rating?.effectiveAttackRatings ?? entry?.stats?.attackRatings ?? "—/—/—/—/—").split("/");
+                return (
+                  <tr key={i}>
+                    <td>{line.name}</td>
+                    <td>{entry?.stats?.damage ?? "—"}</td>
+                    <td>{entry?.stats?.modes ?? "—"}</td>
+                    <td>{entry?.stats?.ammo ?? "—"}</td>
+                    {bands.map((b, j) => (
+                      <td key={j} className="cell-accent">
+                        {b.trim()}
+                      </td>
+                    ))}
+                    <td className="cell-dim">
+                      {rating && (rating.bonusSources.length > 0 || rating.modeNotes.length > 0)
+                        ? [...rating.bonusSources, ...rating.modeNotes].join("; ")
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <p className="hint">No ranged weapons carried.</p>
+        )}
+      </section>
+
+      <section className="sheet-card">
+        <div className="rules-kicker">Weapons — Melee</div>
+        {bucketed.melee.length > 0 ? (
+          <table className="rules-table">
+            <thead>
+              <tr>
+                <th>Weapon</th>
+                <th>DV</th>
+                <th>Mode</th>
+                <th>Attack Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bucketed.melee.map(({ line, entry }, i) => {
+                const rating = ratingByLine.get(gearLineKey(line));
+                const ar = (rating?.effectiveAttackRatings ?? entry?.stats?.attackRatings ?? "—").split("/")[0]?.trim();
+                return (
+                  <tr key={i}>
+                    <td>{line.name}</td>
+                    <td>{entry?.stats?.damage ?? "—"}</td>
+                    <td>{entry?.stats?.modes ?? "—"}</td>
+                    <td className="cell-accent">
+                      {ar}
+                      {rating && rating.bonus !== 0 && ` (base ${rating.baseAttackRatings.split("/")[0]})`}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <p className="hint">No melee weapons carried.</p>
+        )}
+      </section>
+
+      <div className="rules-two-col">
+        <section className="sheet-card">
+          <div className="rules-kicker">Armor</div>
+          {bucketed.armor.length > 0 ? (
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bucketed.armor.map(({ line, entry }, i) => (
+                  <tr key={i}>
+                    <td>{line.name}</td>
+                    <td>{entry?.stats?.defenseRating ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="hint">No armor worn.</p>
+          )}
+          <div className="kv-row">
+            <span className="kv-label">Total Armor (feeds Defense Rating)</span>
+            <span className="kv-value">{armor}</span>
+          </div>
+        </section>
+        <section className="sheet-card">
+          <div className="rules-kicker">Augmentations</div>
+          {bucketed.augmentations.length > 0 ? (
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Rating</th>
+                  <th>Essence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bucketed.augmentations.map(({ line }, i) => (
+                  <tr key={i}>
+                    <td>{line.name}</td>
+                    <td>{line.rating ?? "—"}</td>
+                    <td>{line.essenceCost ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="hint">No augmentations installed.</p>
+          )}
+          <div className="kv-row">
+            <span className="kv-label">Running Essence</span>
+            <span className="kv-value">{formatEssence(essence)}</span>
+          </div>
+        </section>
+      </div>
 
       <section>
         <h3>Attack Rating &amp; Defense Rating</h3>
         <p className="hint">
           Unarmed Attack Rating <strong>{unarmedAttackRating(effectiveAttrs)}</strong> (Strength + Reaction). A melee
           weapon instead adds your Strength directly to its own printed Attack Rating; both are shown per owned
-          weapon below, including any bonus from an attached Weapon Accessory (see Gear's "Mounted on" picker).
+          weapon above, including any bonus from an attached Weapon Accessory (see Gear's "Mounted on" picker).
         </p>
         <p className="hint">
           Defense Rating <strong>{dr}</strong> (Body {effectiveAttrs.body ?? 0} + worn armor {armor} + augmentation
           armor {derived.armor}). Worn armor is your single best owned Clothes/Armor item (base suits aren't
           cumulative with each other) plus every Helmet/Shield you own (those do stack).
         </p>
-        {weaponRatings.length > 0 && (
-          <table className="rules-table">
-            <thead>
-              <tr>
-                <th>Weapon</th>
-                <th>Attack Ratings (Close/Near/Medium/Far/Extreme)</th>
-                <th>Bonus</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weaponRatings.map((w, i) => (
-                <tr key={i}>
-                  <td>{w.line.name}</td>
-                  <td>
-                    {w.effectiveAttackRatings}
-                    {w.bonus !== 0 && ` (base ${w.baseAttackRatings})`}
-                  </td>
-                  <td>{w.bonusSources.length > 0 ? w.bonusSources.join(", ") : "-"}</td>
-                  <td>{w.modeNotes.length > 0 ? w.modeNotes.join(" ") : "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </section>
 
       <section>

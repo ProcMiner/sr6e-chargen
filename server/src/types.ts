@@ -95,6 +95,7 @@ export interface CharacterPlayStateRow {
   status_effects: string;
   bound_spirits: string;
   compiled_sprites: string;
+  matrix_damage: number;
   updated_at: string;
 }
 

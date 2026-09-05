@@ -20,10 +20,12 @@ import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
-import { matrixDevices } from "../../deriveDeckerPersona";
+import { matrixConditionMonitor, matrixDevices } from "../../deriveDeckerPersona";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Combat } from "./Combat";
+import { Contacts } from "./Contacts";
+import { GearLifestyle } from "./GearLifestyle";
 import { ReputationHeat } from "./ReputationHeat";
 import { Spirits } from "./Spirits";
 import { Sprites } from "./Sprites";
@@ -31,7 +33,10 @@ import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 import { generateId } from "../../id";
-import { ConditionStrip } from "../../components/ConditionStrip";
+import { PersonalDataCard } from "../../components/PersonalDataCard";
+import { ConditionMonitorBand } from "../../components/ConditionMonitorBand";
+import { AttributesDerivedCard } from "../../components/AttributesDerivedCard";
+import { SkillsCard } from "../../components/SkillsCard";
 import { EditableName } from "../../components/EditableName";
 
 const COMMON_STATUS_EFFECTS = [
@@ -213,6 +218,14 @@ export function LivePlay() {
     scheduleSave({ ...playState!, [field]: 0 });
   }
 
+  function adjustMatrixDamage(delta: number) {
+    scheduleSave({ ...playState!, matrixDamage: Math.max(0, playState!.matrixDamage + delta) });
+  }
+
+  function resetMatrixDamage() {
+    scheduleSave({ ...playState!, matrixDamage: 0 });
+  }
+
   function adjustEdge(delta: number) {
     const next = Math.max(0, Math.min(attributes.edge, playState!.edgeAvailable + delta));
     scheduleSave({ ...playState!, edgeAvailable: next });
@@ -260,10 +273,15 @@ export function LivePlay() {
 
   const isTechnomancer = attributes.resonance !== undefined;
   const hasMagic = attributes.magic !== undefined;
+  const devices = gearRules ? matrixDevices(characterData, gearRules) : [];
   const spiritsRelevant = !!spiritRules && (attributes.magic ?? 0) > 0;
   const spritesRelevant = !!spriteRules && isTechnomancer;
-  const matrixRelevant = !!gearRules && (isTechnomancer || matrixDevices(characterData, gearRules).length > 0);
+  const matrixRelevant = !!gearRules && (isTechnomancer || devices.length > 0);
   const advancementRelevant = !!(priorityRules && qualityRules && metamagicRules);
+  // A decker's device Matrix Condition Monitor (core rulebook p.174/178) -
+  // only the first/primary owned device is tracked (see PlayState.matrixDamage).
+  // Technomancers have none: Matrix damage applies to Stun instead (Matrix.tsx).
+  const primaryMatrixDevice = !isTechnomancer && devices.length > 0 ? devices[0] : undefined;
   const activeEffectNames = new Set(playState.statusEffects.map((e) => e.name));
 
   const tabs: { id: string; label: string; content: ReactNode }[] = [
@@ -338,35 +356,19 @@ export function LivePlay() {
           },
         ]
       : []),
-    ...(advancementRelevant
-      ? [
-          {
-            id: "advancement",
-            label: "Advancement",
-            content: (
-              <Advancement
-                data={characterData}
-                onChange={scheduleDataSave}
-                priorityRules={priorityRules!}
-                qualityRules={qualityRules!}
-                metamagicRules={metamagicRules!}
-              />
-            ),
-          },
-        ]
-      : []),
-    {
-      id: "reputation",
-      label: "Reputation & Heat",
-      content: <ReputationHeat data={characterData} onChange={scheduleDataSave} />,
-    },
     ...(gearRules
       ? [
           {
-            id: "equipment",
-            label: "Equipment",
+            id: "gear",
+            label: "Gear & Lifestyle",
             content: (
               <>
+                <GearLifestyle
+                  data={characterData}
+                  gearRules={gearRules}
+                  extraKarmaSpent={extraKarmaSpent}
+                  extraNuyenSpent={extraNuyenSpent}
+                />
                 <form
                   className="inline-field"
                   onSubmit={(e) => {
@@ -398,6 +400,29 @@ export function LivePlay() {
           },
         ]
       : []),
+    { id: "contacts", label: "Contacts", content: <Contacts data={characterData} /> },
+    ...(advancementRelevant
+      ? [
+          {
+            id: "advancement",
+            label: "Advancement",
+            content: (
+              <Advancement
+                data={characterData}
+                onChange={scheduleDataSave}
+                priorityRules={priorityRules!}
+                qualityRules={qualityRules!}
+                metamagicRules={metamagicRules!}
+              />
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "reputation",
+      label: "Reputation & Heat",
+      content: <ReputationHeat data={characterData} onChange={scheduleDataSave} />,
+    },
   ];
 
   const currentTab = tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id;
@@ -413,64 +438,46 @@ export function LivePlay() {
         </div>
       </header>
 
-      <div className="vitals-row">
-        <div className="vitals-card">
-          <div className="vitals-card-header">
-            <span className="vitals-card-label">Physical</span>
-            <span className="vitals-card-value num">
-              {playState.physicalDamage} / {derived.physicalMonitor}
-              {physicalOverflow > 0 && <span className="danger-text"> Overflow {physicalOverflow}</span>}
-            </span>
-          </div>
-          <ConditionStrip filled={playState.physicalDamage} max={derived.physicalMonitor} size="lg" />
-          <div className="vitals-card-actions">
-            <button onClick={() => adjustDamage("physicalDamage", -1)}>-1</button>
-            <button onClick={() => adjustDamage("physicalDamage", 1)}>+1</button>
-            <button className="btn-ghost" onClick={() => resetDamage("physicalDamage")}>
-              Reset
-            </button>
-          </div>
-        </div>
+      {priorityRules && (
+        <>
+          <PersonalDataCard data={characterData} priorityRules={priorityRules} onChange={scheduleDataSave} />
 
-        <div className="vitals-card">
-          <div className="vitals-card-header">
-            <span className="vitals-card-label">Stun</span>
-            <span className="vitals-card-value vitals-card-value--stun num">
-              {playState.stunDamage} / {derived.stunMonitor}
-              {stunOverflow > 0 && <span className="danger-text"> Overflow {stunOverflow}</span>}
-            </span>
-          </div>
-          <ConditionStrip filled={playState.stunDamage} max={derived.stunMonitor} size="lg" />
-          <div className="vitals-card-actions">
-            <button onClick={() => adjustDamage("stunDamage", -1)}>-1</button>
-            <button onClick={() => adjustDamage("stunDamage", 1)}>+1</button>
-            <button className="btn-ghost" onClick={() => resetDamage("stunDamage")}>
-              Reset
-            </button>
-          </div>
-        </div>
+          <ConditionMonitorBand
+            physicalDamage={playState.physicalDamage}
+            physicalMax={derived.physicalMonitor}
+            onAdjustPhysical={(d) => adjustDamage("physicalDamage", d)}
+            onResetPhysical={() => resetDamage("physicalDamage")}
+            stunDamage={playState.stunDamage}
+            stunMax={derived.stunMonitor}
+            onAdjustStun={(d) => adjustDamage("stunDamage", d)}
+            onResetStun={() => resetDamage("stunDamage")}
+            edgeAvailable={playState.edgeAvailable}
+            edgeMax={attributes.edge}
+            onAdjustEdge={adjustEdge}
+            onResetEdge={resetEdge}
+            matrix={
+              primaryMatrixDevice
+                ? {
+                    damage: playState.matrixDamage,
+                    max: matrixConditionMonitor(primaryMatrixDevice.deviceRating),
+                    onAdjust: adjustMatrixDamage,
+                    onReset: resetMatrixDamage,
+                  }
+                : undefined
+            }
+          />
+          {(physicalOverflow > 0 || stunOverflow > 0) && (
+            <p className="hint danger-text">
+              {physicalOverflow > 0 && `Physical overflow ${physicalOverflow}. `}
+              {stunOverflow > 0 && `Stun overflow ${stunOverflow}.`}
+            </p>
+          )}
 
-        <div className="vitals-card">
-          <div className="vitals-card-header">
-            <span className="vitals-card-label">Edge</span>
-            <span className="vitals-card-value num">
-              {playState.edgeAvailable} / {attributes.edge}
-            </span>
-          </div>
-          <ConditionStrip filled={playState.edgeAvailable} max={attributes.edge} size="lg" shape="circle" />
-          <div className="vitals-card-actions">
-            <button onClick={() => adjustEdge(-1)} disabled={playState.edgeAvailable <= 0}>
-              Spend
-            </button>
-            <button onClick={() => adjustEdge(1)} disabled={playState.edgeAvailable >= attributes.edge}>
-              Regain
-            </button>
-            <button className="btn-ghost" onClick={resetEdge}>
-              Max
-            </button>
-          </div>
-        </div>
-      </div>
+          <AttributesDerivedCard data={characterData} gearRules={gearRules} />
+
+          <SkillsCard data={characterData} priorityRules={priorityRules} />
+        </>
+      )}
 
       <section>
         <h2 className="rules-kicker">Status</h2>

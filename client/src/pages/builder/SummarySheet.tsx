@@ -19,7 +19,7 @@ import { startingKarma } from "../../derivePriorityVariant";
 import { LANGUAGE_LEVEL_NAMES } from "../../character";
 import { modifierBonuses } from "../../deriveModifiers";
 import { defenseRating, unarmedAttackRating } from "../../deriveCombat";
-import { currentEssence, effectiveMagic, effectiveResonance } from "../../deriveEssence";
+import { currentEssence, effectiveMagic, effectiveResonance, formatEssence } from "../../deriveEssence";
 import type {
   AdeptPowerRulesResponse,
   ComplexFormRulesResponse,
@@ -63,11 +63,6 @@ const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["charisma", "Charisma"],
   ["edge", "Edge"],
 ];
-
-/** Strips trailing zeros, e.g. 6 -> "6", 5.8 -> "5.8", 4.25 -> "4.25". */
-function formatEssence(n: number): string {
-  return n.toFixed(2).replace(/\.?0+$/, "");
-}
 
 interface Props {
   data: CharacterData;

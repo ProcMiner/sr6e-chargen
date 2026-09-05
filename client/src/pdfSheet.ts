@@ -17,18 +17,12 @@
 // Edge boost catalog) with nothing character-specific to fill; page 4
 // (Spells/Adept Powers/Foci/Rituals/Astral Combat) is deliberately deferred.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import type { CharacterData, GearLine } from "./character";
+import type { CharacterData } from "./character";
 import { LANGUAGE_LEVEL_NAMES } from "./character";
-import type {
-  GearCatalogEntry,
-  GearRulesResponse,
-  MetatypeAttributes,
-  PriorityRulesResponse,
-  QualityRulesResponse,
-} from "./rules";
+import type { GearRulesResponse, MetatypeAttributes, PriorityRulesResponse, QualityRulesResponse } from "./rules";
 import { deriveStats, astralInitiative, composure, defenseTestPool, effectiveAttributes, judgeIntentions, liftCarry, memory, minorActions } from "./derive";
 import { currentEssence, effectiveMagic, effectiveResonance } from "./deriveEssence";
-import { nuyenRemaining, karmaRemaining } from "./deriveGear";
+import { nuyenRemaining, karmaRemaining, bucketGear } from "./deriveGear";
 import { modifierBonuses } from "./deriveModifiers";
 import { lifestyleCostTotal } from "./deriveLifestyle";
 import { metavariantKarmaCost, combinedRacialQualities, findMetavariant } from "./deriveMetavariant";
@@ -76,48 +70,6 @@ interface SheetInputs {
   gearRules: GearRulesResponse;
   spellKarmaSpent: number;
   complexFormKarmaSpent: number;
-}
-
-function findGearEntry(line: GearLine, catalog: GearCatalogEntry[]): GearCatalogEntry | undefined {
-  return line.itemId ? catalog.find((g) => g.id === line.itemId) : undefined;
-}
-
-const MELEE_SUBCATEGORIES = new Set(["Blades", "Clubs", "Melee (Other)"]);
-const WEAPON_EXCLUDED_SUBCATEGORIES = new Set(["Ammunition", "Weapon Accessories", "Explosives"]);
-const MATRIX_DEVICE_SUBCATEGORIES = new Set(["Commlinks", "Cyberdecks", "Cyberhacks"]);
-
-function bucketGear(data: CharacterData, catalog: GearCatalogEntry[]) {
-  const ranged: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const melee: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const armor: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const augmentations: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const matrixDevices: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const vehicles: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const drones: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-  const general: { line: GearLine; entry?: GearCatalogEntry }[] = [];
-
-  for (const line of data.gear) {
-    const entry = findGearEntry(line, catalog);
-    const category = entry?.category;
-    const subcategory = entry?.subcategory;
-
-    if (category === "weapon" && subcategory && !WEAPON_EXCLUDED_SUBCATEGORIES.has(subcategory)) {
-      (MELEE_SUBCATEGORIES.has(subcategory) ? melee : ranged).push({ line, entry });
-    } else if (category === "armor" && subcategory !== "Armor Modifications") {
-      armor.push({ line, entry });
-    } else if (category === "augmentation" || (line.essenceCost ?? 0) > 0) {
-      augmentations.push({ line, entry });
-    } else if (line.customCyberdeck || (category === "electronics" && subcategory && MATRIX_DEVICE_SUBCATEGORIES.has(subcategory))) {
-      matrixDevices.push({ line, entry });
-    } else if (category === "vehicle" && subcategory && /drone/i.test(subcategory)) {
-      drones.push({ line, entry });
-    } else if (category === "vehicle") {
-      vehicles.push({ line, entry });
-    } else {
-      general.push({ line, entry });
-    }
-  }
-  return { ranged, melee, armor, augmentations, matrixDevices, vehicles, drones, general };
 }
 
 function drawPage1(page: PDFPage, ctx: DrawCtx, inputs: SheetInputs) {

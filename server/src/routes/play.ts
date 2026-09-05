@@ -106,7 +106,7 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
       | undefined;
     const playState = playRow
       ? playStateFromRow(playRow)
-      : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, statusEffects: [], boundSpirits: [], compiledSprites: [] };
+      : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, matrixDamage: 0, statusEffects: [], boundSpirits: [], compiledSprites: [] };
 
     return {
       id: c.id,
