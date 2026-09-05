@@ -366,6 +366,41 @@ export const MATRIX_PROGRAMS: MatrixProgramEntry[] = [
   },
 ];
 
+export interface RunningProgramBonuses {
+  dataProcessingBonus: number;
+  defenseRatingBonus: number;
+  activeLabels: string[];
+}
+
+/**
+ * Of every named program in MATRIX_PROGRAMS, only two have a numeric effect
+ * on the persona's own Attack/Sleaze/Data Processing/Firewall math - Toolbox
+ * (+1 Data Processing) and Armor (+2 Defense Rating). Everything else is a
+ * dice/Edge bonus scoped to one specific Matrix action, a damage-type
+ * change, or flavor text - those stay reference-only, not folded into any
+ * live number. `running` is keyed by program name (PlayState's
+ * matrixProgramsRunning), same keys as MATRIX_PROGRAMS entries' `name`.
+ */
+export function runningProgramBonuses(running: Record<string, boolean>): RunningProgramBonuses {
+  const activeLabels: string[] = [];
+  let dataProcessingBonus = 0;
+  let defenseRatingBonus = 0;
+  if (running["Toolbox"]) {
+    dataProcessingBonus += 1;
+    activeLabels.push("Toolbox +1 Data Processing");
+  }
+  if (running["Armor"]) {
+    defenseRatingBonus += 2;
+    activeLabels.push("Armor +2 Defense Rating");
+  }
+  return { dataProcessingBonus, defenseRatingBonus, activeLabels };
+}
+
+/** Active Program Slots (core rulebook p.174): capped by Data Processing, not by whatever the device can store - Matrix.tsx's own existing hint text already says this ("Your device's Data Processing rating limits how many can run at once, though more may be stored"). Agent counts as one running program like any other. */
+export function runningProgramCount(running: Record<string, boolean>): number {
+  return Object.values(running).filter(Boolean).length;
+}
+
 export const NOISE_TABLE: { condition: string; noise: string }[] = [
   { condition: "Directly connected (any distance)", noise: "0" },
   { condition: "Up to 100 meters", noise: "0" },

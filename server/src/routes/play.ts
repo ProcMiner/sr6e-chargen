@@ -114,6 +114,13 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
           boundSpirits: [],
           compiledSprites: [],
           matrixDamageByDevice: {},
+          matrixProgramsRunning: {},
+          matrixReconfigured: false,
+          overwatchScore: 0,
+          overwatchLog: [],
+          matrixEdgeSpentScene: 0,
+          matrixLinkLocked: false,
+          matrixBackdoorActive: false,
         };
 
     return {

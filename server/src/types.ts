@@ -96,6 +96,13 @@ export interface CharacterPlayStateRow {
   bound_spirits: string;
   compiled_sprites: string;
   matrix_damage_by_device: string;
+  matrix_programs_running: string;
+  matrix_reconfigured: number;
+  overwatch_score: number;
+  overwatch_log: string;
+  matrix_edge_spent_scene: number;
+  matrix_link_locked: number;
+  matrix_backdoor_active: number;
   updated_at: string;
 }
 

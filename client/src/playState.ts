@@ -63,6 +63,13 @@ export interface CompiledSprite {
   compiledAt: string;
 }
 
+/** One reasoned addition to Overwatch Score (Matrix.tsx's OS tracker) - manual +1/-1 taps don't log, only the three named-reason quick-add buttons do, capped at the 4 most recent. */
+export interface OverwatchLogEntry {
+  id: string;
+  reason: string;
+  delta: number;
+}
+
 export interface PlayState {
   physicalDamage: number;
   stunDamage: number;
@@ -72,6 +79,17 @@ export interface PlayState {
   compiledSprites: CompiledSprite[];
   /** Matrix Condition Monitor damage per owned Matrix device, keyed by the device's gear-line name (matrixDevices() in deriveDeckerPersona.ts) - see that file's matrixConditionMonitor() for the max. Technomancers have no Matrix Condition Monitor (Matrix damage applies to Stun instead), so this stays empty for them. */
   matrixDamageByDevice: Record<string, number>;
+  /** Which named Matrix programs (deriveMatrix.ts's MATRIX_PROGRAMS, plus "Agent") are currently loaded/running, keyed by name - session-transient, decker-only. */
+  matrixProgramsRunning: Record<string, boolean>;
+  /** Reconfigure Matrix Attribute (core rulebook p.175, Minor Action, no test): swapped Data Processing/Firewall. Attack/Sleaze aren't offered here - a custom cyberdeck's pair is always locked, and a stock deck's is set once at chargen. */
+  matrixReconfigured: boolean;
+  /** Overwatch Score (core rulebook p.176), 0-40 - Matrix.tsx's live tracker for the same OS the reference section on that tab explains. */
+  overwatchScore: number;
+  overwatchLog: OverwatchLogEntry[];
+  /** Edge spent on Matrix Edge Actions so far this scene - manually reset, since this app has no scene/combat-round boundary concept. */
+  matrixEdgeSpentScene: number;
+  matrixLinkLocked: boolean;
+  matrixBackdoorActive: boolean;
 }
 
 export interface PlaySessionSummary {

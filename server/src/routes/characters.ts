@@ -247,6 +247,12 @@ charactersRouter.delete("/:id", (req: Request, res: Response) => {
   res.status(204).end();
 });
 
+export interface OverwatchLogEntry {
+  id: string;
+  reason: string;
+  delta: number;
+}
+
 export interface PlayStateClient {
   physicalDamage: number;
   stunDamage: number;
@@ -256,6 +262,13 @@ export interface PlayStateClient {
   compiledSprites: CompiledSprite[];
   /** Matrix Condition Monitor damage per owned Matrix device, keyed by the device's gear-line name (matrixDevices() in deriveDeckerPersona.ts) - see that file's matrixConditionMonitor() for the max. Technomancers have no Matrix Condition Monitor (Matrix damage applies to Stun instead), so this stays empty for them. */
   matrixDamageByDevice: Record<string, number>;
+  matrixProgramsRunning: Record<string, boolean>;
+  matrixReconfigured: boolean;
+  overwatchScore: number;
+  overwatchLog: OverwatchLogEntry[];
+  matrixEdgeSpentScene: number;
+  matrixLinkLocked: boolean;
+  matrixBackdoorActive: boolean;
 }
 
 function ownedCharacter(id: string, userId: number | undefined): CharacterRow | undefined {
@@ -307,8 +320,8 @@ const lastPlayStateChange = new Map<number, PlayStateUndoRecord>();
 
 function writePlayState(characterId: number, state: PlayStateClient): void {
   db.prepare(
-    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage_by_device, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage_by_device, matrix_programs_running, matrix_reconfigured, overwatch_score, overwatch_log, matrix_edge_spent_scene, matrix_link_locked, matrix_backdoor_active, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(character_id) DO UPDATE SET
        physical_damage = excluded.physical_damage,
        stun_damage = excluded.stun_damage,
@@ -317,6 +330,13 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
        bound_spirits = excluded.bound_spirits,
        compiled_sprites = excluded.compiled_sprites,
        matrix_damage_by_device = excluded.matrix_damage_by_device,
+       matrix_programs_running = excluded.matrix_programs_running,
+       matrix_reconfigured = excluded.matrix_reconfigured,
+       overwatch_score = excluded.overwatch_score,
+       overwatch_log = excluded.overwatch_log,
+       matrix_edge_spent_scene = excluded.matrix_edge_spent_scene,
+       matrix_link_locked = excluded.matrix_link_locked,
+       matrix_backdoor_active = excluded.matrix_backdoor_active,
        updated_at = excluded.updated_at`
   ).run(
     characterId,
@@ -326,7 +346,14 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
     JSON.stringify(state.statusEffects),
     JSON.stringify(state.boundSpirits),
     JSON.stringify(state.compiledSprites),
-    JSON.stringify(state.matrixDamageByDevice)
+    JSON.stringify(state.matrixDamageByDevice),
+    JSON.stringify(state.matrixProgramsRunning),
+    state.matrixReconfigured ? 1 : 0,
+    state.overwatchScore,
+    JSON.stringify(state.overwatchLog),
+    state.matrixEdgeSpentScene,
+    state.matrixLinkLocked ? 1 : 0,
+    state.matrixBackdoorActive ? 1 : 0
   );
 }
 
@@ -345,6 +372,13 @@ export function playStateFromRow(row: CharacterPlayStateRow): PlayStateClient {
     boundSpirits: JSON.parse(row.bound_spirits) as BoundSpirit[],
     compiledSprites: JSON.parse(row.compiled_sprites) as CompiledSprite[],
     matrixDamageByDevice: JSON.parse(row.matrix_damage_by_device) as Record<string, number>,
+    matrixProgramsRunning: JSON.parse(row.matrix_programs_running) as Record<string, boolean>,
+    matrixReconfigured: !!row.matrix_reconfigured,
+    overwatchScore: row.overwatch_score,
+    overwatchLog: JSON.parse(row.overwatch_log) as OverwatchLogEntry[],
+    matrixEdgeSpentScene: row.matrix_edge_spent_scene,
+    matrixLinkLocked: !!row.matrix_link_locked,
+    matrixBackdoorActive: !!row.matrix_backdoor_active,
   };
 }
 
@@ -366,6 +400,13 @@ charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
     boundSpirits: [],
     compiledSprites: [],
     matrixDamageByDevice: {},
+    matrixProgramsRunning: {},
+    matrixReconfigured: false,
+    overwatchScore: 0,
+    overwatchLog: [],
+    matrixEdgeSpentScene: 0,
+    matrixLinkLocked: false,
+    matrixBackdoorActive: false,
   });
 });
 
@@ -387,6 +428,13 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
         boundSpirits: [],
         compiledSprites: [],
         matrixDamageByDevice: {},
+        matrixProgramsRunning: {},
+        matrixReconfigured: false,
+        overwatchScore: 0,
+        overwatchLog: [],
+        matrixEdgeSpentScene: 0,
+        matrixLinkLocked: false,
+        matrixBackdoorActive: false,
       };
 
   const body = (req.body ?? {}) as Partial<PlayStateClient>;
@@ -493,6 +541,76 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     matrixDamageByDevice = body.matrixDamageByDevice as Record<string, number>;
   }
 
+  let matrixProgramsRunning = current.matrixProgramsRunning;
+  if (body.matrixProgramsRunning !== undefined) {
+    const entries = Object.entries(body.matrixProgramsRunning as Record<string, unknown>);
+    if (
+      typeof body.matrixProgramsRunning !== "object" ||
+      body.matrixProgramsRunning === null ||
+      Array.isArray(body.matrixProgramsRunning) ||
+      entries.some(([, v]) => typeof v !== "boolean")
+    ) {
+      return res.status(400).json({
+        error: "matrixProgramsRunning must be an object mapping program name to a boolean",
+      });
+    }
+    matrixProgramsRunning = body.matrixProgramsRunning as Record<string, boolean>;
+  }
+
+  let matrixReconfigured = current.matrixReconfigured;
+  if (body.matrixReconfigured !== undefined) {
+    if (typeof body.matrixReconfigured !== "boolean") {
+      return res.status(400).json({ error: "matrixReconfigured must be a boolean" });
+    }
+    matrixReconfigured = body.matrixReconfigured;
+  }
+
+  const overwatchScore = numOrCurrent(body.overwatchScore, current.overwatchScore, 40);
+  if (overwatchScore === undefined) {
+    return res.status(400).json({ error: "overwatchScore must be a finite number between 0 and 40" });
+  }
+
+  let overwatchLog = current.overwatchLog;
+  if (body.overwatchLog !== undefined) {
+    if (
+      !Array.isArray(body.overwatchLog) ||
+      body.overwatchLog.length > 4 ||
+      body.overwatchLog.some(
+        (e) =>
+          e === null ||
+          typeof e !== "object" ||
+          typeof e.id !== "string" ||
+          typeof e.reason !== "string" ||
+          typeof e.delta !== "number" ||
+          !Number.isFinite(e.delta)
+      )
+    ) {
+      return res.status(400).json({ error: "overwatchLog must be an array of at most 4 { id, reason, delta }" });
+    }
+    overwatchLog = body.overwatchLog;
+  }
+
+  const matrixEdgeSpentScene = numOrCurrent(body.matrixEdgeSpentScene, current.matrixEdgeSpentScene);
+  if (matrixEdgeSpentScene === undefined) {
+    return res.status(400).json({ error: "matrixEdgeSpentScene must be a finite non-negative number" });
+  }
+
+  let matrixLinkLocked = current.matrixLinkLocked;
+  if (body.matrixLinkLocked !== undefined) {
+    if (typeof body.matrixLinkLocked !== "boolean") {
+      return res.status(400).json({ error: "matrixLinkLocked must be a boolean" });
+    }
+    matrixLinkLocked = body.matrixLinkLocked;
+  }
+
+  let matrixBackdoorActive = current.matrixBackdoorActive;
+  if (body.matrixBackdoorActive !== undefined) {
+    if (typeof body.matrixBackdoorActive !== "boolean") {
+      return res.status(400).json({ error: "matrixBackdoorActive must be a boolean" });
+    }
+    matrixBackdoorActive = body.matrixBackdoorActive;
+  }
+
   // Undo tracking: only meaningful when exactly one of the three numeric
   // fields actually changed - the GM Bar's steppers always send one field
   // per request, so this never fires for LivePlay's multi-field saves or
@@ -516,9 +634,31 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     boundSpirits,
     compiledSprites,
     matrixDamageByDevice,
+    matrixProgramsRunning,
+    matrixReconfigured,
+    overwatchScore,
+    overwatchLog,
+    matrixEdgeSpentScene,
+    matrixLinkLocked,
+    matrixBackdoorActive,
   });
 
-  res.json({ physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits, compiledSprites, matrixDamageByDevice });
+  res.json({
+    physicalDamage,
+    stunDamage,
+    edgeAvailable,
+    statusEffects,
+    boundSpirits,
+    compiledSprites,
+    matrixDamageByDevice,
+    matrixProgramsRunning,
+    matrixReconfigured,
+    overwatchScore,
+    overwatchLog,
+    matrixEdgeSpentScene,
+    matrixLinkLocked,
+    matrixBackdoorActive,
+  });
 });
 
 charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
@@ -543,6 +683,13 @@ charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
         boundSpirits: [],
         compiledSprites: [],
         matrixDamageByDevice: {},
+        matrixProgramsRunning: {},
+        matrixReconfigured: false,
+        overwatchScore: 0,
+        overwatchLog: [],
+        matrixEdgeSpentScene: 0,
+        matrixLinkLocked: false,
+        matrixBackdoorActive: false,
       };
 
   const reverted: PlayStateClient = { ...current, [record.field]: record.previousValue };

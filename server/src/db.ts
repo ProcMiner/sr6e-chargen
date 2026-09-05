@@ -67,6 +67,13 @@ db.exec(`
     bound_spirits TEXT NOT NULL DEFAULT '[]',
     compiled_sprites TEXT NOT NULL DEFAULT '[]',
     matrix_damage_by_device TEXT NOT NULL DEFAULT '{}',
+    matrix_programs_running TEXT NOT NULL DEFAULT '{}',
+    matrix_reconfigured INTEGER NOT NULL DEFAULT 0,
+    overwatch_score INTEGER NOT NULL DEFAULT 0,
+    overwatch_log TEXT NOT NULL DEFAULT '[]',
+    matrix_edge_spent_scene INTEGER NOT NULL DEFAULT 0,
+    matrix_link_locked INTEGER NOT NULL DEFAULT 0,
+    matrix_backdoor_active INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -91,6 +98,41 @@ try {
 }
 try {
   db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_damage_by_device TEXT NOT NULL DEFAULT '{}'`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_programs_running TEXT NOT NULL DEFAULT '{}'`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_reconfigured INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN overwatch_score INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN overwatch_log TEXT NOT NULL DEFAULT '[]'`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_edge_spent_scene INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_link_locked INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_backdoor_active INTEGER NOT NULL DEFAULT 0`);
 } catch {
   // column already exists
 }
