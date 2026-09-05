@@ -67,11 +67,11 @@ export interface PlayState {
   physicalDamage: number;
   stunDamage: number;
   edgeAvailable: number;
-  /** Damage marked against the character's own Matrix persona device's Condition Monitor (see deriveDeckerPersona.ts's matrixConditionMonitor) - meaningless for a technomancer's Living Persona, which has none (Matrix damage applies to Stun instead per core rulebook). Only the first/primary device is tracked. */
-  matrixDamage: number;
   statusEffects: StatusEffect[];
   boundSpirits: BoundSpirit[];
   compiledSprites: CompiledSprite[];
+  /** Matrix Condition Monitor damage per owned Matrix device, keyed by the device's gear-line name (matrixDevices() in deriveDeckerPersona.ts) - see that file's matrixConditionMonitor() for the max. Technomancers have no Matrix Condition Monitor (Matrix damage applies to Stun instead), so this stays empty for them. */
+  matrixDamageByDevice: Record<string, number>;
 }
 
 export interface PlaySessionSummary {

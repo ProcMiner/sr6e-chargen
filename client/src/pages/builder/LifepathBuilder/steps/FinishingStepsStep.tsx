@@ -6,6 +6,7 @@ import { karmaRemaining } from "../../../../deriveGear";
 import {
   contactsCpSpent,
   contactsKarmaSpent,
+  isPrimeOrElite,
   lifepathAvailableContactTypes,
   lifepathContactPointPool,
   withKarmaFundedPoint,
@@ -34,6 +35,7 @@ export function FinishingStepsStep({ rules, data, onChange }: Props) {
   // further, 1 Karma per point, but never above Charisma.
   const contacts = data.contacts;
   const charisma = data.attributes.charisma;
+  const primeOrElite = isPrimeOrElite(data);
   const comingOfAgeDone = !!state.comingOfAgeSkill;
   const allAdult = rules.adultModules;
   const contactTypes = lifepathAvailableContactTypes(state.selectedModuleIds, allAdult, comingOfAgeDone);
@@ -60,7 +62,7 @@ export function FinishingStepsStep({ rules, data, onChange }: Props) {
 
   function spendKarmaOnRating(id: string, field: "connection" | "loyalty") {
     const contact = contacts.find((c) => c.id === id);
-    if (!contact || contact[field] >= charisma || contactKarmaBudget < 1) return;
+    if (!contact || (!primeOrElite && contact[field] >= charisma) || contactKarmaBudget < 1) return;
     updateContact(id, withKarmaFundedPoint(contact, field));
   }
 
@@ -73,10 +75,11 @@ export function FinishingStepsStep({ rules, data, onChange }: Props) {
         Contact points come from your life modules and Coming of Age, not from Charisma (Companion
         p.31). A new contact costs 2 points (Connection 1 / Loyalty 1); each additional point of
         Connection or Loyalty costs 1 more, up to a hard cap of 8. You can also spend customization Karma
-        (1 per point, "+1 (Karma)" below) to push a rating up to your Charisma ({charisma}). The book
-        restricts each module's points to contacts matching that module's own type list - this tool
-        doesn't enforce that narrower per-module match, so self-adjudicate against the modules you picked
-        in Adult Life Modules.
+        (1 per point, "+1 (Karma)" below) to push a rating{" "}
+        {primeOrElite ? "further, with no Charisma cap for Elite (house rule)" : `up to your Charisma (${charisma})`}.
+        The book restricts each module's points to contacts matching that module's own type list - this
+        tool doesn't enforce that narrower per-module match, so self-adjudicate against the modules you
+        picked in Adult Life Modules.
       </p>
       {contactTypes.length === 0 && (
         <p className="hint">Finish Coming of Age or pick a life module that grants contact points to unlock contact types.</p>
@@ -113,7 +116,7 @@ export function FinishingStepsStep({ rules, data, onChange }: Props) {
                         value={c[field]}
                         onChange={(next) => updateContact(c.id, withRating(c, field, next))}
                       />
-                      {c[field] < charisma && contactKarmaBudget >= 1 && (
+                      {(primeOrElite || c[field] < charisma) && contactKarmaBudget >= 1 && (
                         <button type="button" className="chip" onClick={() => spendKarmaOnRating(c.id, field)}>
                           +1 (Karma)
                         </button>

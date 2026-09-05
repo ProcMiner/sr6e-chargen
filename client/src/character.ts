@@ -381,6 +381,19 @@ export interface CharacterData {
   metatype?: Metatype;
   /** Metavariant catalog id (server/src/rules/metavariants.ts); undefined for a base metatype. */
   metavariant?: string;
+  /**
+   * Free-text physical description fields from the character sheet's
+   * "Personal Data" box (core rulebook chargen worksheet) - Sex, Age,
+   * Height, Weight. Purely descriptive, player-chosen, no formula or
+   * mechanical effect - see pdfSheet.ts's drawPage1 for where these land
+   * on the printed sheet. Player/Ethnicity (below, near `notes`) are the
+   * same idea but weren't on the original chargen worksheet pass - added
+   * later for Live Play's fuller Personal Data card.
+   */
+  sex?: string;
+  age?: string;
+  height?: string;
+  weight?: string;
   attributes: Attributes;
   skills: Record<string, number>;
   /** Skill specializations/expertise - see SkillSpecialization. One skill-point-worth each at chargen (Priority: one per skill; Life Path: one total for the whole character - the two systems genuinely differ here, confirmed from both books), or 5 Karma each post-creation. */
@@ -438,13 +451,31 @@ export interface CharacterData {
   karma: number;
   /**
    * Karma converted to nuyen during character creation's "Finishing
-   * Touches" step (core rulebook p.66, "Spend Customization Karma") -
-   * 2,000 nuyen per Karma point, or 5,000 with the In Debt quality. See
-   * deriveGear.ts's karmaToNuyenRate/nuyenFromKarmaConversion. Chargen-only
-   * (undefined/0 once in play) - the Companion's optional downtime
-   * "Working for the Man" variant of this exchange isn't modeled.
+   * Touches" step (core rulebook p.66, "Spend Customization Karma") at the
+   * normal rate of 2,000 nuyen per Karma point. See deriveGear.ts's
+   * nuyenFromKarmaConversion. Chargen-only (undefined/0 once in play) - the
+   * Companion's optional downtime "Working for the Man" variant of this
+   * exchange isn't modeled.
+   *
+   * Kept separate from karmaSpentOnNuyenInDebt below (house rule) so an
+   * In Debt character can still convert some Karma at the normal rate/no
+   * debt, rather than the quality forcing every point of this exchange
+   * into the boosted-but-indebted rate.
    */
   karmaSpentOnNuyen?: number;
+  /**
+   * Karma converted to nuyen at the In Debt quality's boosted rate - 5,000
+   * nuyen per Karma point, plus 5,000 nuyen of debt and 500 nuyen/month
+   * interest per point (core rulebook p.66, "in-debt" quality entry). Only
+   * meaningful/spendable when the character owns the "in-debt" quality -
+   * see deriveGear.ts's nuyenFromKarmaConversion/inDebtPrincipal/
+   * inDebtMonthlyInterest. House rule: a separate pool from
+   * karmaSpentOnNuyen above (the un-indebted normal-rate conversion) so a
+   * player chooses how much of their Karma-to-nuyen exchange to run through
+   * the debt-creating rate, rather than the quality applying to the whole
+   * pool automatically. Chargen-only, same as karmaSpentOnNuyen.
+   */
+  karmaSpentOnNuyenInDebt?: number;
   /** Post-chargen Karma spent raising attributes/skills during play (see deriveAdvancement.ts). Empty/undefined for a character still in chargen. */
   advancement?: AdvancementEntry[];
   /** Itemized post-creation Knowledge/Language purchase log - see KnowledgePurchaseEntry. Empty/undefined for a character still in chargen. */
@@ -488,16 +519,13 @@ export interface CharacterData {
   astralReputation?: number;
   notes?: string;
   /**
-   * Freeform flavor/identity fields for the Live Play character sheet
-   * (Personal Data card) - none of these feed any derived rule, they're
-   * purely descriptive. Undefined/blank until the player fills them in;
-   * no chargen step sets these, they're edited directly in Live Play.
+   * Freeform flavor/identity fields for Live Play's fuller Personal Data
+   * card - Sex/Age/Height/Weight (above) plus these two - none feed any
+   * derived rule, purely descriptive. Undefined/blank until the player
+   * fills them in; no chargen step sets these, they're edited directly in
+   * Live Play.
    */
   playerName?: string;
-  sex?: string;
-  age?: string;
-  height?: string;
-  weight?: string;
   ethnicity?: string;
   systemState: PrioritySystemState | LifepathSystemState | Record<string, never>;
 }

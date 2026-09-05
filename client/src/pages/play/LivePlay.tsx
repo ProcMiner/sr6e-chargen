@@ -20,7 +20,7 @@ import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { specializationKarmaTotal } from "../../deriveSpecializations";
 import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
-import { matrixConditionMonitor, matrixDevices } from "../../deriveDeckerPersona";
+import { matrixDevices } from "../../deriveDeckerPersona";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
 import { Combat } from "./Combat";
@@ -218,14 +218,6 @@ export function LivePlay() {
     scheduleSave({ ...playState!, [field]: 0 });
   }
 
-  function adjustMatrixDamage(delta: number) {
-    scheduleSave({ ...playState!, matrixDamage: Math.max(0, playState!.matrixDamage + delta) });
-  }
-
-  function resetMatrixDamage() {
-    scheduleSave({ ...playState!, matrixDamage: 0 });
-  }
-
   function adjustEdge(delta: number) {
     const next = Math.max(0, Math.min(attributes.edge, playState!.edgeAvailable + delta));
     scheduleSave({ ...playState!, edgeAvailable: next });
@@ -278,10 +270,6 @@ export function LivePlay() {
   const spritesRelevant = !!spriteRules && isTechnomancer;
   const matrixRelevant = !!gearRules && (isTechnomancer || devices.length > 0);
   const advancementRelevant = !!(priorityRules && qualityRules && metamagicRules);
-  // A decker's device Matrix Condition Monitor (core rulebook p.174/178) -
-  // only the first/primary owned device is tracked (see PlayState.matrixDamage).
-  // Technomancers have none: Matrix damage applies to Stun instead (Matrix.tsx).
-  const primaryMatrixDevice = !isTechnomancer && devices.length > 0 ? devices[0] : undefined;
   const activeEffectNames = new Set(playState.statusEffects.map((e) => e.name));
 
   const tabs: { id: string; label: string; content: ReactNode }[] = [
@@ -325,7 +313,15 @@ export function LivePlay() {
       ? [{ id: "combat", label: "Combat", content: <Combat data={characterData} gearRules={gearRules} /> }]
       : []),
     ...(matrixRelevant
-      ? [{ id: "matrix", label: "Matrix", content: <Matrix data={characterData} gearRules={gearRules!} /> }]
+      ? [
+          {
+            id: "matrix",
+            label: "Matrix",
+            content: (
+              <Matrix data={characterData} gearRules={gearRules!} playState={playState} onChange={scheduleSave} />
+            ),
+          },
+        ]
       : []),
     ...(hasMagic ? [{ id: "astral", label: "Astral", content: <Astral data={characterData} /> }] : []),
     ...(spiritsRelevant
@@ -455,16 +451,6 @@ export function LivePlay() {
             edgeMax={attributes.edge}
             onAdjustEdge={adjustEdge}
             onResetEdge={resetEdge}
-            matrix={
-              primaryMatrixDevice
-                ? {
-                    damage: playState.matrixDamage,
-                    max: matrixConditionMonitor(primaryMatrixDevice.deviceRating),
-                    onAdjust: adjustMatrixDamage,
-                    onReset: resetMatrixDamage,
-                  }
-                : undefined
-            }
           />
           {(physicalOverflow > 0 || stunOverflow > 0) && (
             <p className="hint danger-text">

@@ -58,6 +58,8 @@ ssh <lightsail-host> "sudo -u chargen bash -lc 'cd /opt/sr6e-chargen/app && git 
 
 **Workflow expectation**: after committing, ask before pushing to master rather than stopping silently — but once pushed, the Action handles deploy automatically; no need to also do it by hand. Never `--force` push to master.
 
+**Always ask — every single time, no exceptions.** Don't infer standing permission to push to master from an earlier approval in the same session, from how small/safe a change looks, or from the fact that the branch is a clean fast-forward. Ask again. And don't let commits pile up unpushed on the working branch waiting for that ask — surface the push question as soon as there's a coherent, build-passing chunk of work done, rather than batching multiple unrelated commits into one eventual ask. A branch sitting many commits ahead of master, undeployed, defeats the point of the auto-deploy setup.
+
 ## Sourcebook PDFs
 
 The SR6E rulebook PDFs (core + sourcebooks) used to verify rules content live in a **separate private repo**, `github.com/ProcMiner/sr6e-source-pdfs` — not in this repo (too large, copyrighted scans). Clone or fetch it separately when a rules question needs source verification:

@@ -37,6 +37,38 @@ export interface MatrixDevice {
   vrInitBonus: number;
   /** True only for a custom cyberdeck: `values` is always `[attack, sleaze]` in that order, force-assigned rather than pooled - see this file's header comment. */
   locked?: boolean;
+  /**
+   * False for a device with no printed Device Rating - an implanted cyberjack
+   * (core rulebook p.176's stat table has Attributes(D/F)/VR Init Dice/Avail/
+   * Ess/Cost, no Device Rating column at all), as opposed to an external
+   * cyberhack (Hack & Slash p.34, which does print one). A cyberjack only
+   * feeds Data Processing/Firewall into whatever deck it's wired to - core
+   * p.174's "device an individual is using to access the Matrix" and p.175's
+   * Bricked Devices both describe something a persona runs on and that gets
+   * ejected/dumpshocked when it bricks; a cyberjack isn't that, the deck it's
+   * plugged into is. Still contributes its values to the pool below - just
+   * excluded from the Matrix Condition Monitor bar/reference list.
+   */
+  hasConditionMonitor: boolean;
+  /** Which of the two named pairs `values` holds - a cyberdeck/custom deck prints Attack/Sleaze ("AS"), a commlink/cyberjack/cyberhack prints Data Processing/Firewall ("DF"). Lets a caller that needs the *named* attributes (not just the poolable pair) pick the right accessor below instead of guessing from context. */
+  kind: "AS" | "DF";
+}
+
+/** This device's Attack value, if it's an AS-kind device (undefined for a DF device like a commlink/cyberjack). */
+export function deviceAttack(d: MatrixDevice): number | undefined {
+  return d.kind === "AS" ? d.values[0] : undefined;
+}
+/** This device's Sleaze value, if it's an AS-kind device. */
+export function deviceSleaze(d: MatrixDevice): number | undefined {
+  return d.kind === "AS" ? d.values[1] : undefined;
+}
+/** This device's Data Processing value, if it's a DF-kind device (undefined for an AS device like a cyberdeck). */
+export function deviceDataProcessing(d: MatrixDevice): number | undefined {
+  return d.kind === "DF" ? d.values[0] : undefined;
+}
+/** This device's Firewall value, if it's a DF-kind device. */
+export function deviceFirewall(d: MatrixDevice): number | undefined {
+  return d.kind === "DF" ? d.values[1] : undefined;
 }
 
 function parsePair(raw: string | undefined): number[] {
@@ -65,6 +97,8 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
         values: [attackRating, sleazeRating],
         vrInitBonus: 0,
         locked: true,
+        hasConditionMonitor: true,
+        kind: "AS",
       });
       continue;
     }
@@ -77,6 +111,8 @@ export function matrixDevices(data: CharacterData, gearRules: GearRulesResponse)
       deviceRating: Number(entry.stats?.deviceRating) || 0,
       values: pair,
       vrInitBonus: parseBonus(entry.stats?.["VR Matrix Init Dice"]),
+      hasConditionMonitor: entry.stats?.deviceRating !== undefined,
+      kind: asPair.length ? "AS" : "DF",
     });
   }
   return devices;
@@ -107,15 +143,16 @@ export function resolveDeckerAllocation(devices: MatrixDevice[], allocation: Dec
   return { ...allocation, attack: locked.attack, sleaze: locked.sleaze };
 }
 
-/** Values still available for a given slot: the full pool minus whatever's already assigned to every OTHER slot (so each physical number is only ever used once). Pass the slot being edited as `excludeKey` so its own current value doesn't count against itself. */
+/** Values still available for a given slot: the full pool minus whatever's already assigned to every OTHER poolable slot (so each physical number is only ever used once). Pass the slot being edited as `excludeKey` so its own current value doesn't count against itself. A custom cyberdeck's locked Attack/Sleaze (see resolveDeckerAllocation) live in the same allocation object but were never drawn from `available` - if a locked value happens to numerically match a real pool entry (e.g. a custom deck's Attack 8 and a cyberjack's Firewall 8), subtracting it here would wrongly remove that unrelated device's legitimate value. Pass `lockedKeys` (attack/sleaze, when a custom cyberdeck is owned) so those get skipped instead of subtracted. */
 export function remainingMatrixValues(
   available: number[],
   allocation: DeckerPersonaAllocation,
-  excludeKey: MatrixAttributeKey
+  excludeKey: MatrixAttributeKey,
+  lockedKeys: ReadonlySet<MatrixAttributeKey> = new Set()
 ): number[] {
   const pool = [...available];
   for (const key of MATRIX_ATTRIBUTE_KEYS) {
-    if (key === excludeKey) continue;
+    if (key === excludeKey || lockedKeys.has(key)) continue;
     const used = allocation[key];
     if (used === undefined) continue;
     const idx = pool.indexOf(used);

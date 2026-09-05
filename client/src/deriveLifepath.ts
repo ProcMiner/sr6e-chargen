@@ -112,18 +112,76 @@ export function resolveBoostOptions(from: string[], skillList: string[], hasMagi
   return options;
 }
 
-function applyBoost(attrs: CharacterData["attributes"], skills: Record<string, number>, key: string, amount: number) {
-  // `key` is always a concrete attribute/skill name by this point -
-  // resolveBoostOptions() expands every "any-X" placeholder token into real
-  // options before a choice is ever stored, so there's nothing left to
-  // resolve here.
+/** The 8 standard attributes plus Edge - the only boost targets this house rule caps and the only eligible redirect targets for overflow (Magic/Resonance are excluded from both, per the table below). */
+export const REDIRECTABLE_ATTR_KEYS = [...BASE_ATTR_KEYS, "edge"] as const;
+
+/** Metatype/Exceptional-quality-adjusted cap for a boost target, or undefined for anything this house rule doesn't cap (Magic/Resonance, skills) - those keep applying uncapped, as before. */
+function capFor(key: string, info: MetatypeAttributes | undefined): number | undefined {
+  if (!info) return undefined;
+  return (REDIRECTABLE_ATTR_KEYS as readonly string[]).includes(key)
+    ? info[key as (typeof REDIRECTABLE_ATTR_KEYS)[number]].max
+    : undefined;
+}
+
+/**
+ * Which of the 8 standard attributes + Edge a capped boost's leftover
+ * point(s) may be redirected into. House rule filling a gap the Sixth World
+ * Companion doesn't cover: p.31 caps at most one standard attribute at its
+ * metatype maximum, and p.32's Coming of Age module sends a leftover point
+ * to "another attribute of your choice" when the chosen one is already
+ * capped at 5 - but no rule says what happens when an adult module boost's
+ * only option is already at cap. This generalizes that Coming of Age
+ * precedent: redirect targets must have room, Edge is exempt from the
+ * one-max-standard-attribute rule (the book's limit never mentions it), and
+ * a standard attribute is only offered if landing on it wouldn't create a
+ * *second* maxed standard attribute. Magic/Resonance are never eligible.
+ */
+export function eligibleRedirectAttributes(
+  attrs: Record<string, number>,
+  info: MetatypeAttributes | undefined,
+  leftover: number
+): string[] {
+  if (!info || leftover <= 0) return [];
+  const standardAtMax = BASE_ATTR_KEYS.filter((k) => (attrs[k] ?? 0) >= info[k].max);
+  return REDIRECTABLE_ATTR_KEYS.filter((key) => {
+    const room = info[key as (typeof REDIRECTABLE_ATTR_KEYS)[number]].max - (attrs[key] ?? 0);
+    if (room <= 0) return false;
+    if (key === "edge") return true;
+    const wouldReachCap = leftover >= room;
+    return !wouldReachCap || standardAtMax.filter((k) => k !== key).length === 0;
+  });
+}
+
+/**
+ * Applies a boost, clamping standard-attribute/Edge targets at their
+ * metatype cap and returning whatever couldn't fit (0 if none) so the caller
+ * can offer a redirect. `key` is always a concrete attribute/skill name by
+ * this point - resolveBoostOptions() expands every "any-X" placeholder
+ * token into real options before a choice is ever stored, so there's
+ * nothing left to resolve here.
+ */
+function applyBoost(
+  attrs: CharacterData["attributes"],
+  skills: Record<string, number>,
+  key: string,
+  amount: number,
+  info: MetatypeAttributes | undefined
+): number {
   const attrKeys = ["body", "agility", "reaction", "strength", "willpower", "logic", "intuition", "charisma", "edge", "magic", "resonance"];
   const attrsRecord = attrs as unknown as Record<string, number>;
-  if (attrKeys.includes(key)) {
-    attrsRecord[key] = (attrsRecord[key] ?? 0) + amount;
-  } else {
+  if (!attrKeys.includes(key)) {
     skills[key] = (skills[key] ?? 0) + amount;
+    return 0;
   }
+  const cap = capFor(key, info);
+  if (cap === undefined) {
+    attrsRecord[key] = (attrsRecord[key] ?? 0) + amount;
+    return 0;
+  }
+  const current = attrsRecord[key] ?? 0;
+  const applied = Math.min(amount, Math.max(0, cap - current));
+  attrsRecord[key] = current + applied;
+  return amount - applied;
 }
 
 // Derives the pre-adult-module baseline (metatype attributes, awakened
@@ -177,10 +235,11 @@ function computeBaseAttributesAndSkills(
     }
   }
 
-  return { attrs, skills };
+  return { attrs, skills, info };
 }
 
-export function recomputeLifepathData(
+/** Shared core of recomputeLifepathData() and computeBoostOverflow() so the two never drift - the latter exists purely so AdultLifeModulesStep can find out which boost choices got clamped, without duplicating this loop. */
+function computeLifepath(
   data: CharacterData,
   rules: LifepathRulesResponse,
   metatypeAttributes: MetatypeAttributes[],
@@ -189,9 +248,9 @@ export function recomputeLifepathData(
   nextState: LifepathSystemState,
   metatype: string | undefined = data.metatype,
   metavariantId: string | undefined = data.metavariant
-): CharacterData {
+): { data: CharacterData; boostOverflow: Record<string, number> } {
   const allAdult = rules.adultModules;
-  const { attrs, skills } = computeBaseAttributesAndSkills(data, metatypeAttributes, metavariants, nextState, metatype, metavariantId);
+  const { attrs, skills, info } = computeBaseAttributesAndSkills(data, metatypeAttributes, metavariants, nextState, metatype, metavariantId);
   const { hasMagic, hasResonance } = magicResonancePresence(nextState.awakenedType);
   // Coming of Age grants +25,000 nuyen; gated on the skill pick since
   // that's this module's primary "have I done this yet" signal.
@@ -226,6 +285,7 @@ export function recomputeLifepathData(
     return legacy ? { type: "knowledge", name: legacy } : undefined;
   }
 
+  const boostOverflow: Record<string, number> = {};
   const occurrences: Record<string, number> = {};
   for (const id of nextState.selectedModuleIds) {
     occurrences[id] = (occurrences[id] ?? 0) + 1;
@@ -248,7 +308,8 @@ export function recomputeLifepathData(
         if (chosen === "nuyen") {
           nuyen += 25_000;
         } else {
-          applyBoost(attrs, skills, chosen, boost.amount);
+          const leftover = applyBoost(attrs, skills, chosen, boost.amount, info);
+          if (leftover > 0) boostOverflow[choiceKey] = leftover;
         }
       }
     });
@@ -262,14 +323,65 @@ export function recomputeLifepathData(
     }
   }
 
+  // House rule (see eligibleRedirectAttributes' comment): send any leftover
+  // from a capped boost to another eligible attribute the player picked,
+  // once every module's own boosts have been applied - so eligibility
+  // (particularly the one-maxed-standard-attribute check) reflects the
+  // character's fully-resolved attributes, not a partial mid-loop state.
+  const attrsRecord = attrs as unknown as Record<string, number>;
+  for (const [choiceKey, leftover] of Object.entries(boostOverflow)) {
+    const redirectKey = nextState.choices[`${choiceKey}:redirect`];
+    if (!redirectKey) continue;
+    if (!eligibleRedirectAttributes(attrsRecord, info, leftover).includes(redirectKey)) continue;
+    const current = attrsRecord[redirectKey] ?? 0;
+    const cap = capFor(redirectKey, info)!;
+    attrsRecord[redirectKey] = current + Math.min(leftover, cap - current);
+  }
+
   return {
-    ...data,
-    metatype: metatype as CharacterData["metatype"],
-    metavariant: metavariantId,
-    attributes: attrs,
-    skills,
-    nuyen,
-    knowledgeSkills: knowledge,
-    systemState: { ...nextState },
+    data: {
+      ...data,
+      metatype: metatype as CharacterData["metatype"],
+      metavariant: metavariantId,
+      attributes: attrs,
+      skills,
+      nuyen,
+      knowledgeSkills: knowledge,
+      systemState: { ...nextState },
+    },
+    boostOverflow,
   };
+}
+
+export function recomputeLifepathData(
+  data: CharacterData,
+  rules: LifepathRulesResponse,
+  metatypeAttributes: MetatypeAttributes[],
+  metavariants: MetavariantCatalogEntry[],
+  skillList: string[],
+  nextState: LifepathSystemState,
+  metatype: string | undefined = data.metatype,
+  metavariantId: string | undefined = data.metavariant
+): CharacterData {
+  return computeLifepath(data, rules, metatypeAttributes, metavariants, skillList, nextState, metatype, metavariantId).data;
+}
+
+/**
+ * Per-boost-choice leftover points that couldn't apply because the target
+ * was already at its metatype/Edge cap, keyed the same as
+ * `LifepathSystemState.choices` (`${moduleInstanceKey}:boost:${boostIndex}:${pickIndex}`).
+ * AdultLifeModulesStep uses this to know when to show a "redirect leftover
+ * to" picker instead of silently letting the boost overflow the cap.
+ */
+export function computeBoostOverflow(
+  data: CharacterData,
+  rules: LifepathRulesResponse,
+  metatypeAttributes: MetatypeAttributes[],
+  metavariants: MetavariantCatalogEntry[],
+  skillList: string[],
+  nextState: LifepathSystemState,
+  metatype: string | undefined = data.metatype,
+  metavariantId: string | undefined = data.metavariant
+): Record<string, number> {
+  return computeLifepath(data, rules, metatypeAttributes, metavariants, skillList, nextState, metatype, metavariantId).boostOverflow;
 }

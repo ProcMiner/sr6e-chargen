@@ -21,6 +21,7 @@ import {
   matrixDevices,
   remainingMatrixValues,
   resolveDeckerAllocation,
+  type MatrixAttributeKey,
 } from "../../../deriveDeckerPersona";
 
 interface Props {
@@ -36,6 +37,7 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
   const available = availableMatrixValues(devices);
   const allocation = resolveDeckerAllocation(devices, deckerAllocation(data));
   const locked = lockedAttackSleaze(devices);
+  const lockedKeys = new Set<MatrixAttributeKey>(locked ? ["attack", "sleaze"] : []);
   const effectiveAttrs = effectiveAttributes(data.attributes, modifierBonuses(data.gear, data.adeptPowers));
 
   function setSlot(key: keyof DeckerPersonaAllocation, value: string) {
@@ -90,7 +92,7 @@ export function DeckerPersonaPanel({ data, gearRules, onChange }: Props) {
               </div>
             );
           }
-          const options = remainingMatrixValues(available, allocation, key);
+          const options = remainingMatrixValues(available, allocation, key, lockedKeys);
           const current = allocation[key];
           return (
             <div key={key}>

@@ -10,9 +10,13 @@ import {
   gearUnitBondingKarma,
   gearUnitCost,
   gearUnitEssenceCost,
+  hasInDebtQuality,
+  inDebtMonthlyInterest,
+  inDebtPrincipal,
+  IN_DEBT_KARMA_TO_NUYEN_RATE,
   isWeapon,
   karmaRemaining,
-  karmaToNuyenRate,
+  KARMA_TO_NUYEN_RATE,
   nuyenFromKarmaConversion,
   nuyenRemaining,
   ratingFor,
@@ -46,12 +50,16 @@ export function GearPicker({
   const remaining = nuyenRemaining(data, extraNuyenSpent);
   const karmaBudget = karmaRemaining(data, extraKarmaSpent);
   const karmaSpentOnNuyen = data.karmaSpentOnNuyen ?? 0;
-  const rate = karmaToNuyenRate(data);
-  // Ceiling on the stepper if it were set back to 0 - what's already converted plus whatever's still free to spend.
+  const karmaSpentOnNuyenInDebt = data.karmaSpentOnNuyenInDebt ?? 0;
+  // Ceiling on each stepper if it were set back to 0 - what's already converted through that pool plus whatever's still free to spend (karmaBudget already has both pools subtracted out).
   const maxKarmaConvertible = karmaBudget + karmaSpentOnNuyen;
+  const maxKarmaConvertibleInDebt = karmaBudget + karmaSpentOnNuyenInDebt;
 
   function setKarmaSpentOnNuyen(next: number) {
     onChange({ ...data, karmaSpentOnNuyen: next });
+  }
+  function setKarmaSpentOnNuyenInDebt(next: number) {
+    onChange({ ...data, karmaSpentOnNuyenInDebt: next });
   }
 
   const [search, setSearch] = useState("");
@@ -297,14 +305,15 @@ export function GearPicker({
       <div className="gear-picker">
       <p className="hint">
         {data.nuyen.toLocaleString()}¥ earned
-        {karmaSpentOnNuyen > 0 && ` + ${nuyenFromKarmaConversion(data).toLocaleString()}¥ from Karma`} -{" "}
+        {nuyenFromKarmaConversion(data) > 0 && ` + ${nuyenFromKarmaConversion(data).toLocaleString()}¥ from Karma`} -{" "}
         {gearCostTotal(selected).toLocaleString()}¥ spent = {remaining.toLocaleString()}¥ remaining
       </p>
       <p className="hint">
         {data.karma.toLocaleString()} Karma pool - {gearBondingKarmaTotal(selected).toLocaleString()} spent bonding
         foci
-        {karmaSpentOnNuyen > 0 && ` - ${karmaSpentOnNuyen.toLocaleString()} converted to nuyen`} ={" "}
-        {karmaBudget.toLocaleString()} remaining
+        {karmaSpentOnNuyen + karmaSpentOnNuyenInDebt > 0 &&
+          ` - ${(karmaSpentOnNuyen + karmaSpentOnNuyenInDebt).toLocaleString()} converted to nuyen`}{" "}
+        = {karmaBudget.toLocaleString()} remaining
       </p>
 
       {!allowFree && (
@@ -317,10 +326,29 @@ export function GearPicker({
             value={karmaSpentOnNuyen}
             onChange={setKarmaSpentOnNuyen}
           />
+          <span className="hint">{KARMA_TO_NUYEN_RATE.toLocaleString()}¥ per Karma point - core rulebook p.66</span>
+        </label>
+      )}
+      {!allowFree && hasInDebtQuality(data) && (
+        <label className="inline-field">
+          Convert Karma to nuyen (In Debt)
+          <NumberStepper
+            label="Karma converted to nuyen at the In Debt rate"
+            min={0}
+            max={maxKarmaConvertibleInDebt}
+            value={karmaSpentOnNuyenInDebt}
+            onChange={setKarmaSpentOnNuyenInDebt}
+          />
           <span className="hint">
-            {rate.toLocaleString()}¥ per Karma point{rate === 5000 ? " (In Debt)" : ""} - core rulebook p.66
+            {IN_DEBT_KARMA_TO_NUYEN_RATE.toLocaleString()}¥ per Karma point, but also adds debt - core rulebook p.66
           </span>
         </label>
+      )}
+      {!allowFree && inDebtPrincipal(data) > 0 && (
+        <p className="hint">
+          {inDebtPrincipal(data).toLocaleString()}¥ owed, {inDebtMonthlyInterest(data).toLocaleString()}¥/month
+          interest - from converting Karma at the In Debt rate
+        </p>
       )}
 
       {weaponLines.length > 0 && (

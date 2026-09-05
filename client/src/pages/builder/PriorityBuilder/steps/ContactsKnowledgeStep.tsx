@@ -3,7 +3,7 @@ import type { CharacterData, Contact, KnowledgeSkillLine, LanguageLevel } from "
 import { LANGUAGE_LEVEL_NAMES } from "../../../../character";
 import type { PriorityRulesResponse } from "../../../../rules";
 import { NumberStepper } from "../../../../components/NumberStepper";
-import { contactsCostTotal, priorityContactPointPool, withRating } from "../../../../deriveContacts";
+import { contactsCostTotal, isPrimeOrElite, priorityContactPointPool, withRating } from "../../../../deriveContacts";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL, knowledgeSlotsSpent, priorityKnowledgeSlotPool } from "../../../../deriveKnowledge";
 import { generateId } from "../../../../id";
 
@@ -29,6 +29,7 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
   // contacts" cap - it's just a consequence of the pool size.
   const contacts = data.contacts;
   const charisma = data.attributes.charisma;
+  const primeOrElite = isPrimeOrElite(data);
   const contactPool = priorityContactPointPool(charisma);
   const contactPointsSpent = contactsCostTotal(contacts);
   const contactPointsRemaining = contactPool - contactPointsSpent;
@@ -93,7 +94,10 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
         </h3>
         <p className="hint">
           Charisma x 6 points to spend on Connection + Loyalty across all your contacts (core rulebook
-          p.66-67). No single rating may exceed your Charisma ({charisma}).
+          p.66-67).{" "}
+          {primeOrElite
+            ? `No per-rating Charisma cap for Prime Runner (house rule).`
+            : `No single rating may exceed your Charisma (${charisma}).`}
         </p>
         {contacts.length > 0 && (
           <ul className="module-slots">
@@ -112,7 +116,11 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
                       <NumberStepper
                         label={`${c.name} Connection`}
                         min={1}
-                        max={Math.min(charisma, c.connection + contactPointsRemaining)}
+                        max={
+                          primeOrElite
+                            ? c.connection + contactPointsRemaining
+                            : Math.min(charisma, c.connection + contactPointsRemaining)
+                        }
                         value={c.connection}
                         onChange={(next) => updateContact(c.id, withRating(c, "connection", next))}
                       />
@@ -122,7 +130,11 @@ export function ContactsKnowledgeStep({ data, onChange }: Props) {
                       <NumberStepper
                         label={`${c.name} Loyalty`}
                         min={1}
-                        max={Math.min(charisma, c.loyalty + contactPointsRemaining)}
+                        max={
+                          primeOrElite
+                            ? c.loyalty + contactPointsRemaining
+                            : Math.min(charisma, c.loyalty + contactPointsRemaining)
+                        }
                         value={c.loyalty}
                         onChange={(next) => updateContact(c.id, withRating(c, "loyalty", next))}
                       />

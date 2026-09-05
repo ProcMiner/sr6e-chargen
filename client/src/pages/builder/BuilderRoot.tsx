@@ -19,6 +19,7 @@ import { getPrioritySteps } from "./PriorityBuilder/prioritySteps";
 import { getLifepathSteps } from "./LifepathBuilder/lifepathSteps";
 import { StepWizard } from "../../components/StepWizard";
 import { EditableName } from "../../components/EditableName";
+import { PersonalDataFields } from "../../components/PersonalDataFields";
 import { SummarySheet } from "./SummarySheet";
 import { spellKarmaCost } from "../../deriveSpells";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
@@ -182,6 +183,8 @@ export function BuilderRoot() {
           )}
         </div>
       </header>
+
+      <PersonalDataFields data={data} onChange={setData} />
 
       <div className="builder-layout">
         <div className="builder-main">

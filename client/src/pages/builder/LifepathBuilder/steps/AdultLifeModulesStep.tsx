@@ -2,9 +2,12 @@ import { useState } from "react";
 import type { CharacterData, KnowledgeSkillLine, LifepathSystemState } from "../../../../character";
 import type { Boost, LifeModule, LifepathRulesResponse, MetatypeAttributes, MetavariantCatalogEntry } from "../../../../rules";
 import { MAX_PURCHASABLE_LANGUAGE_LEVEL } from "../../../../deriveKnowledge";
+import { effectiveMetatypeInfo } from "../../../../deriveMetavariant";
 import {
   adultSlots,
+  computeBoostOverflow,
   deriveLifepathState,
+  eligibleRedirectAttributes,
   instanceKey,
   magicResonancePresence,
   recomputeLifepathData,
@@ -24,6 +27,12 @@ export function AdultLifeModulesStep({ rules, metatypeAttributes, metavariants, 
   const state = deriveLifepathState(data);
   const { hasMagic, hasResonance } = magicResonancePresence(state.awakenedType);
   const [moduleSearch, setModuleSearch] = useState("");
+  const metatypeInfo = effectiveMetatypeInfo(data, metatypeAttributes, metavariants);
+  // Which boost choices got clamped at their metatype/Edge cap this render,
+  // keyed the same as state.choices - drives the "redirect leftover to..."
+  // picker in BoostPicker below (this app's house rule for the Life Path
+  // system's uncovered "every option is already maxed" case).
+  const boostOverflow = computeBoostOverflow(data, rules, metatypeAttributes, metavariants, skillList, state);
 
   function recompute(nextState: LifepathSystemState) {
     onChange(recomputeLifepathData(data, rules, metatypeAttributes, metavariants, skillList, nextState));
@@ -110,6 +119,9 @@ export function AdultLifeModulesStep({ rules, metatypeAttributes, metavariants, 
                 skillList={skillList}
                 hasMagic={hasMagic}
                 hasResonance={hasResonance}
+                attrs={data.attributes as unknown as Record<string, number>}
+                metatypeInfo={metatypeInfo}
+                boostOverflow={boostOverflow}
                 onChoice={setChoice}
                 onKnowledgeChoice={setKnowledgeChoice}
                 onRemove={() => removeModuleAt(i)}
@@ -187,6 +199,9 @@ function ModuleInstance({
   skillList,
   hasMagic,
   hasResonance,
+  attrs,
+  metatypeInfo,
+  boostOverflow,
   onChoice,
   onKnowledgeChoice,
   onRemove,
@@ -199,6 +214,9 @@ function ModuleInstance({
   skillList: string[];
   hasMagic: boolean;
   hasResonance: boolean;
+  attrs: Record<string, number>;
+  metatypeInfo: MetatypeAttributes | undefined;
+  boostOverflow: Record<string, number>;
   onChoice: (key: string, value: string) => void;
   onKnowledgeChoice: (key: string, type: "knowledge" | "language", name: string) => void;
   onRemove: () => void;
@@ -222,6 +240,9 @@ function ModuleInstance({
           skillList={skillList}
           hasMagic={hasMagic}
           hasResonance={hasResonance}
+          attrs={attrs}
+          metatypeInfo={metatypeInfo}
+          boostOverflow={boostOverflow}
           onChoice={onChoice}
         />
       ))}
@@ -306,6 +327,9 @@ function BoostPicker({
   skillList,
   hasMagic,
   hasResonance,
+  attrs,
+  metatypeInfo,
+  boostOverflow,
   onChoice,
 }: {
   boost: Boost;
@@ -315,6 +339,9 @@ function BoostPicker({
   skillList: string[];
   hasMagic: boolean;
   hasResonance: boolean;
+  attrs: Record<string, number>;
+  metatypeInfo: MetatypeAttributes | undefined;
+  boostOverflow: Record<string, number>;
   onChoice: (key: string, value: string) => void;
 }) {
   const picks = boost.count ?? 1;
@@ -324,27 +351,77 @@ function BoostPicker({
     <>
       {Array.from({ length: picks }).map((_, p) => {
         const key = `${instanceKey}:boost:${boostIndex}:${p}`;
+        const leftover = boostOverflow[key] ?? 0;
+        const redirectPicker = leftover > 0 && (
+          <RedirectPicker key={`${key}:redirect`} choiceKey={key} leftover={leftover} attrs={attrs} metatypeInfo={metatypeInfo} choices={choices} onChoice={onChoice} />
+        );
         if (options.length === 1) {
           return (
-            <p key={key} className="hint">
-              +{boost.amount} {options[0]}
-            </p>
+            <div key={key}>
+              <p className="hint">
+                +{boost.amount} {options[0]}
+              </p>
+              {redirectPicker}
+            </div>
           );
         }
         return (
-          <label key={key} className="inline-field">
-            +{boost.amount} to
-            <select value={choices[key] ?? ""} onChange={(e) => onChoice(key, e.target.value)}>
-              <option value="">choose...</option>
-              {options.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div key={key}>
+            <label className="inline-field">
+              +{boost.amount} to
+              <select value={choices[key] ?? ""} onChange={(e) => onChoice(key, e.target.value)}>
+                <option value="">choose...</option>
+                {options.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {redirectPicker}
+          </div>
         );
       })}
     </>
+  );
+}
+
+/**
+ * Shown when a boost choice is already at its metatype/Edge cap and some of
+ * its points couldn't apply - lets the player send the leftover to another
+ * eligible attribute instead of it silently vanishing over the cap (house
+ * rule; see eligibleRedirectAttributes' comment in deriveLifepath.ts).
+ */
+function RedirectPicker({
+  choiceKey,
+  leftover,
+  attrs,
+  metatypeInfo,
+  choices,
+  onChoice,
+}: {
+  choiceKey: string;
+  leftover: number;
+  attrs: Record<string, number>;
+  metatypeInfo: MetatypeAttributes | undefined;
+  choices: Record<string, string>;
+  onChoice: (key: string, value: string) => void;
+}) {
+  const redirectKey = `${choiceKey}:redirect`;
+  const options = eligibleRedirectAttributes(attrs, metatypeInfo, leftover);
+  return (
+    <label className="inline-field">
+      <span className="hint">
+        {leftover} point{leftover === 1 ? "" : "s"} already at cap - redirect to
+      </span>
+      <select value={choices[redirectKey] ?? ""} onChange={(e) => onChoice(redirectKey, e.target.value)}>
+        <option value="">choose...</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

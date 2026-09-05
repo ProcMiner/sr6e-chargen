@@ -251,10 +251,11 @@ export interface PlayStateClient {
   physicalDamage: number;
   stunDamage: number;
   edgeAvailable: number;
-  matrixDamage: number;
   statusEffects: StatusEffect[];
   boundSpirits: BoundSpirit[];
   compiledSprites: CompiledSprite[];
+  /** Matrix Condition Monitor damage per owned Matrix device, keyed by the device's gear-line name (matrixDevices() in deriveDeckerPersona.ts) - see that file's matrixConditionMonitor() for the max. Technomancers have no Matrix Condition Monitor (Matrix damage applies to Stun instead), so this stays empty for them. */
+  matrixDamageByDevice: Record<string, number>;
 }
 
 function ownedCharacter(id: string, userId: number | undefined): CharacterRow | undefined {
@@ -306,7 +307,7 @@ const lastPlayStateChange = new Map<number, PlayStateUndoRecord>();
 
 function writePlayState(characterId: number, state: PlayStateClient): void {
   db.prepare(
-    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage, updated_at)
+    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage_by_device, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(character_id) DO UPDATE SET
        physical_damage = excluded.physical_damage,
@@ -315,7 +316,7 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
        status_effects = excluded.status_effects,
        bound_spirits = excluded.bound_spirits,
        compiled_sprites = excluded.compiled_sprites,
-       matrix_damage = excluded.matrix_damage,
+       matrix_damage_by_device = excluded.matrix_damage_by_device,
        updated_at = excluded.updated_at`
   ).run(
     characterId,
@@ -325,7 +326,7 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
     JSON.stringify(state.statusEffects),
     JSON.stringify(state.boundSpirits),
     JSON.stringify(state.compiledSprites),
-    state.matrixDamage
+    JSON.stringify(state.matrixDamageByDevice)
   );
 }
 
@@ -340,10 +341,10 @@ export function playStateFromRow(row: CharacterPlayStateRow): PlayStateClient {
     physicalDamage: row.physical_damage,
     stunDamage: row.stun_damage,
     edgeAvailable: row.edge_available,
-    matrixDamage: row.matrix_damage,
     statusEffects: JSON.parse(row.status_effects) as StatusEffect[],
     boundSpirits: JSON.parse(row.bound_spirits) as BoundSpirit[],
     compiledSprites: JSON.parse(row.compiled_sprites) as CompiledSprite[],
+    matrixDamageByDevice: JSON.parse(row.matrix_damage_by_device) as Record<string, number>,
   };
 }
 
@@ -361,10 +362,10 @@ charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
     physicalDamage: 0,
     stunDamage: 0,
     edgeAvailable: maxEdgeFor(character),
-    matrixDamage: 0,
     statusEffects: [],
     boundSpirits: [],
     compiledSprites: [],
+    matrixDamageByDevice: {},
   });
 });
 
@@ -378,7 +379,15 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     .get(character.id) as CharacterPlayStateRow | undefined;
   const current: PlayStateClient = existingRow
     ? playStateFromRow(existingRow)
-    : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, matrixDamage: 0, statusEffects: [], boundSpirits: [], compiledSprites: [] };
+    : {
+        physicalDamage: 0,
+        stunDamage: 0,
+        edgeAvailable: maxEdge,
+        statusEffects: [],
+        boundSpirits: [],
+        compiledSprites: [],
+        matrixDamageByDevice: {},
+      };
 
   const body = (req.body ?? {}) as Partial<PlayStateClient>;
 
@@ -394,11 +403,9 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
   const physicalDamage = numOrCurrent(body.physicalDamage, current.physicalDamage);
   const stunDamage = numOrCurrent(body.stunDamage, current.stunDamage);
   const edgeAvailable = numOrCurrent(body.edgeAvailable, current.edgeAvailable, maxEdge);
-  const matrixDamage = numOrCurrent(body.matrixDamage, current.matrixDamage);
-  if (physicalDamage === undefined || stunDamage === undefined || edgeAvailable === undefined || matrixDamage === undefined) {
+  if (physicalDamage === undefined || stunDamage === undefined || edgeAvailable === undefined) {
     return res.status(400).json({
-      error:
-        "physicalDamage/stunDamage/edgeAvailable/matrixDamage must be finite non-negative numbers; edgeAvailable is capped at the character's max Edge",
+      error: "physicalDamage/stunDamage/edgeAvailable must be finite non-negative numbers; edgeAvailable is capped at the character's max Edge",
     });
   }
 
@@ -470,6 +477,22 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     compiledSprites = body.compiledSprites;
   }
 
+  let matrixDamageByDevice = current.matrixDamageByDevice;
+  if (body.matrixDamageByDevice !== undefined) {
+    const entries = Object.entries(body.matrixDamageByDevice as Record<string, unknown>);
+    if (
+      typeof body.matrixDamageByDevice !== "object" ||
+      body.matrixDamageByDevice === null ||
+      Array.isArray(body.matrixDamageByDevice) ||
+      entries.some(([, v]) => typeof v !== "number" || !Number.isFinite(v) || v < 0)
+    ) {
+      return res.status(400).json({
+        error: "matrixDamageByDevice must be an object mapping device name to a finite non-negative number",
+      });
+    }
+    matrixDamageByDevice = body.matrixDamageByDevice as Record<string, number>;
+  }
+
   // Undo tracking: only meaningful when exactly one of the three numeric
   // fields actually changed - the GM Bar's steppers always send one field
   // per request, so this never fires for LivePlay's multi-field saves or
@@ -489,13 +512,13 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     physicalDamage,
     stunDamage,
     edgeAvailable,
-    matrixDamage,
     statusEffects,
     boundSpirits,
     compiledSprites,
+    matrixDamageByDevice,
   });
 
-  res.json({ physicalDamage, stunDamage, edgeAvailable, matrixDamage, statusEffects, boundSpirits, compiledSprites });
+  res.json({ physicalDamage, stunDamage, edgeAvailable, statusEffects, boundSpirits, compiledSprites, matrixDamageByDevice });
 });
 
 charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
@@ -512,7 +535,15 @@ charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
     .get(character.id) as CharacterPlayStateRow | undefined;
   const current: PlayStateClient = existingRow
     ? playStateFromRow(existingRow)
-    : { physicalDamage: 0, stunDamage: 0, edgeAvailable: maxEdge, matrixDamage: 0, statusEffects: [], boundSpirits: [], compiledSprites: [] };
+    : {
+        physicalDamage: 0,
+        stunDamage: 0,
+        edgeAvailable: maxEdge,
+        statusEffects: [],
+        boundSpirits: [],
+        compiledSprites: [],
+        matrixDamageByDevice: {},
+      };
 
   const reverted: PlayStateClient = { ...current, [record.field]: record.previousValue };
   writePlayState(character.id, reverted);
