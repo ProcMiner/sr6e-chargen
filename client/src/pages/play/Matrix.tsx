@@ -164,25 +164,6 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
           Firewall) - 4+ points higher grants a bonus Edge point (max two bonus tokens/round), lost on
           leaving a host, rebooting, jacking out, or Convergence.
         </p>
-        <table className="rules-table">
-          <thead>
-            <tr>
-              <th>Matrix Edge Action</th>
-              <th>Cost</th>
-              <th>Effect</th>
-            </tr>
-          </thead>
-          <tbody>
-            {MATRIX_EDGE_ACTIONS.map(({ name, cost, summary }) => (
-              <tr key={name}>
-                <td>{name}</td>
-                <td>{cost}</td>
-                <td>{summary}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="hint">Requires an implanted cyberjack or a Resonance score to use Matrix Edge Actions.</p>
       </details>
 
       <details className="quality-section">
@@ -332,6 +313,29 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
             ))}
           </tbody>
         </table>
+      </details>
+
+      <details className="quality-section">
+        <summary>Matrix Edge Actions</summary>
+        <table className="rules-table">
+          <thead>
+            <tr>
+              <th>Matrix Edge Action</th>
+              <th>Cost</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MATRIX_EDGE_ACTIONS.map(({ name, cost, summary }) => (
+              <tr key={name}>
+                <td>{name}</td>
+                <td>{cost}</td>
+                <td>{summary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="hint">Requires an implanted cyberjack or a Resonance score to use Matrix Edge Actions.</p>
       </details>
     </div>
   );
