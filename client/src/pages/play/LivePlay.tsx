@@ -19,7 +19,9 @@ import { metavariantKarmaCost } from "../../deriveMetavariant";
 import { advancementKarmaTotal } from "../../deriveAdvancement";
 import { initiationKarmaTotal } from "../../deriveInitiation";
 import { specializationKarmaTotal } from "../../deriveSpecializations";
-import { normalizeKnowledgeSkills } from "../../deriveKnowledge";
+import { normalizeKnowledgeSkills, knowledgePurchaseKarmaTotal } from "../../deriveKnowledge";
+import { qualityPurchaseKarmaTotal } from "../../deriveQualities";
+import { contactAdvancementKarmaTotal } from "../../deriveContacts";
 import { matrixDevices } from "../../deriveDeckerPersona";
 import { GearPicker } from "../builder/GearPicker/GearPicker";
 import { Advancement } from "./Advancement";
@@ -207,7 +209,10 @@ export function LivePlay() {
     metavariantKarmaCost(characterData, priorityRules?.metavariants ?? []) +
     advancementKarmaTotal(characterData.advancement) +
     initiationKarmaTotal(characterData.initiations) +
-    specializationKarmaTotal(characterData.specializationLog);
+    specializationKarmaTotal(characterData.specializationLog) +
+    knowledgePurchaseKarmaTotal(characterData.knowledgePurchases) +
+    qualityPurchaseKarmaTotal(characterData.qualityPurchases) +
+    contactAdvancementKarmaTotal(characterData.contactAdvancement);
   const extraNuyenSpent = lifestyleCostTotal(characterData.lifestyles);
 
   function adjustDamage(field: "physicalDamage" | "stunDamage", delta: number) {
@@ -318,7 +323,14 @@ export function LivePlay() {
             id: "matrix",
             label: "Matrix",
             content: (
-              <Matrix data={characterData} gearRules={gearRules!} playState={playState} onChange={scheduleSave} />
+              <Matrix
+                data={characterData}
+                gearRules={gearRules!}
+                playState={playState}
+                onChange={scheduleSave}
+                extraKarmaSpent={extraKarmaSpent}
+                extraNuyenSpent={extraNuyenSpent}
+              />
             ),
           },
         ]

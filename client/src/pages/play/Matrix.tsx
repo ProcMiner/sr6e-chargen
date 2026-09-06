@@ -53,11 +53,13 @@ interface Props {
   gearRules: GearRulesResponse;
   playState: PlayState;
   onChange: (next: PlayState) => void;
+  extraKarmaSpent: number;
+  extraNuyenSpent: number;
 }
 
 type Tab = "persona" | "programs" | "actions" | "reference" | "skills" | "workshop";
 
-export function Matrix({ data, gearRules, playState, onChange }: Props) {
+export function Matrix({ data, gearRules, playState, onChange, extraKarmaSpent, extraNuyenSpent }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("persona");
   const [actionsQuery, setActionsQuery] = useState("");
   const [actionsLegalFilter, setActionsLegalFilter] = useState<"all" | "Legal" | "Illegal">("all");
@@ -210,7 +212,9 @@ export function Matrix({ data, gearRules, playState, onChange }: Props) {
 
       {currentTab === "skills" && <SkillsTab data={data} effectiveAttrs={effectiveAttrs} />}
 
-      {currentTab === "workshop" && <WorkshopTab data={data} />}
+      {currentTab === "workshop" && (
+        <WorkshopTab data={data} extraKarmaSpent={extraKarmaSpent} extraNuyenSpent={extraNuyenSpent} />
+      )}
     </div>
   );
 }
@@ -836,10 +840,18 @@ function SkillsTab({ data, effectiveAttrs }: { data: CharacterData; effectiveAtt
   );
 }
 
-function WorkshopTab({ data }: { data: CharacterData }) {
+function WorkshopTab({
+  data,
+  extraKarmaSpent,
+  extraNuyenSpent,
+}: {
+  data: CharacterData;
+  extraKarmaSpent: number;
+  extraNuyenSpent: number;
+}) {
   const deckLine = data.gear.find((g) => g.customCyberdeck !== undefined);
-  const karma = karmaRemaining(data);
-  const nuyen = nuyenRemaining(data);
+  const karma = karmaRemaining(data, extraKarmaSpent);
+  const nuyen = nuyenRemaining(data, extraNuyenSpent);
 
   return (
     <div>
@@ -854,8 +866,7 @@ function WorkshopTab({ data }: { data: CharacterData }) {
           <span className="kv-value">{nuyen.toLocaleString()}¥</span>
         </div>
         <p className="hint">
-          Base figures - doesn't include lifestyle upkeep or other in-play spends already tracked on the Gear &amp;
-          Lifestyle/Advancement tabs. Read-only here; make changes there.
+          Matches the totals on the Gear &amp; Lifestyle/Advancement tabs. Read-only here; make changes there.
         </p>
       </div>
 
