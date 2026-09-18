@@ -87,6 +87,15 @@ export interface CompiledSprite {
   compiledAt: string;
 }
 
+export interface SustainedSpell {
+  id: string;
+  spellId: string;
+  netHits: number;
+  targetAttribute?: string;
+  notes?: string;
+  castAt: string;
+}
+
 export interface CharacterPlayStateRow {
   character_id: number;
   physical_damage: number;
@@ -103,6 +112,7 @@ export interface CharacterPlayStateRow {
   matrix_edge_spent_scene: number;
   matrix_link_locked: number;
   matrix_backdoor_active: number;
+  sustained_spells: string;
   updated_at: string;
 }
 

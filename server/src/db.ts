@@ -74,6 +74,7 @@ db.exec(`
     matrix_edge_spent_scene INTEGER NOT NULL DEFAULT 0,
     matrix_link_locked INTEGER NOT NULL DEFAULT 0,
     matrix_backdoor_active INTEGER NOT NULL DEFAULT 0,
+    sustained_spells TEXT NOT NULL DEFAULT '[]',
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -133,6 +134,11 @@ try {
 }
 try {
   db.exec(`ALTER TABLE character_play_state ADD COLUMN matrix_backdoor_active INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // column already exists
+}
+try {
+  db.exec(`ALTER TABLE character_play_state ADD COLUMN sustained_spells TEXT NOT NULL DEFAULT '[]'`);
 } catch {
   // column already exists
 }

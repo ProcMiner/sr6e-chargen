@@ -70,6 +70,34 @@ export interface OverwatchLogEntry {
   delta: number;
 }
 
+/**
+ * A spell currently being sustained (core rulebook p.130: "as long as you
+ * continue to sustain the spell, you suffer a -2 dice pool penalty to all
+ * actions"). Lives in PlayState, not CharacterData, for the same
+ * session-transient reasoning as BoundSpirit/CompiledSprite - the caster
+ * decides what to sustain and for how long during a scene, not at chargen.
+ *
+ * `netHits` is the casting test's net hits, entered by the player (this app
+ * has no dice-rolling engine - see every other LivePlay tab's "reference
+ * formula, not a rolled result" boundary), and feeds a sustained spell's
+ * `modifiers` (rules.ts's SpellCatalogEntry, amount "netHits") into
+ * Magic.tsx's live bonus display and AttributesDerivedCard via
+ * deriveModifiers.ts's sustainedSpellBonuses(). `targetAttribute` is set
+ * only for a "choice"-target spell (Increase/Decrease Attribute) - the
+ * caster picks which attribute at cast time, mirroring the same "choice"
+ * concept gear modifiers already resolve via a line's free-text notes (see
+ * deriveModifiers.ts's header comment).
+ */
+export interface SustainedSpell {
+  id: string;
+  /** rules.ts SpellCatalogEntry id. */
+  spellId: string;
+  netHits: number;
+  targetAttribute?: "body" | "agility" | "reaction" | "strength" | "willpower" | "logic" | "intuition" | "charisma";
+  notes?: string;
+  castAt: string;
+}
+
 export interface PlayState {
   physicalDamage: number;
   stunDamage: number;
@@ -90,6 +118,8 @@ export interface PlayState {
   matrixEdgeSpentScene: number;
   matrixLinkLocked: boolean;
   matrixBackdoorActive: boolean;
+  /** Currently-sustained spells (core rulebook p.130) - see SustainedSpell above. Session-transient, cleared manually same as every other Live Play tracker. */
+  sustainedSpells: SustainedSpell[];
 }
 
 export interface PlaySessionSummary {

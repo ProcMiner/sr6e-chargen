@@ -12,8 +12,9 @@
 // character.ts's ResolvedModifier and rules.ts's StatModifier comments for
 // why (both need a concept - a resolved param, an active casting roll -
 // that this app doesn't have yet).
-import type { AdeptPowerCatalogEntry, GearCatalogEntry, ModifierTarget, StatModifier } from "./rules";
+import type { AdeptPowerCatalogEntry, GearCatalogEntry, ModifierTarget, SpellCatalogEntry, StatModifier } from "./rules";
 import type { ResolvedModifier } from "./character";
+import type { SustainedSpell } from "./playState";
 import { ratingFor as gearRatingFor } from "./deriveGear";
 import { ratingFor as adeptRatingFor } from "./deriveAdeptPowers";
 
@@ -80,4 +81,59 @@ export function modifierBonuses(
     bonuses[target] = (bonuses[target] ?? 0) + amount;
   }
   return bonuses;
+}
+
+/**
+ * The one spell whose "netHits" modifier is a penalty, not a bonus
+ * (spells.ts: "this is a PENALTY - a future consumer needs to apply it as
+ * negative net hits, not add it like every other modifier in this
+ * catalog"). Special-cased by id rather than adding a schema field since
+ * it's the only spell in the catalog that needs it.
+ */
+const NEGATIVE_NET_HITS_SPELL_ID = "spell-decrease-attribute";
+
+/**
+ * Resolves currently-sustained spells (PlayState.sustainedSpells) into the
+ * same per-target bonus shape modifierBonuses() produces, so Magic.tsx and
+ * AttributesDerivedCard can fold a live "this spell is currently active"
+ * effect into Reaction/Initiative Dice/Armor - the piece deferred when
+ * StatModifier's "netHits" amount was first introduced (see
+ * stat-modifiers memory / rules.ts's StatModifier comment). Unlike
+ * gear/adept-power modifiers, these are computed fresh every render from
+ * the player-entered netHits, not snapshotted, since a casting's net hits
+ * are only known at cast time and can't be looked up from a catalog.
+ * "choice"-target spells (Increase/Decrease Attribute) resolve against the
+ * instance's own `targetAttribute` instead of being dropped.
+ */
+export function sustainedSpellBonuses(
+  sustained: SustainedSpell[],
+  spellCatalog: SpellCatalogEntry[]
+): Partial<Record<ModifierTarget, number>> {
+  const bonuses: Partial<Record<ModifierTarget, number>> = {};
+  for (const s of sustained) {
+    const entry = spellCatalog.find((sp) => sp.id === s.spellId);
+    if (!entry?.modifiers) continue;
+    const sign = entry.id === NEGATIVE_NET_HITS_SPELL_ID ? -1 : 1;
+    for (const m of entry.modifiers) {
+      if (m.amount !== "netHits") continue;
+      const target = m.target === "choice" ? s.targetAttribute : m.target;
+      if (!target) continue;
+      bonuses[target] = (bonuses[target] ?? 0) + s.netHits * sign;
+    }
+  }
+  return bonuses;
+}
+
+/** Sums any number of per-target bonus maps (modifierBonuses(), sustainedSpellBonuses()) into one - a plain additive merge, since the two sources never need stacking-group mutual exclusivity against each other. */
+export function combineBonuses(
+  ...maps: Partial<Record<ModifierTarget, number>>[]
+): Partial<Record<ModifierTarget, number>> {
+  const result: Partial<Record<ModifierTarget, number>> = {};
+  for (const map of maps) {
+    for (const [key, value] of Object.entries(map)) {
+      const target = key as ModifierTarget;
+      result[target] = (result[target] ?? 0) + (value ?? 0);
+    }
+  }
+  return result;
 }

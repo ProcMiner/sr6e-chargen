@@ -3,15 +3,17 @@ import { useParams } from "react-router-dom";
 import { api, ApiError, type CharacterSummary } from "../../api";
 import { emptyAttributes, emptyCharacterData, type CharacterData } from "../../character";
 import type {
+  AdeptPowerRulesResponse,
   GearRulesResponse,
   MetamagicRulesResponse,
   PriorityRulesResponse,
   QualityRulesResponse,
+  SpellRulesResponse,
   SpiritRulesResponse,
   SpriteRulesResponse,
 } from "../../rules";
 import { deriveStats } from "../../derive";
-import { modifierBonuses } from "../../deriveModifiers";
+import { modifierBonuses, sustainedSpellBonuses } from "../../deriveModifiers";
 import { lifestyleCostTotal } from "../../deriveLifestyle";
 import { spellKarmaCost } from "../../deriveSpells";
 import { complexFormKarmaCost } from "../../deriveComplexForms";
@@ -33,6 +35,7 @@ import { Spirits } from "./Spirits";
 import { Sprites } from "./Sprites";
 import { Astral } from "./Astral";
 import { Matrix } from "./Matrix";
+import { Magic } from "./Magic";
 import type { PlaySessionSummary, PlayState, StatusEffect } from "../../playState";
 import { generateId } from "../../id";
 import { PersonalDataCard } from "../../components/PersonalDataCard";
@@ -64,6 +67,8 @@ export function LivePlay() {
   const [spiritRules, setSpiritRules] = useState<SpiritRulesResponse | null>(null);
   const [spriteRules, setSpriteRules] = useState<SpriteRulesResponse | null>(null);
   const [metamagicRules, setMetamagicRules] = useState<MetamagicRulesResponse | null>(null);
+  const [spellRules, setSpellRules] = useState<SpellRulesResponse | null>(null);
+  const [adeptPowerRules, setAdeptPowerRules] = useState<AdeptPowerRulesResponse | null>(null);
   const [playState, setPlayState] = useState<PlayState | null>(null);
   const [sessions, setSessions] = useState<PlaySessionSummary[] | null>(null);
   const [joinCode, setJoinCode] = useState("");
@@ -103,6 +108,8 @@ export function LivePlay() {
     api.spirits().then(setSpiritRules);
     api.sprites().then(setSpriteRules);
     api.metamagics().then(setMetamagicRules);
+    api.spells().then(setSpellRules);
+    api.adeptPowers().then(setAdeptPowerRules);
     refreshSessions();
   }, [id]);
 
@@ -202,6 +209,7 @@ export function LivePlay() {
   const derived = deriveStats(attributes, modifierBonuses(characterData.gear ?? [], characterData.adeptPowers ?? []));
   const physicalOverflow = playState.physicalDamage - derived.physicalMonitor;
   const stunOverflow = playState.stunDamage - derived.stunMonitor;
+  const extraModifierBonuses = spellRules ? sustainedSpellBonuses(playState.sustainedSpells, spellRules.spells) : {};
 
   const extraKarmaSpent =
     spellKarmaCost(characterData, priorityRules ?? undefined) +
@@ -315,7 +323,13 @@ export function LivePlay() {
       ),
     },
     ...(gearRules
-      ? [{ id: "combat", label: "Combat", content: <Combat data={characterData} gearRules={gearRules} /> }]
+      ? [
+          {
+            id: "combat",
+            label: "Combat",
+            content: <Combat data={characterData} gearRules={gearRules} extraModifierBonuses={extraModifierBonuses} />,
+          },
+        ]
       : []),
     ...(matrixRelevant
       ? [
@@ -326,6 +340,26 @@ export function LivePlay() {
               <Matrix
                 data={characterData}
                 gearRules={gearRules!}
+                playState={playState}
+                onChange={scheduleSave}
+                extraKarmaSpent={extraKarmaSpent}
+                extraNuyenSpent={extraNuyenSpent}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(hasMagic && spellRules && adeptPowerRules
+      ? [
+          {
+            id: "magic",
+            label: "Magic",
+            content: (
+              <Magic
+                data={characterData}
+                spellRules={spellRules}
+                adeptPowerRules={adeptPowerRules}
+                priorityRules={priorityRules ?? undefined}
                 playState={playState}
                 onChange={scheduleSave}
                 extraKarmaSpent={extraKarmaSpent}
@@ -471,7 +505,7 @@ export function LivePlay() {
             </p>
           )}
 
-          <AttributesDerivedCard data={characterData} gearRules={gearRules} />
+          <AttributesDerivedCard data={characterData} gearRules={gearRules} extraModifierBonuses={extraModifierBonuses} />
 
           <SkillsCard data={characterData} priorityRules={priorityRules} />
         </>

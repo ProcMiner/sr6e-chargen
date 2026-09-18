@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { db } from "../db.js";
 import { requireAuth } from "../auth.js";
-import type { BoundSpirit, CharacterPlayStateRow, CharacterRow, ChargenSystem, CompiledSprite, StatusEffect } from "../types.js";
+import type { BoundSpirit, CharacterPlayStateRow, CharacterRow, ChargenSystem, CompiledSprite, StatusEffect, SustainedSpell } from "../types.js";
 
 export const charactersRouter = Router();
 
@@ -269,6 +269,7 @@ export interface PlayStateClient {
   matrixEdgeSpentScene: number;
   matrixLinkLocked: boolean;
   matrixBackdoorActive: boolean;
+  sustainedSpells: SustainedSpell[];
 }
 
 function ownedCharacter(id: string, userId: number | undefined): CharacterRow | undefined {
@@ -320,8 +321,8 @@ const lastPlayStateChange = new Map<number, PlayStateUndoRecord>();
 
 function writePlayState(characterId: number, state: PlayStateClient): void {
   db.prepare(
-    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage_by_device, matrix_programs_running, matrix_reconfigured, overwatch_score, overwatch_log, matrix_edge_spent_scene, matrix_link_locked, matrix_backdoor_active, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO character_play_state (character_id, physical_damage, stun_damage, edge_available, status_effects, bound_spirits, compiled_sprites, matrix_damage_by_device, matrix_programs_running, matrix_reconfigured, overwatch_score, overwatch_log, matrix_edge_spent_scene, matrix_link_locked, matrix_backdoor_active, sustained_spells, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(character_id) DO UPDATE SET
        physical_damage = excluded.physical_damage,
        stun_damage = excluded.stun_damage,
@@ -337,6 +338,7 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
        matrix_edge_spent_scene = excluded.matrix_edge_spent_scene,
        matrix_link_locked = excluded.matrix_link_locked,
        matrix_backdoor_active = excluded.matrix_backdoor_active,
+       sustained_spells = excluded.sustained_spells,
        updated_at = excluded.updated_at`
   ).run(
     characterId,
@@ -353,7 +355,8 @@ function writePlayState(characterId: number, state: PlayStateClient): void {
     JSON.stringify(state.overwatchLog),
     state.matrixEdgeSpentScene,
     state.matrixLinkLocked ? 1 : 0,
-    state.matrixBackdoorActive ? 1 : 0
+    state.matrixBackdoorActive ? 1 : 0,
+    JSON.stringify(state.sustainedSpells)
   );
 }
 
@@ -379,6 +382,7 @@ export function playStateFromRow(row: CharacterPlayStateRow): PlayStateClient {
     matrixEdgeSpentScene: row.matrix_edge_spent_scene,
     matrixLinkLocked: !!row.matrix_link_locked,
     matrixBackdoorActive: !!row.matrix_backdoor_active,
+    sustainedSpells: JSON.parse(row.sustained_spells) as SustainedSpell[],
   };
 }
 
@@ -407,6 +411,7 @@ charactersRouter.get("/:id/play-state", (req: Request, res: Response) => {
     matrixEdgeSpentScene: 0,
     matrixLinkLocked: false,
     matrixBackdoorActive: false,
+    sustainedSpells: [],
   });
 });
 
@@ -435,6 +440,7 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
         matrixEdgeSpentScene: 0,
         matrixLinkLocked: false,
         matrixBackdoorActive: false,
+        sustainedSpells: [],
       };
 
   const body = (req.body ?? {}) as Partial<PlayStateClient>;
@@ -611,6 +617,27 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     matrixBackdoorActive = body.matrixBackdoorActive;
   }
 
+  let sustainedSpells = current.sustainedSpells;
+  if (body.sustainedSpells !== undefined) {
+    if (
+      !Array.isArray(body.sustainedSpells) ||
+      body.sustainedSpells.some((s) => {
+        if (s === null || typeof s !== "object") return true;
+        if (typeof s.id !== "string" || typeof s.spellId !== "string") return true;
+        if (typeof s.netHits !== "number" || !Number.isFinite(s.netHits) || s.netHits < 0) return true;
+        if (s.targetAttribute !== undefined && typeof s.targetAttribute !== "string") return true;
+        if (s.notes !== undefined && typeof s.notes !== "string") return true;
+        if (typeof s.castAt !== "string") return true;
+        return false;
+      })
+    ) {
+      return res.status(400).json({
+        error: "sustainedSpells must be an array of { id, spellId, netHits, targetAttribute?, notes?, castAt }",
+      });
+    }
+    sustainedSpells = body.sustainedSpells;
+  }
+
   // Undo tracking: only meaningful when exactly one of the three numeric
   // fields actually changed - the GM Bar's steppers always send one field
   // per request, so this never fires for LivePlay's multi-field saves or
@@ -641,6 +668,7 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     matrixEdgeSpentScene,
     matrixLinkLocked,
     matrixBackdoorActive,
+    sustainedSpells,
   });
 
   res.json({
@@ -658,6 +686,7 @@ charactersRouter.put("/:id/play-state", (req: Request, res: Response) => {
     matrixEdgeSpentScene,
     matrixLinkLocked,
     matrixBackdoorActive,
+    sustainedSpells,
   });
 });
 
@@ -690,6 +719,7 @@ charactersRouter.post("/:id/play-state/undo", (req: Request, res: Response) => {
         matrixEdgeSpentScene: 0,
         matrixLinkLocked: false,
         matrixBackdoorActive: false,
+        sustainedSpells: [],
       };
 
   const reverted: PlayStateClient = { ...current, [record.field]: record.previousValue };

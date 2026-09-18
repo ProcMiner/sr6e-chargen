@@ -22,8 +22,8 @@ import { unarmedAttackRating } from "../deriveCombat";
 import { matrixDevices, matrixVrInitDice, deckerMatrixInitiativeVRCold, deckerAllocation, resolveDeckerAllocation } from "../deriveDeckerPersona";
 import { currentEssence, effectiveMagic, effectiveResonance, formatEssence } from "../deriveEssence";
 import { livingPersonaInitiative } from "../deriveLivingPersona";
-import { modifierBonuses } from "../deriveModifiers";
-import type { GearRulesResponse } from "../rules";
+import { combineBonuses, modifierBonuses } from "../deriveModifiers";
+import type { GearRulesResponse, ModifierTarget } from "../rules";
 
 const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
   ["body", "Body"],
@@ -40,10 +40,12 @@ const ATTRIBUTE_LABELS: [keyof CharacterData["attributes"], string][] = [
 interface Props {
   data: CharacterData;
   gearRules: GearRulesResponse | null;
+  /** Live, session-transient bonuses (currently-sustained spells - see deriveModifiers.ts's sustainedSpellBonuses) on top of gear/adept-power modifiers. Omitted in chargen contexts, which have no PlayState. */
+  extraModifierBonuses?: Partial<Record<ModifierTarget, number>>;
 }
 
-export function AttributesDerivedCard({ data, gearRules }: Props) {
-  const bonuses = modifierBonuses(data.gear, data.adeptPowers);
+export function AttributesDerivedCard({ data, gearRules, extraModifierBonuses }: Props) {
+  const bonuses = combineBonuses(modifierBonuses(data.gear, data.adeptPowers), extraModifierBonuses ?? {});
   const derived = deriveStats(data.attributes, bonuses);
   const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const essence = currentEssence(data);

@@ -9,9 +9,9 @@
 // GM-facing minutiae) - same scope boundary as Matrix's Hosts/IC exclusion.
 import { useState } from "react";
 import type { CharacterData } from "../../character";
-import type { GearRulesResponse } from "../../rules";
+import type { GearRulesResponse, ModifierTarget } from "../../rules";
 import { deriveStats, effectiveAttributes } from "../../derive";
-import { modifierBonuses } from "../../deriveModifiers";
+import { combineBonuses, modifierBonuses } from "../../deriveModifiers";
 import { bucketGear, gearLineKey } from "../../deriveGear";
 import { currentEssence, formatEssence } from "../../deriveEssence";
 import {
@@ -41,11 +41,13 @@ const REFERENCE_SECTIONS: { id: ReferenceSection; label: string }[] = [
 interface Props {
   data: CharacterData;
   gearRules: GearRulesResponse;
+  /** Live, session-transient bonuses (currently-sustained spells, e.g. Armor) on top of gear/adept-power modifiers - see deriveModifiers.ts's sustainedSpellBonuses. */
+  extraModifierBonuses?: Partial<Record<ModifierTarget, number>>;
 }
 
-export function Combat({ data, gearRules }: Props) {
+export function Combat({ data, gearRules, extraModifierBonuses }: Props) {
   const [section, setSection] = useState<ReferenceSection>("process");
-  const bonuses = modifierBonuses(data.gear ?? [], data.adeptPowers ?? []);
+  const bonuses = combineBonuses(modifierBonuses(data.gear ?? [], data.adeptPowers ?? []), extraModifierBonuses ?? {});
   const derived = deriveStats(data.attributes, bonuses);
   const effectiveAttrs = effectiveAttributes(data.attributes, bonuses);
   const armor = wornArmorTotal(data, gearRules.gear);

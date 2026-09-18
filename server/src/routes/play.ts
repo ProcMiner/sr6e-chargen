@@ -121,6 +121,7 @@ playRouter.get("/sessions/:id", (req: Request, res: Response) => {
           matrixEdgeSpentScene: 0,
           matrixLinkLocked: false,
           matrixBackdoorActive: false,
+          sustainedSpells: [],
         };
 
     return {
